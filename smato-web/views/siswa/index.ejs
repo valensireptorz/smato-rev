@@ -1,0 +1,92 @@
+<%- include('../partials/_head.ejs') %>
+
+<%- include('../partials/_nav.ejs') %>
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <!-- Content -->
+            <%- include('../partials/_message.ejs') %>
+            <div class="container-xxl flex-grow-1 container-p-y">
+              <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Tables /</span> siswa</h4>
+              
+
+              <!-- Basic Bootstrap Table -->
+              <div class="card">
+                <h5 class="card-header">Akun Siswa 👨🏻‍🏫👩🏻‍🏫</h5>
+                <div class="table-responsive text-nowrap">
+                  <% if (level == "admin") {%>
+                    <div class="mt-3 px-3">
+                        <a href="/siswa/create" class="btn btn-sm btn-primary">Tambah</a>
+                        </div>
+                        <% } %>
+                        <!-- Form search -->
+    <form action="/siswa/search" method="get" class="d-flex">
+      <input
+        type="text"
+        name="kelas"
+        class="form-control form-control-sm me-2"
+        placeholder="Cari berdasarkan kelas..."
+        required
+      />
+      <button type="submit" class="btn btn-sm btn-success">Cari</button>
+    </form>
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>kelas</th>
+                        <th>Nama siswa</th>
+                        <th>NIS</th>
+                        <th>Alamat</th>
+                        <th>Password</th>
+                        <% if (level == "admin") {%>
+                        <th>Actions</th>
+                        <% } %>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% for(var i = 0; i < data.length; i++){ %>
+                      <tr>
+                        <td><%= i+1 %></td>
+                        <td><%= data[i].kode_kelas %></td>
+                        <td><%= data[i].nama_siswa %></td>
+                        <td><%= data[i].nis %></td>
+                        <td><%= data[i].alamat %></td>
+                        <td><%= data[i].password %></td>
+                        <% if (level == "admin") { %>
+                        <td>
+                          <div class="dropdown">
+                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                              <i class="bx bx-dots-vertical-rounded"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                              <a class="dropdown-item" href="/siswa/edit/<%= data[i].id_siswa %>""
+                                ><i class="bx bx-edit-alt me-1"></i> Edit</a
+                              >
+                              <a class="dropdown-item" href="/siswa/delete/<%= data[i].id_siswa %>""
+                                ><i class="bx bx-trash me-1"></i> Delete</a
+                              >
+                              <a class="dropdown-item" href="/siswa/presensi/<%= data[i].id_siswa %>""
+                                ><i class="bx bx-trash me-1"></i> absen</a
+                              >
+                            </div>
+                          </div>
+                        </td>
+                        <% } %>
+
+
+                    
+
+
+
+
+
+
+                      </tr>
+                      <% } %>
+                    </tbody>
+                    
+                  </table>
+                </div>
+              </div>
+              <!--/ Basic Bootstrap Table -->
+              <%- include('../partials/_foot.ejs') %>

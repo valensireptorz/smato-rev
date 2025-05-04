@@ -1,0 +1,89 @@
+<%- include('../partials/_head.ejs') %>
+
+  <%- include('../partials/_nav.ejs') %>
+    <!-- Content wrapper -->
+    <div class="content-wrapper">
+      <!-- Content -->
+
+      <div class="container-xxl flex-grow-1 container-p-y">
+        <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Forms/</span> Add Jadwal</h4>
+
+        <!-- Basic Layout & Basic with Icons -->
+        <div class="row">
+          <!-- Basic Layout -->
+          <div class="col-xxl">
+            <div class="card mb-4">
+              <div class="card-header d-flex align-items-center justify-content-between">
+                <h5 class="mb-0">Jadwal</h5>
+                <small class="text-muted float-end"></small>
+              </div>
+              <div class="card-body">
+                <form action="/jadwal/store" method="POST">
+                  <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for="basic-default-name">Hari</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" name="hari" id="hari" placeholder="Hari" />
+                    </div>
+                  </div>
+                  <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for="basic-default-name">Mata Pelajaran</label>
+                    <div class="col-sm-10">
+                      <select class="form-select" aria-label="Default select example" name="id_mapel" required>
+                        <option selected>Pilih</option>
+                        <% for(var i=0; i < data.length; i++){ %>
+                          <option value="<%= data[i].id_mapel %>">
+                            <%= data[i].nama_mapel %>
+                          </option>
+                          <% } %>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for="basic-default-name">Guru</label>
+                    <div class="col-sm-10">
+                      <select class="form-select" aria-label="Default select example" name="id_guru" required>
+                        <option selected>Pilih</option>
+                        <% for(var i=0; i < data2.length; i++){ %>
+                          <option value="<%= data2[i].id_guru %>">
+                            <%= data2[i].nama_guru %>
+                          </option>
+                          <% } %>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for="basic-default-name">Jam Mulai</label>
+                    <div class="col-sm-10">
+                      <input type="time" class="form-control" name="jam_mulai" id="jam_mulai" placeholder="jam_mulai" />
+                    </div>
+                  </div>
+                  <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for="basic-default-name">Jam Selesai</label>
+                    <div class="col-sm-10">
+                      <input type="time" class="form-control" name="jam_selesai" id="jam_selesai"
+                        placeholder="jam_selesai" />
+                    </div>
+                  </div>
+                  <div class="row mb-3">
+                    <label class="col-sm-2 col-form-label" for="basic-default-name">Kelas</label>
+                    <div class="col-sm-10">
+                      <select class="form-select" aria-label="Default select example" name="id_kelas" required>
+                        <option selected>Pilih</option>
+                        <% for(var i=0; i < data3.length; i++){ %>
+                          <option value="<%= data3[i].id_kelas %>">
+                            <%= data3[i].kode_kelas %>
+                          </option>
+                          <% } %>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="row justify-content-end">
+                    <div class="col-sm-10">
+                      <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          <%- include('../partials/_foot.ejs') %>

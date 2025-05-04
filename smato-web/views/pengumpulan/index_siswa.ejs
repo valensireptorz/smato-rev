@@ -1,0 +1,84 @@
+<%- include('../partials/_head.ejs') %>
+
+
+
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+<!-- Content wrapper -->
+<div class="content-wrapper">
+  <!-- Content -->
+  <%- include('../partials/_message.ejs') %>
+  <div class="container-xxl flex-grow-1 container-p-y justify-content-center">
+    <!-- Basic Bootstrap Table -->
+    <div class="row mb-5">
+      
+      <% for(var i = 0; i < data.length; i++){ %>
+        
+          <div class="card mb-4 mx-2" style="width: 30rem;">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item"><h4> <%= data[i].nama_mapel %></h4></li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span><b><%= data[i].nama_tugas %></b></span>
+                <% if (level == "dosen") { %>
+                  <div class="dropdown">
+                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                      <i class="bx bx-dots-vertical-rounded"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end">
+                      <a class="dropdown-item" href="/pengumpulan/edit/<%= data[i].id_tugas %>">
+                        <i class="bx bx-edit-alt me-1"></i> Edit
+                      </a>
+                      <a class="dropdown-item" href="/pengumpulan/delete/<%= data[i].id_tugas %>">
+                        <i class="bx bx-trash me-1"></i> Delete
+                      </a>
+                    </div>
+                  </div>
+                <% } %>
+              </li>
+              <li class="list-group-item"><a>Deskripsi : </a> <%= data[i].deskripsi %></li>
+              <li class="list-group-item"><a>Deadline : </a> <%= data[i].deadline %></li>
+              <% if (data[i].file_tugas == null) { %>
+                <li class="list-group-item text-danger"><a>Belum Mengumpulkan</a> </li>
+                <% } else { %>
+              <li class="list-group-item text-success"><a>Mengumpulkan : </a> <%= data[i].upload_time %></li>
+              <% } %>
+              <li class="list-group-item"><a>siswa : </a> <%= data[i].username %></li>
+              <li class="list-group-item">
+                <!-- Update the file_tugas section to be a download link -->
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                  <% if (data[i].file_tugas) { %>
+                    <span><%= data[i].file_tugas %></span>
+                    <a href="/pengumpulan/download/<%= data[i].file_tugas %>" class="btn btn-sm btn-primary">Unduh</a>
+                  <% } else { %>
+                    <span>No file uploaded</span>
+                  <% } %>
+                </div>
+              </li>
+              <% if (level == "siswa") { %>
+                <% if (data[i].file_tugas == null) { %>
+                  <li class="list-group-item">
+                    <div class="mt-3 px-3">
+                      <a href="../create/<%= data[i].id_tugas %>" class="btn btn-sm btn-primary">Upload Tugas</a>
+                    </div>
+                  </li>
+                <% } %>
+                <% if (data[i].file_tugas != null) { %>
+                  <li class="list-group-item">
+                    <div class="mt-3 px-3">
+                      <a href="/pengumpulan/edit/<%= data[i].id_pengumpulan %>" class="btn btn-sm btn-warning">Edit Tugas</a>
+                    </div>
+                  </li>
+                <% } %>
+
+                
+              <% } %>
+            </ul>
+          </div>
+        <% } %>
+        
+
+    </div>
+  </div>
+  <!--/ Basic Bootstrap Table -->
+</div>
+</div>
+<%- include('../partials/_foot.ejs') %>

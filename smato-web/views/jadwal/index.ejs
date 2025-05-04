@@ -1,0 +1,68 @@
+<%- include('../partials/_head.ejs') %>
+
+<%- include('../partials/_nav.ejs') %>
+
+<!-- Content wrapper -->
+<div class="content-wrapper">
+    <!-- Content -->
+    <%- include('../partials/_message.ejs') %>
+    <div class="container-xxl flex-grow-1 container-p-y">
+        <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Card /</span> Jadwal 📔</h4>
+
+        <!-- Search Form -->
+        <form action="/jadwal" method="GET" class="mb-4">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Cari berdasarkan kelas (e.g. X-A)" name="kelas" value="<%= kelasSearch %>">
+                <button class="btn btn-primary" type="submit">Cari</button>
+            </div>
+        </form>
+
+        <!-- Basic Bootstrap Table -->
+        <div class="row mb-5">
+            <% if (level == "admin") {%>
+                <div class="mt-3 px-3">
+                    <a href="/jadwal/create" class="btn btn-sm btn-primary">Tambah</a>
+                </div>
+            <% } %>
+
+            <div class="d-flex flex-wrap">
+                <% if (groupedData && Object.keys(groupedData).length > 0) { %>
+                    <% for (const hari in groupedData) { %>
+                        <div class="card mb-4 mx-2" style="width: 18rem;">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"><h2><%= hari %></h2></li>
+                                <% groupedData[hari].forEach(item => { %>
+                                    <li class="list-group-item">
+                                        <b><%= item.nama_mapel %></b><br>
+                                        <%= item.nama_guru %><br>
+                                        <%= item.jam_mulai %> - <%= item.jam_selesai %><br>
+                                        <%= item.kode_kelas %>
+                                    </li>
+                                <% }); %>
+                                <% if (level == "admin") { %>
+                                    <div class="dropdown">
+                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a class="dropdown-item" href="/jadwal/edit/<%= groupedData[hari][0].id_jadwal %>">
+                                                <i class="bx bx-edit-alt me-1"></i> Edit
+                                            </a>
+                                            <a class="dropdown-item" href="/jadwal/delete/<%= groupedData[hari][0].id_jadwal %>">
+                                                <i class="bx bx-trash me-1"></i> Delete
+                                            </a>
+                                        </div>
+                                    </div>
+                                <% } %>
+                            </ul>
+                        </div>
+                    <% } %>
+                <% } else { %>
+                    <p class="text-center">Tidak ada jadwal tersedia.</p>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/_foot.ejs') %>

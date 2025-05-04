@@ -1,0 +1,74 @@
+<%- include('../partials/_head.ejs') %>
+<%- include('../partials/_nav.ejs') %>
+
+<div class="container mt-5">
+  <h3>Data Tugas</h3>
+
+  <!-- Dropdown Pilih Mapel -->
+  <div class="dropdown mb-3">
+    <button class="btn btn-secondary dropdown-toggle" type="button" id="courseDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      <% if (nama_mapel) { %>
+        <%= nama_mapel %>
+      <% } else { %>
+        Pilih Mata Pelajaran
+      <% } %>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="courseDropdown">
+      <% dataMapel.forEach((mapel) => { %>
+        <li>
+          <a class="dropdown-item" href="/tugas?nama_mapel=<%= mapel.nama_mapel %>"><%= mapel.nama_mapel %></a>
+        </li>
+      <% }) %>
+    </ul>
+  </div>
+
+  <!-- Info Mapel -->
+  <% if (nama_mapel) { %>
+    <p><strong>Mata Pelajaran:</strong> <%= nama_mapel %></p>
+  <% } %>
+
+  <!-- Tombol Tambah Tugas (Guru Saja) -->
+  <% if (level === 'guru' && id_mapel) { %>
+    <a href="/tugas/create/<%= id_mapel %>" class="btn btn-primary mb-3">+ Tambah Tugas</a>
+  <% } %>
+
+  <!-- Tabel Tugas -->
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>Nama Tugas</th>
+        <th>Deskripsi</th>
+        <th>Deadline</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (dataTugas && dataTugas.length > 0) { %>
+        <% dataTugas.forEach((tugas, i) => { %>
+          <tr>
+            <td><%= i + 1 %></td>
+            <td><%= tugas.nama_tugas %></td>
+            <td><%= tugas.deskripsi %></td>
+            <td><%= new Date(tugas.deadline).toLocaleDateString() %></td>
+            <td>
+              <% if (level === 'guru') { %>
+                <a href="/tugas/edit/<%= tugas.id_tugas %>" class="btn btn-warning btn-sm">Edit</a>
+                <a href="/tugas/delete/<%= tugas.id_tugas %>" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus?')">Hapus</a>
+              <% } else { %>
+                <span class="text-muted">Tidak tersedia</span>
+              <% } %>
+              <a href="/pengumpulan/<%= tugas.id_tugas %>" class="btn btn-info btn-sm">Detail</a>
+            </td>
+          </tr>
+        <% }) %>
+      <% } else { %>
+        <tr>
+          <td colspan="5" class="text-center">Tidak ada tugas.</td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../partials/_foot.ejs') %>

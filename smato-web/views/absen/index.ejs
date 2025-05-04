@@ -1,0 +1,72 @@
+<%- include('../partials/_head.ejs') %>
+<%- include('../partials/_nav.ejs') %>
+
+<div class="container mt-5">
+  <h3>Data Absensi</h3>
+
+  <div class="dropdown mb-3">
+    <button class="btn btn-secondary dropdown-toggle" type="button" id="courseDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+      <% if (nama_mapel) { %>
+        <%= nama_mapel %>
+      <% } else { %>
+        Pilih Mata Pelajaran
+      <% } %>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="courseDropdown">
+      <% dataMapel.forEach((mapel) => { %>
+        <li>
+          <a class="dropdown-item" href="/absen?nama_mapel=<%= mapel.nama_mapel %>"><%= mapel.nama_mapel %></a>
+        </li>
+      <% }) %>
+    </ul>
+  </div>
+
+  <% if (nama_mapel) { %>
+    <p><strong>Mata Pelajaran:</strong> <%= nama_mapel %></p>
+  <% } %>
+
+  <% if (level === 'guru' && id_mapel) { %>
+    <a href="/absen/create/<%= id_mapel %>" class="btn btn-primary mb-3">+ Tambah Absen</a>
+
+  <% } %>
+
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>ID Absen</th>
+        <th>Mata Pelajaran</th>
+        <th>Kelas</th>
+        <th>Tanggal</th>
+        <th>Jam Mulai</th>
+        <th>Jam Selesai</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% dataAbsen.forEach((absen, i) => { %>
+        <tr>
+          <td><%= i + 1 %></td>
+          <td><%= absen.id_absen %></td>
+          <td><%= absen.nama_mapel %></td>
+          <td><%= absen.kode_kelas %></td>
+          <td><%= new Date(absen.tanggal).toLocaleDateString() %></td>
+          <td><%= absen.jam_mulai %></td>
+          <td><%= absen.jam_selesai %></td>
+          <td>
+            <% if (level === 'guru') { %>
+              <a href="/absen/edit/<%= absen.id_absen %>" class="btn btn-warning btn-sm">Edit</a>
+              <a href="/absen/delete/<%= absen.id_absen %>" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus?')">Hapus</a>
+         
+
+            <% } else { %>
+              <span class="text-muted">Tidak tersedia</span>
+            <% } %>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../partials/_foot.ejs') %>

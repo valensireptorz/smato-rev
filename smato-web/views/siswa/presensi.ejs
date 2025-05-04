@@ -1,0 +1,31 @@
+<%- include('../partials/_head.ejs') %>
+<%- include('../partials/_nav.ejs') %>
+
+<div class="container mt-5">
+  <h3>Riwayat Presensi</h3>
+
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>Tanggal</th>
+        <th>Jam</th>
+        <th>Mata Pelajaran</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% riwayatPresensi.forEach((row, i) => { %>
+        <tr>
+          <td><%= i + 1 %></td>
+          <td><%= new Date(row.tanggal_presensi).toLocaleDateString() %></td>
+          <td><%= row.jam_presensi %></td>
+          <td><%= row.nama_mapel %></td>
+          <td><%= row.status %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../partials/_foot.ejs') %>

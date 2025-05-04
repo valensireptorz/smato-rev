@@ -1,0 +1,53 @@
+<%- include('../partials/_head.ejs') %>
+<%- include('../partials/_nav.ejs') %>
+
+<div class="container mt-5">
+  <h3>Edit Absen</h3>
+  <form action="/absen/update/<%= id %>" method="POST">
+    
+    <div class="mb-3">
+      <label for="id_mapel" class="form-label">Mata Pelajaran</label>
+      <select class="form-control" name="id_mapel" required>
+        <% dataMapel.forEach((mapel) => { %>
+          <option value="<%= mapel.id_mapel %>" <%= mapel.id_mapel == id_mapel ? 'selected' : '' %>><%= mapel.nama_mapel %></option>
+        <% }); %>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="id_guru" class="form-label">Guru</label>
+      <select class="form-control" name="id_guru" required>
+        <% dataGuru.forEach((guru) => { %>
+          <option value="<%= guru.id_guru %>" <%= guru.id_guru == id_guru ? 'selected' : '' %>><%= guru.nama_guru %> - <%= guru.nip %></option>
+        <% }); %>
+      </select>
+    </div>
+
+    <select name="id_kelas" class="form-control">
+      <% dataKelas.forEach(k => { %>
+        <option value="<%= k.id_kelas %>" <%= id_kelas == k.id_kelas ? 'selected' : '' %>><%= k.kode_kelas %></option>
+      <% }); %>
+    </select>
+    
+
+    <div class="mb-3">
+      <label for="tanggal" class="form-label">Tanggal</label>
+      <input type="date" class="form-control" name="tanggal" value="<%= tanggal %>" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="jam_mulai" class="form-label">Jam Mulai</label>
+      <input type="time" class="form-control" name="jam_mulai" value="<%= jam_mulai %>" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="jam_selesai" class="form-label">Jam Selesai</label>
+      <input type="time" class="form-control" name="jam_selesai" value="<%= jam_selesai %>" required>
+    </div>
+    
+
+    <button type="submit" class="btn btn-primary">Perbarui</button>
+  </form>
+</div>
+
+<%- include('../partials/_foot.ejs') %>

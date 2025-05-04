@@ -1,0 +1,71 @@
+<%- include('../partials/_head.ejs') %>
+
+<div class="content-wrapper">
+  <div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Forms/</span> Edit Siswa</h4>
+
+    <div class="row">
+      <div class="col-xxl">
+        <div class="card mb-4">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <h5 class="mb-0">Edit Akun Siswa</h5>
+          </div>
+          <div class="card-body">
+            <form action="/siswa/update/<%= id %>" method="POST">
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">Kelas</label>
+                <div class="col-sm-10">
+                  <select class="form-control" name="id_kelas" required>
+                    <% data_kelas.forEach((kelas) => { %>
+                      <option value="<%= kelas.id_kelas %>" <%= id_kelas == kelas.id_kelas ? 'selected' : '' %> >
+                        <%= kelas.kode_kelas %>
+                      </option>
+                    <% }); %>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">Nama Siswa</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" name="nama_siswa" value="<%= nama_siswa %>" required />
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">NIS</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" name="nis" value="<%= nis %>" required />
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">Alamat</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" name="alamat" value="<%= alamat %>" required />
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label">Password</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" name="password" value="<%= password %>" required />
+                </div>
+              </div>
+
+              <div class="row justify-content-end">
+                <div class="col-sm-10">
+                  <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/_foot.ejs') %>

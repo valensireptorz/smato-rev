@@ -1,0 +1,82 @@
+<%- include('../partials/_head.ejs') %>
+
+<!-- Content wrapper -->
+<div class="content-wrapper">
+  <!-- Content -->
+  <div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Forms/</span> Upload Tugas</h4>
+
+    <!-- Parent Row -->
+    <div class="row">
+      <!-- Left Section -->
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <h5 class="mb-0">Tugas</h5>
+            <small class="text-muted float-end"></small>
+          </div>
+          <!-- Basic Bootstrap Table -->
+          <div class="readUpdate">
+            <div class="d-flex flex-wrap">
+              <div class="card mb-4 mx-2" style="width: 40rem;">
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item"><h4><%= nama_mapel %></h4></li>
+                  <li class="list-group-item"><b><%= nama_tugas %></b></li>
+                  <li class="list-group-item"><a>Deskripsi : </a> <%= deskripsi %></li>
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><a>Deadline : </a> <%= deadline %></span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <!--/ Basic Bootstrap Table -->
+        </div>
+      </div>
+      <!-- Right Section -->
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">Upload Tugas</h5>
+          </div>
+          <div class="card-body formUpload">
+            <form action="/tugas/update/<%= id %>" method="POST" enctype="multipart/form-data">
+              <div  class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="basic-default-name">MataPelajaran</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" name="id_mapel" id="id_mapel" value="<%= id_mapel %>" />
+                </div>
+              </div>
+              <div  class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="basic-default-name">Nama Tugas</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" name="nama_tugas" id="nama_tugas" value="<%= nama_tugas %>" />
+                </div>
+              </div>
+              <div  class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="basic-default-name">Deskripsi</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" name="deskripsi" id="deskripsi" value="<%= deskripsi %>" />
+                </div>
+              </div>
+              <div  class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="basic-default-name">Deadline</label>
+                <div class="col-sm-10">
+                  <input type="datetime-local" class="form-control" name="deadline" id="deadline" value="<%= deadline %>" />
+                </div>
+              </div>
+              
+              <div class="row justify-content-end">
+                <div class="col-sm-10">
+                  <button type="submit" class="btn btn-primary">Upload</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--/ Parent Row -->
+
+  </div>
+  <%- include('../partials/_foot.ejs') %>

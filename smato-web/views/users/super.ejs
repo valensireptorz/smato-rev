@@ -1,0 +1,20 @@
+<%- include('../partials/_head.ejs') %>
+<%- include('../partials/_nav.ejs') %>
+<div class="container-fluid">
+  <%- include('../partials/_message.ejs') %>
+  <div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body text-center">
+          <h1 class="card-title">Hai, <%= username %> !!</h1>
+          <img src="/images/upload/<%= foto_users %>" class="img-fluid rounded-circle mb-4" alt="Foto Pengguna" style="max-width: 200px;">
+          
+        </div>
+        <div class="card-footer text-muted">
+          <a href="/logout" class="btn btn-danger">Logout</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('../partials/_foot.ejs') %>

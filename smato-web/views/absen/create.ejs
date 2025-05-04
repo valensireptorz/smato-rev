@@ -1,0 +1,73 @@
+<%- include('../partials/_head.ejs') %>
+<%- include('../partials/_nav.ejs') %>
+
+<div class="container mt-5">
+  <h3>Tambah Absen</h3>
+  <form action="/absen/store" method="POST">
+    
+    <!-- Tidak perlu pilih mapel, langsung tampilkan -->
+    <div class="mb-3">
+      <label class="form-label">Mata Pelajaran</label>
+      <input type="text" class="form-control" value="<%= nama_mapel %>" readonly>
+      <input type="hidden" name="id_mapel" value="<%= id_mapel %>">
+    </div>
+    
+
+
+    <div class="mb-3">
+      <label for="id_guru" class="form-label">Guru</label>
+      <select class="form-control" name="id_guru" required>
+        <option value="">-- Pilih Guru --</option>
+        <% dataGuru.forEach((guru) => { %>
+          <option value="<%= guru.id_guru %>"><%= guru.nama_guru %> - <%= guru.nip %></option>
+        <% }); %>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="id_kelas" class="form-label">Kelas</label>
+      <select class="form-control" name="id_kelas" required>
+        <option value="">-- Pilih Kelas --</option>
+        <% dataKelas.forEach((kelas) => { %>
+          <option value="<%= kelas.id_kelas %>"><%= kelas.nama_kelas %> - <%= kelas.kode_kelas %></option>
+        <% }); %>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="tanggal" class="form-label">Tanggal</label>
+      <input type="date" class="form-control" name="tanggal" id="tanggal" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="jam_mulai" class="form-label">Jam Mulai</label>
+      <input type="time" class="form-control" name="jam_mulai" id="jam_mulai" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="jam_selesai" class="form-label">Jam Selesai</label>
+      <input type="time" class="form-control" name="jam_selesai" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Simpan</button>
+  </form>
+</div>
+
+<script>
+  // Function to set the current date and time
+  document.addEventListener("DOMContentLoaded", function() {
+    // Get current date
+    const currentDate = new Date();
+    
+    // Format date to YYYY-MM-DD
+    const formattedDate = currentDate.toISOString().split('T')[0];
+    document.getElementById("tanggal").value = formattedDate;
+
+    // Format time to HH:MM (24-hour format)
+    const hours = String(currentDate.getHours()).padStart(2, '0');
+    const minutes = String(currentDate.getMinutes()).padStart(2, '0');
+    const currentTime = `${hours}:${minutes}`;
+    document.getElementById("jam_mulai").value = currentTime;
+  });
+</script>
+
+<%- include('../partials/_foot.ejs') %>

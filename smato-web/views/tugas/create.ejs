@@ -1,0 +1,35 @@
+<%- include('../partials/_head.ejs') %>
+<%- include('../partials/_nav.ejs') %>
+
+<div class="container mt-5">
+  <h3>Tambah Tugas</h3>
+  <form action="/tugas/store" method="POST">
+    
+    <!-- Tampilkan nama mapel dan sembunyikan id_mapel -->
+    <div class="mb-3">
+      <label class="form-label">Mata Pelajaran</label>
+      <input type="text" class="form-control" value="<%= nama_mapel %>" readonly>
+      <input type="hidden" name="id_mapel" value="<%= id_mapel %>">
+    </div>
+
+    <div class="mb-3">
+      <label for="nama_tugas" class="form-label">Nama Tugas</label>
+      <input type="text" class="form-control" name="nama_tugas" id="nama_tugas" placeholder="Nama Tugas" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="deskripsi" class="form-label">Deskripsi</label>
+      <input type="text" class="form-control" name="deskripsi" id="deskripsi" placeholder="Deskripsi Tugas" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="deadline" class="form-label">Deadline</label>
+      <input type="datetime-local" class="form-control" name="deadline" id="deadline" required>
+    </div>
+    
+
+    <button type="submit" class="btn btn-primary">Simpan</button>
+  </form>
+</div>
+
+<%- include('../partials/_foot.ejs') %>
