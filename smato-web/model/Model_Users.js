@@ -2,6 +2,26 @@ const connection = require('../config/database');
 
 class Model_Users{
 
+    static async getGuruMapel(id_guru) {
+        return new Promise((resolve, reject) => {
+            // Hapus 'g.kode_kelas' dari daftar kolom yang dipilih
+            const query = `
+                SELECT u.*, m.id_mapel, m.nama_mapel
+                FROM users u
+                LEFT JOIN mapel m ON u.id_mapel = m.id_mapel
+                WHERE u.id_users = ? AND u.level_users = 'guru'
+            `;
+            connection.query(query, [id_guru], (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
+
+
 
     static async getAllWithRelasi() {
         return new Promise((resolve, reject) => {

@@ -18,6 +18,45 @@ class Model_Absen {
         });
     }
 
+    static async getByMapel(id_mapel) {
+        return new Promise((resolve, reject) => {
+            connection.query(`
+                SELECT a.*, m.nama_mapel, k.kode_kelas
+                FROM absen a
+                LEFT JOIN mapel m ON a.id_mapel = m.id_mapel
+                LEFT JOIN kelas k ON a.id_kelas = k.id_kelas
+                WHERE a.id_mapel = ?
+                ORDER BY a.tanggal DESC
+            `, [id_mapel], (err, rows) => {
+                if (err) {
+                    console.error("Error in Model_Absen.getByMapel():", err);
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
+    
+    // // Pastikan juga fungsi getAll() ada untuk menampilkan semua data absen
+    // static async getAll() {
+    //     return new Promise((resolve, reject) => {
+    //         connection.query(`
+    //             SELECT a.*, m.nama_mapel, k.kode_kelas
+    //             FROM absen a
+    //             LEFT JOIN mapel m ON a.id_mapel = m.id_mapel
+    //             LEFT JOIN kelas k ON a.id_kelas = k.id_kelas
+    //             ORDER BY a.tanggal DESC
+    //         `, (err, rows) => {
+    //             if (err) {
+    //                 reject(err);
+    //             } else {
+    //                 resolve(rows);
+    //             }
+    //         });
+    //     });
+    // }
+
     static async Store(data) {
         return new Promise((resolve, reject) => {
             const { id_mapel, id_guru, id_kelas, tanggal, jam_mulai, jam_selesai } = data;

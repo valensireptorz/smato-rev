@@ -3,22 +3,87 @@ var router = express.Router();
 const moment = require("moment-timezone");
 
 const Model_Tugas = require("../model/Model_Tugas.js");
-const Model_Mapel = require("../model/Model_Mapel.js");
-const Model_Users = require("../model/Model_Users.js");
+  const Model_Mapel = require("../model/Model_Mapel.js");
+  const Model_Users = require("../model/Model_Users.js");
 
+  // router.get("/", async (req, res) => {
+  //   const nama_mapel = req.query.nama_mapel;
+
+  //   try {
+  //     const dataMapel = await Model_Mapel.getAll();
+  //     let dataTugas = [];
+  //     let id_mapel = null;
+
+  //     if (nama_mapel) {
+  //       const mapel = await Model_Mapel.getByNama(nama_mapel);
+  //       if (mapel) {
+  //         id_mapel = mapel.id_mapel;
+  //         dataTugas = await Model_Tugas.getByMapel(id_mapel);
+  //       }
+  //     }
+
+  //     res.render("tugas/index", {
+  //       dataMapel,
+  //       dataTugas,
+  //       nama_mapel,
+  //       id_mapel,
+  //       level: req.session.level
+  //     });
+
+  //   } catch (err) {
+  //     res.status(500).send("Terjadi kesalahan: " + err.message);
+  //   }
+  // });
+
+// Modifikasi router.get("/")
 router.get("/", async (req, res) => {
-  const nama_mapel = req.query.nama_mapel;
+  // Gunakan 'let' untuk nama_mapel karena nilainya mungkin diubah nanti
+  let nama_mapel = req.query.nama_mapel;
+  const userLevel = req.session.level;
+  const userId = req.session.userId;
 
   try {
-    const dataMapel = await Model_Mapel.getAll();
+    let dataMapel = [];
     let dataTugas = [];
     let id_mapel = null;
 
-    if (nama_mapel) {
-      const mapel = await Model_Mapel.getByNama(nama_mapel);
-      if (mapel) {
-        id_mapel = mapel.id_mapel;
-        dataTugas = await Model_Tugas.getByMapel(id_mapel);
+    // Jika user adalah guru, filter berdasarkan mata pelajaran yang diampu
+    if (userLevel === 'guru') {
+      const guruData = await Model_Users.getGuruMapel(userId);
+      
+      if (guruData && guruData.length > 0) {
+        // Guru hanya melihat mapel yang diampu
+        const guruMapelId = guruData[0].id_mapel;
+        if (guruMapelId) {
+          // Set id_mapel dari data guru
+          id_mapel = guruMapelId;
+          
+          // Dapatkan data mapel yang diampu
+          const mapelGuru = await Model_Mapel.getById(id_mapel);
+          if (mapelGuru) {
+            dataMapel = [mapelGuru]; // Hanya tampilkan mata pelajaran yang diampu
+            
+            // Set nama_mapel default dari mata pelajaran guru
+            if (!nama_mapel) {
+              nama_mapel = mapelGuru.nama_mapel;
+            }
+            
+            // Ambil tugas berdasarkan mata pelajaran guru
+            dataTugas = await Model_Tugas.getByMapel(id_mapel);
+          }
+        }
+      }
+    } else {
+      // Jika bukan guru, tampilkan semua mapel
+      dataMapel = await Model_Mapel.getAll();
+      
+      // Filter berdasarkan mata pelajaran yang dipilih
+      if (nama_mapel) {
+        const mapel = await Model_Mapel.getByNama(nama_mapel);
+        if (mapel) {
+          id_mapel = mapel.id_mapel;
+          dataTugas = await Model_Tugas.getByMapel(id_mapel);
+        }
       }
     }
 
@@ -27,13 +92,15 @@ router.get("/", async (req, res) => {
       dataTugas,
       nama_mapel,
       id_mapel,
-      level: req.session.level
+      level: userLevel
     });
 
   } catch (err) {
+    console.error("Error:", err);
     res.status(500).send("Terjadi kesalahan: " + err.message);
   }
 });
+
 
 
 // GET CREATE

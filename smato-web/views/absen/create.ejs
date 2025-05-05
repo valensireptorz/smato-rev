@@ -32,21 +32,21 @@
         <% }); %>
       </select>
     </div>
-
-    <div class="mb-3">
-      <label for="tanggal" class="form-label">Tanggal</label>
-      <input type="date" class="form-control" name="tanggal" id="tanggal" required>
-    </div>
-
-    <div class="mb-3">
-      <label for="jam_mulai" class="form-label">Jam Mulai</label>
-      <input type="time" class="form-control" name="jam_mulai" id="jam_mulai" required>
-    </div>
-
     <div class="mb-3">
       <label for="jam_selesai" class="form-label">Jam Selesai</label>
       <input type="time" class="form-control" name="jam_selesai" required>
     </div>
+    
+    <div class="mb-3">
+      <label for="tanggal" class="form-label"></label>
+      <input type="date" class="form-control" name="tanggal" id="tanggal" required hidden>
+    </div>
+
+    <div class="mb-3">
+      <label for="jam_mulai" class="form-label"></label>
+      <input type="time" class="form-control" name="jam_mulai" id="jam_mulai" required hidden>
+    </div>
+
 
     <button type="submit" class="btn btn-primary">Simpan</button>
   </form>

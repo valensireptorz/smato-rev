@@ -2,10 +2,22 @@ const connection = require('../config/database');
 
 class Model_Mapel {
 
+    static async getById(id_mapel) {
+        return new Promise((resolve, reject) => {
+            connection.query('SELECT * FROM mapel WHERE id_mapel = ?', [id_mapel], (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows.length > 0 ? rows[0] : null);
+                }
+            });
+        });
+    }
+
     // Ambil semua mapel
     static async getAll() {
         return new Promise((resolve, reject) => {
-            connection.query('SELECT id_mapel, nama_mapel FROM mapel ORDER BY id_mapel DESC', (err, rows) => {
+            connection.query('SELECT id_mapel, nama_mapel,jenis_mapel FROM mapel ORDER BY id_mapel DESC', (err, rows) => {
                 if (err) {
                     reject(err);
                 } else {
