@@ -20,7 +20,7 @@ router.get('/download/:filename', (req, res) => {
 // ✅ Tampilkan semua data pengumpulan (khusus admin)
 router.get("/semua", async (req, res) => {
   try {
-    const response = await fetch("http://192.168.1.68:3000/api/pengumpulan/semua");
+    const response = await fetch("http://192.168.1.28:3000/api/pengumpulan/semua");
     const data = await response.json();
 
     if (!data.success) {

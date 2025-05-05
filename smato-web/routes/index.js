@@ -1,25 +1,148 @@
-var express = require('express');
-var router = express.Router();
+  var express = require('express');
+  var router = express.Router();
 
-const bcrypt = require('bcrypt');
-
-var Model_Users = require('../model/Model_Users');
-const e = require('express');
+  const bcrypt = require('bcrypt');
 
 
-const multer = require("multer");
-const path = require("path");
+  const Model_Mapel = require("../model/Model_Mapel.js");
+  const Model_Guru_Kelas = require("../model/Model_Guru_Kelas.js");
+  const Model_Users = require('../model/Model_Users'); // Pastikan Anda sudah mengimpor model yang benar
+  const e = require('express');
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "public/images/upload");
-  },
-  filename: (req, file, cb) => {
-    console.log(file);
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
+
+  const multer = require("multer");
+  const path = require("path");
+
+  const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, "public/images/upload");
+    },
+    filename: (req, file, cb) => {
+      console.log(file);
+      cb(null, Date.now() + path.extname(file.originalname));
+    },
+  });
+  const upload = multer({ storage: storage }).single('foto_users');
+
+    router.get('/guru_list', async function (req, res) {
+      try {
+        // Ambil semua user dari database
+        let semuaUsers = await Model_Users.getAll();
+        
+        
+
+        // Filter hanya user dengan level_users == 'guru'
+        let guruOnly = semuaUsers.filter(user => user.level_users === 'guru');
+
+        // Kirim ke view, termasuk level dari session
+        res.render('users/guru_list', {
+          title: 'Daftar Guru',
+          users: guruOnly,
+          level: req.session.level,          // ✅ Tambahkan ini
+          messages: req.flash()              // opsional, untuk feedback di halaman
+        });
+      } catch (error) {
+        console.error(error);
+        req.flash('error', 'Gagal mengambil data guru');
+        res.redirect('/');
+      }
+    });
+
+
+// Form untuk menambah guru (rubah rute ke folder users)
+router.get('/create', async function (req, res) {
+  try {
+      let guruKelas = await Model_Guru_Kelas.getAll();
+      let mapelList = await Model_Mapel.getAll();
+
+      console.log('GuruKelas:', guruKelas);
+      console.log('MapelList:', mapelList);
+
+      res.render('users/create', {
+          title: 'Tambah Guru',
+          level: req.session.level,
+          guruKelas,
+          mapelList,
+          messages: req.flash()
+      });
+  } catch (error) {
+      console.error('Error occurred:', error); // Periksa log error
+      req.flash('error', 'Gagal membuka form tambah guru');
+      res.redirect('/guru_list'); // Pastikan /guru_list sudah ada dan valid
+  }
 });
-const upload = multer({ storage: storage }).single('foto_users');
+
+
+
+
+router.post('/store', function (req, res, next) {
+  upload(req, res, function (err) {
+    if (err) {
+      console.error("Upload error:", err);
+      req.flash('error', 'Gagal mengunggah file');
+      return res.redirect('/users/create');
+    }
+    next();
+  });
+}, async (req, res) => {
+  try {
+    const { username, password, level_users, id, id_mapel } = req.body;
+
+    // Tangani file foto
+    let fotoFile = null;
+    if (req.file) {
+      fotoFile = req.file.filename;
+    }
+
+    const hashedPassword = bcrypt.hashSync(password, 10);
+
+    const userData = {
+      username,
+      password: hashedPassword,
+      level_users,
+      foto_users: fotoFile,
+      id,
+      id_mapel
+    };
+
+    await Model_Users.Store(userData);
+
+    req.flash('success', 'Data guru berhasil disimpan');
+    res.redirect('/guru_list');
+  } catch (error) {
+    console.error('Error saving user:', error);
+    req.flash('error', 'Gagal menyimpan data guru');
+    res.redirect('/users/create');
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -50,7 +173,8 @@ router.post('/saveusers', async (req, res) => {
       let Data = {
           username,
           password: enkripsi,
-          foto_users: req.file.filename // Simpan nama file foto ke dalam data pengguna
+          foto_users: req.file.filename, // Simpan nama file foto ke dalam data pengguna
+          level_users: 'guru' // otomatis set ke "guru"
       };
       
       try {

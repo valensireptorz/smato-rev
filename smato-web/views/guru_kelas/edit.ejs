@@ -1,0 +1,40 @@
+<%- include('../partials/_head.ejs') %>
+<%- include('../partials/_nav.ejs') %>
+
+<div class="content-wrapper">
+  <%- include('../partials/_message.ejs') %>
+  <div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Form /</span> Edit Guru Kelas</h4>
+
+    <div class="card mb-4">
+      <div class="card-body">
+        <form action="/guru_kelas/update/<%= id %>" method="POST">
+          <div class="mb-3">
+            <label for="id_guru" class="form-label">Nama Guru</label>
+            <select name="id_guru" id="id_guru" class="form-select" required>
+              <% guru.forEach(g => { %>
+                <option value="<%= g.id_guru %>" <%= g.id_guru == id_guru ? 'selected' : '' %>><%= g.nama_guru %></option>
+              <% }) %>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="id_kelas" class="form-label">Kelas</label>
+            <select name="id_kelas" id="id_kelas" class="form-select" required>
+              <% kelas.forEach(k => { %>
+                <option value="<%= k.id_kelas %>" <%= k.id_kelas == id_kelas ? 'selected' : '' %>>
+                  <%= k.kode_kelas %> - <%= k.nama_kelas %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-success">Update</button>
+          <a href="/guru_kelas" class="btn btn-secondary">Batal</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/_foot.ejs') %>

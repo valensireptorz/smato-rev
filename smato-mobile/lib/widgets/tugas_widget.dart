@@ -115,10 +115,24 @@ class _TugasWidgetState extends State<TugasWidget> {
     );
   }
 
+  Widget _buildLabel(String label, String? value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: AppTextStyles.label.copyWith(color: Colors.white70, fontSize: 14)),
+          const SizedBox(height: 4),
+          Text(value ?? '-', style: AppTextStyles.label.copyWith(color: Colors.white, fontSize: 15)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primary.withOpacity(0.95),
+      backgroundColor: Color.fromARGB(255, 5, 102, 135), // Latar belakang solid
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
@@ -151,34 +165,41 @@ class _TugasWidgetState extends State<TugasWidget> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(30),
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                     child: Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.12),
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withOpacity(0.15),
+                            Colors.white.withOpacity(0.05),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                         borderRadius: BorderRadius.circular(30),
-                        border: Border.all(color: Colors.white24),
+                        border: Border.all(color: Colors.white.withOpacity(0.2)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color.fromARGB(255, 0, 0, 0).withOpacity(0.1),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       padding: const EdgeInsets.all(24),
                       child: SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(widget.tugas['nama_tugas'] ?? '-', style: AppTextStyles.titletugas.copyWith(fontSize: 24, color: Colors.white)),
+                            Text(widget.tugas['nama_tugas'] ?? '-', style: AppTextStyles.titletugas.copyWith(fontSize: 26, color: Colors.white, fontWeight: FontWeight.w600)),
                             const SizedBox(height: 20),
-                            Text('Deskripsi:', style: AppTextStyles.label.copyWith(color: Colors.white70)),
-                            Text(widget.tugas['deskripsi'] ?? '-', style: AppTextStyles.label.copyWith(color: Colors.white)),
+                            _buildLabel('Deskripsi:', widget.tugas['deskripsi']),
+                            _buildLabel('Batas waktu:', widget.tugas['deadline']),
+                            _buildLabel('Lampiran:', widget.tugas['lampiran']),
                             const SizedBox(height: 20),
-                            Text('Batas waktu:', style: AppTextStyles.label.copyWith(color: Colors.white70)),
-                            Text(widget.tugas['deadline'] ?? '-', style: AppTextStyles.label.copyWith(color: Colors.white)),
-                            const SizedBox(height: 20),
-                            Text('Lampiran:', style: AppTextStyles.label.copyWith(color: Colors.white70)),
-                            Text(widget.tugas['lampiran'] ?? '-', style: AppTextStyles.label.copyWith(color: Colors.white)),
-                            const SizedBox(height: 30),
                             Divider(color: Colors.white30),
-                            const SizedBox(height: 20),
-                            Text('Lampiran Anda:', style: AppTextStyles.label.copyWith(color: Colors.white70)),
-                            Text(_uploadedFileName ?? '-', style: AppTextStyles.label.copyWith(color: Colors.white)),
+                            _buildLabel('Lampiran Anda:', _uploadedFileName),
                             const SizedBox(height: 30),
                             Center(
                               child: _isUploading
@@ -189,13 +210,13 @@ class _TugasWidgetState extends State<TugasWidget> {
                                       label: const Text('Upload Tugas'),
                                       style: ElevatedButton.styleFrom(
                                         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
-                                        backgroundColor: Colors.greenAccent.shade700,
+                                        backgroundColor: Colors.white.withOpacity(0.15),
                                         foregroundColor: Colors.white,
+                                        shadowColor: Color.fromARGB(66, 0, 119, 255),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(16),
+                                          borderRadius: BorderRadius.circular(18),
                                         ),
                                         elevation: 8,
-                                        shadowColor: Colors.black45,
                                         textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                       ),
                                     ),

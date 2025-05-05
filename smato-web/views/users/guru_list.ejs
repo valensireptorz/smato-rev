@@ -1,0 +1,57 @@
+<%- include('../partials/_head.ejs') %>
+<%- include('../partials/_nav.ejs') %>
+
+<div class="container mt-5">
+  <h2><%= title %></h2>
+
+  <!-- Tombol Tambah Data -->
+  <% if (level == "admin") {%>
+  <a href="/create" class="btn btn-primary mb-3">+ Tambah Guru</a>
+  <% } %>
+  <% if (messages && messages.success) { %>
+    <div class="alert alert-success"><%= messages.success %></div>
+  <% } %>
+  <% if (messages && messages.error) { %>
+    <div class="alert alert-danger"><%= messages.error %></div>
+  <% } %>
+
+  <% if (users.length === 0) { %>
+    <div class="alert alert-info">Tidak ada guru ditemukan.</div>
+  <% } else { %>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Username</th>
+          <th>Level</th>
+          <th>Foto</th>
+          <th>Guru Kelas</th>
+          <th>Mata Pelajaran</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach((user, index) => { %>
+          <tr>
+            <td><%= index + 1 %></td>
+           
+            <td><%= user.username %></td>
+           
+            <td><%= user.level_users %></td> <!-- Tampilkan Level -->
+            <td>
+              <% if (user.foto_users) { %>
+                <img src="/images/upload/<%= user.foto_users %>" alt="Foto" width="80">
+              <% } else { %>
+                Tidak ada foto
+              <% } %>
+            </td>
+            <td><%= user.id %></td> <!-- Tampilkan ID Guru Kelas -->
+            <td><%= user.id_mapel %></td> <!-- Tampilkan ID Mata Pelajaran -->
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  <% } %>
+
+</div>
+
+<%- include('../partials/_foot.ejs') %>

@@ -1,0 +1,50 @@
+<%- include('../partials/_head.ejs') %>
+
+<%- include('../partials/_nav.ejs') %>
+
+<div class="container mt-5">
+  <h2>Data Guru dan Kelas</h2>
+  <% if (level == "admin") {%>
+  <a href="/guru_kelas/create" class="btn btn-primary mb-3">+ Tambah Relasi</a>
+  <% } %>
+  <% if (messages.success) { %>
+    <div class="alert alert-success"><%= messages.success %></div>
+  <% } %>
+  <% if (messages.error) { %>
+    <div class="alert alert-danger"><%= messages.error %></div>
+  <% } %>
+
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Nama Guru</th>
+        <th>Nama Kelas</th>
+        <% if (level == "admin") {%>
+        <th>Aksi</th>
+        <% } %>
+      </tr>
+    </thead>
+    <tbody>
+      <% data.forEach((row, index) => { %>
+        <tr>
+          <td><%= index + 1 %></td>
+          <td><%= row.nama_guru %></td>
+          <td><%= row.kode_kelas %></td>
+          <% if (level == "admin") {%>
+          <td>
+        
+            <a href="/guru_kelas/edit/<%= row.id %>" class="btn btn-sm btn-warning">Edit</a>
+
+            <a href="/guru_kelas/delete/<%= row.id %>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus relasi ini?')">Hapus</a>
+            
+          </td>
+          <% } %>
+        </tr>
+        
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../partials/_foot.ejs') %>

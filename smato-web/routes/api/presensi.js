@@ -2,6 +2,7 @@
 
 const express = require("express");
 const router = express.Router();
+const moment = require("moment-timezone"); // Import moment-timezone
 const Model_Presensi = require("../../model/Model_Presensi");
 
 // ✅ Ambil semua data presensi (khusus admin)
@@ -29,7 +30,6 @@ router.get("/semua", async function (req, res) {
     });
   }
 });
-
 
 // ✅ Ambil riwayat presensi berdasarkan id_siswa
 router.get("/riwayat", async function (req, res) {
@@ -79,15 +79,10 @@ router.post("/presensi", async function (req, res) {
       });
     }
 
-    // Ambil tanggal hari ini
-    const today = new Date();
-    const tanggal = `${today.getFullYear()}-${(today.getMonth() + 1)
-      .toString()
-      .padStart(2, "0")}-${today.getDate().toString().padStart(2, "0")}`;
-    const waktu = `${today.getHours().toString().padStart(2, "0")}:${today
-      .getMinutes()
-      .toString()
-      .padStart(2, "0")}`;
+    // Ambil tanggal dan waktu saat ini dalam zona waktu Asia/Jakarta (WIB)
+    const today = moment().tz("Asia/Jakarta");
+    const tanggal = today.format("YYYY-MM-DD");
+    const waktu = today.format("HH:mm");
 
     // Cek apakah siswa sudah presensi hari ini untuk mapel tersebut
     const cekPresensi = await Model_Presensi.getPresensi(
@@ -99,7 +94,7 @@ router.post("/presensi", async function (req, res) {
     if (cekPresensi.length > 0) {
       return res.status(200).json({
         success: false,
-        message: "Anda sudah presensi hari ini untuk mata pelajaran ini.",
+        message: "Anda sudah presensi untuk mata pelajaran ini.",
       });
     }
 

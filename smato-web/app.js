@@ -12,6 +12,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var superusersRouter = require('./routes/superusers');
 var megausersRouter = require('./routes/megausers');
+
 var guruRouter = require('./routes/guru');
 var kelasRouter = require('./routes/kelas');
 var mapelRouter = require('./routes/mapel');
@@ -29,6 +30,7 @@ var apitugasRouter = require('./routes/api/tugas');
 var apiguruRouter = require('./routes/api/guru');
 var apikelasRouter = require('./routes/api/kelas');
 var apipengumpulanRouter = require('./routes/api/pengumpulan');
+var guru_kelasRouter = require('./routes/guru_kelas');
 
 
 
@@ -66,6 +68,7 @@ app.use(session({
   app.use('/users', usersRouter);
   app.use('/superusers', superusersRouter);
   app.use('/megausers', megausersRouter);
+
   app.use('/guru', guruRouter);
   app.use('/kelas', kelasRouter);
   app.use('/mapel', mapelRouter);
@@ -83,7 +86,8 @@ app.use(session({
   app.use('/api/guru', apiguruRouter);
   app.use('/api/kelas', apikelasRouter);
   app.use('/api/pengumpulan', apipengumpulanRouter);
- 
+  app.use('/guru_kelas', guru_kelasRouter);
+
   
 
 

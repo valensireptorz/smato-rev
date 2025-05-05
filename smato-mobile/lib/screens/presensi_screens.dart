@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tzdata;
 
 import '../theme/app_colors.dart';
 import '../widgets/presensi_button.dart';
@@ -37,6 +39,7 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
   @override
   void initState() {
     super.initState();
+    tzdata.initializeTimeZones();  // Initialize timezone data
     _loadRiwayatPresensi();
     _buttonAnimationController = AnimationController(
       vsync: this,
@@ -100,6 +103,22 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
       color: Colors.white,
       fontWeight: FontWeight.w500,
     );
+  }
+
+  String formatDateToWIB(String dateString) {
+    final date = DateTime.parse(dateString);
+
+    // Get the Indonesia timezone (WIB)
+    final indonesiaTimeZone = tz.getLocation('Asia/Jakarta');
+    
+    // Convert the date to the Indonesia timezone (WIB)
+    final indonesiaDate = tz.TZDateTime.from(date, indonesiaTimeZone);
+    
+    // Format the date in Indonesian date format (dd MMM yyyy)
+    final dateFormat = DateFormat('dd MMM yyyy');
+    
+    // Return formatted date
+    return dateFormat.format(indonesiaDate);
   }
 
   Widget _buildGlassCard({required Widget child}) {
@@ -184,7 +203,7 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
                         children: [
                           Text("ID: ${item['id_absen']}", style: _textStyle()),
                           Text(
-                            DateFormat('dd MMM yyyy').format(DateTime.parse(item['tanggal_presensi'])),
+                            formatDateToWIB(item['tanggal_presensi']),  // Display formatted date
                             style: _textStyle(),
                           ),
                         ],

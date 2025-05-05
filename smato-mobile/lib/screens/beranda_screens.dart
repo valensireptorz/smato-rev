@@ -1,15 +1,18 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../widgets/subject_card.dart';
-import '../api/absen_services.dart'; 
-import '../api/tugas_services.dart'; 
-import '../api/siswa_service.dart';
-import 'presensi_screens.dart';
-import '../widgets/sidebar_widget.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../widgets/tugas_widget.dart'; // Tambahkan import untuk halaman Tugas
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
+
+import '../api/absen_services.dart';
+import '../api/tugas_services.dart';
+import '../api/siswa_service.dart';
+import '../widgets/sidebar_widget.dart';
+import '../widgets/tugas_widget.dart';
+import '../widgets/subject_card.dart';
+import 'presensi_screens.dart';
 
 class BerandaScreen extends StatefulWidget {
   const BerandaScreen({Key? key}) : super(key: key);
@@ -18,16 +21,19 @@ class BerandaScreen extends StatefulWidget {
   State<BerandaScreen> createState() => _BerandaScreenState();
 }
 
-class _BerandaScreenState extends State<BerandaScreen> {
-  late String? _idKelas;
+class _BerandaScreenState extends State<BerandaScreen>
+    with SingleTickerProviderStateMixin {
   late String? _idSiswa;
   late Future<List<Map<String, dynamic>>> _absenList;
   late Future<List<Map<String, dynamic>>> _tugasList;
   late Future<Map<String, dynamic>> _siswaData;
-  bool _isLoading = false;
+
   bool _showAbsenList = false;
   bool _showTugasList = false;
-  bool _isRefreshing = false;  // Flag to manage refresh state
+  bool _isRefreshing = false;
+
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   @override
   void initState() {
@@ -35,6 +41,22 @@ class _BerandaScreenState extends State<BerandaScreen> {
     _loadSiswaData();
     _absenList = AbsenService.getAllAbsen();
     _tugasList = TugasService.getAllTugas();
+
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   void _loadSiswaData() async {
@@ -45,329 +67,235 @@ class _BerandaScreenState extends State<BerandaScreen> {
     });
   }
 
-  void _showSidebar(BuildContext context) {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        opaque: false,
-        pageBuilder: (_, __, ___) => const _SidebarOverlay(),
-        transitionsBuilder: (_, animation, __, child) {
-          final offsetAnimation = Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero)
-              .animate(CurvedAnimation(parent: animation, curve: Curves.easeOut));
-          return SlideTransition(position: offsetAnimation, child: child);
-        },
-      ),
-    );
-  }
-
   void _refreshData() async {
     setState(() {
-      _isRefreshing = true; // Start refreshing
+      _isRefreshing = true;
     });
-
-    // Simulate network request to refresh data
-    await Future.delayed(const Duration(seconds: 2)); // Simulate a 2-second delay for refreshing
-
+    await Future.delayed(const Duration(seconds: 2));
     setState(() {
-      _absenList = AbsenService.getAllAbsen(); // Refresh the attendance list
-      _isRefreshing = false; // End refreshing
+      _absenList = AbsenService.getAllAbsen();
+      _tugasList = TugasService.getAllTugas();
+      _isRefreshing = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        color: const Color(0xFF2762F8),
-        child: SafeArea(
+      backgroundColor: const Color(0xFFF5F7FB),
+      body: SafeArea(
+        child: FadeTransition(
+          opacity: _fadeAnimation,
           child: SingleChildScrollView(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 480),
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 21),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 35),
-                  GestureDetector(
-                    onTap: () => _showSidebar(context),
-                    child: Image.asset(
-                      'assets/images/options.png',
-                      width: 22,
-                      height: 32,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    GestureDetector(
+                      onTap: () => _showSidebar(context),
+                      child: const Icon(Icons.menu, size: 30, color: Colors.blueAccent),
                     ),
-                  ),
-                  const SizedBox(height: 28),
-                  FutureBuilder<Map<String, dynamic>>(
-                    future: _siswaData,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return const Text('Gagal memuat data siswa', style: TextStyle(color: Colors.white));
-                      } else if (!snapshot.hasData || snapshot.data!['data'] == null) {
-                        return const Text('Data siswa tidak ditemukan', style: TextStyle(color: Colors.white));
-                      }
-
-                      var siswa = snapshot.data!['data'];
-                      _idSiswa = siswa['id_siswa'].toString();
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Hi, ${siswa['nama_siswa'] ?? 'Unknown'}',
-                            style: GoogleFonts.poppins(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                              height: 35 / 18,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'ID Siswa: ${siswa['id_siswa'] ?? 'Unknown'}',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
-                              color: Colors.white70,
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 28),
-                  Text(
-                    'Menu',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Column(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.access_time, color: Colors.white),
-                            onPressed: () {
-                              setState(() {
-                                _showAbsenList = !_showAbsenList;
-                              });
-                            },
-                          ),
-                          const Text(
-                            'Absensi',
-                            style: TextStyle(color: Colors.white, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(width: 30), // Spasi antar tombol
-                      Column(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.assignment, color: Colors.white),
-                            onPressed: () {
-                              setState(() {
-                                _showTugasList = !_showTugasList;
-                              });
-                            },
-                          ),
-                          const Text(
-                            'Tugas',
-                            style: TextStyle(color: Colors.white, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 23),
-                  _showAbsenList
-                      ? FutureBuilder<List<Map<String, dynamic>>>( // Absensi list display
-                          future: _absenList,
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const Center(child: CircularProgressIndicator());
-                            } else if (snapshot.hasError) {
-                              return const Text(
-                                'Gagal memuat data absen',
-                                style: TextStyle(color: Colors.white),
-                              );
-                            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                              return const Text(
-                                'Belum ada absen',
-                                style: TextStyle(color: Colors.white),
-                              );
-                            }
-
-                            return Column(
-                              children: snapshot.data!.map((absen) {
-                                String jamSelesai = absen['jam_selesai'];
-                                DateTime now = DateTime.now();
-                                DateTime jamSelesaiTime = DateTime.parse(absen['tanggal'] + ' ' + jamSelesai);
-
-                                if (now.isAfter(jamSelesaiTime)) {
-                                  String idAbsen = absen['id_absen'].toString();
-                                  AbsenService.deleteAbsen(idAbsen);
-                                  _absenList = AbsenService.getAllAbsen();
-                                }
-
-                                return Column(
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () {
-                                        if (_idSiswa != null) {
-                                          int idMapel = int.parse(absen['id_mapel'].toString());
-                                          int idAbsen = int.parse(absen['id_absen'].toString());
-                                          int idGuru = int.parse(absen['id_guru'].toString());
-
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => PresensiScreen(
-                                                idSiswa: int.parse(_idSiswa!),
-                                                namaMapel: absen['nama_mapel'],
-                                                idMapel: idMapel,
-                                                idAbsen: idAbsen,
-                                                idGuru: idGuru,
-                                                namaGuru: absen['nama_guru'],
-                                                jamSelesai: absen['jam_selesai'],
-                                              ),
-                                            ),
-                                          );
-                                        } else {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('ID Siswa tidak tersedia')),
-                                          );
-                                        }
-                                      },
-                                      child: SubjectCard(
-                                        title: absen['nama_mapel'],
-                                        imageUrl: 'https://cdn.builder.io/api/v1/image/assets/TEMP/6df8e9989b87bd8f60b47a6b3e513432886bb730613aff9afd63933074797b3d',
-                                        semester: absen['nama_guru'],
-                                        year: absen['tanggal'],
-                                      ),
-                                    ),
-                                    Text(
-                                      'Jam selesai: $jamSelesai',
-                                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-                                    ),
-                                    const SizedBox(height: 20),
-                                  ],
-                                );
-                              }).toList(),
-                            );
-                          },
-                        )
-                      : const SizedBox.shrink(), // Absensi tidak ditampilkan jika tidak dipilih
-                  _showTugasList
-                      ? FutureBuilder<List<Map<String, dynamic>>>( // Tugas list display
-                          future: _tugasList,
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const Center(child: CircularProgressIndicator());
-                            } else if (snapshot.hasError) {
-                              return const Text(
-                                'Gagal memuat data tugas',
-                                style: TextStyle(color: Colors.white),
-                              );
-                            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                              return const Text(
-                                'Belum ada tugas',
-                                style: TextStyle(color: Colors.white),
-                              );
-                            }
-
-                            return Column(
-                              children: snapshot.data!.map((tugas) {
-                                DateTime deadline = DateTime.parse(tugas['deadline']);
-
-                                if (DateTime.now().isAfter(deadline)) {
-                                  // Jika tugas sudah melewati deadline, bisa diproses logika khusus jika perlu
-                                  return const SizedBox.shrink(); // tidak ditampilkan
-                                }
-
-                                return Column(
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () {
-                                        if (_idSiswa != null) {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => TugasWidget(
-                                                tugas: tugas,
-                                                idSiswa: int.parse(_idSiswa!),
-                                                onClose: () {},
-                                              ),
-                                            ),
-                                          );
-                                        } else {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('ID Siswa tidak tersedia')),
-                                          );
-                                        }
-                                      },
-                                      child: SubjectCard(
-                                        title: tugas['nama_tugas'] ?? 'Judul tidak tersedia',
-                                        imageUrl: 'https://cdn.builder.io/api/v1/image/assets/TEMP/6df8e9989b87bd8f60b47a6b3e513432886bb730613aff9afd63933074797b3d',
-                                        semester: tugas['nama_mapel'] ?? '',
-                                        year: tugas['deadline'] ?? '',
-                                      ),
-                                    ),
-                                    Text(
-                                      'Deadline: ${_formatDeadline(tugas['deadline'])}',
-                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-                                    ),
-                                    const SizedBox(height: 20),
-                                  ],
-                                );
-                              }).toList(),
-                            );
-                          },
-                        )
-                      : const SizedBox.shrink(), // Tugas tidak ditampilkan jika tidak dipilih
-                  const SizedBox(height: 20),
-                  Center(
-                    child: IconButton(
+                    IconButton(
                       icon: _isRefreshing
-                          ? const CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            )
-                          : const Icon(Icons.refresh, color: Colors.white),
-                      onPressed: _refreshData, // Refresh data saat icon di-klik
+                          ? const CircularProgressIndicator()
+                          : const Icon(Icons.refresh, color: Colors.blueAccent),
+                      onPressed: _refreshData,
                     ),
-                  ),
-                  const SizedBox(height: 100),
-                ],
-              ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                FutureBuilder<Map<String, dynamic>>(
+                  future: _siswaData,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.hasError || !snapshot.hasData) {
+                      return const Text("Gagal memuat data siswa");
+                    }
+                    var siswa = snapshot.data!['data'];
+                    _idSiswa = siswa['id_siswa'].toString();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Halo, ${siswa['nama_siswa'] ?? 'Siswa'} 👋',
+                          style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 5),
+                        Text('ID: ${siswa['id_siswa']}',
+                            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey)),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 30),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildMenuButton(Icons.access_time, 'Absensi', () {
+                      setState(() => _showAbsenList = !_showAbsenList);
+                    }),
+                    _buildMenuButton(Icons.assignment, 'Tugas', () {
+                      setState(() => _showTugasList = !_showTugasList);
+                    }),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                if (_showAbsenList) _buildAbsenList(),
+                if (_showTugasList) _buildTugasList(),
+              ],
             ),
           ),
         ),
       ),
     );
   }
+
+  Widget _buildMenuButton(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: Colors.blueAccent.withOpacity(0.15),
+            child: Icon(icon, color: Colors.blueAccent, size: 28),
+          ),
+          const SizedBox(height: 6),
+          Text(label, style: GoogleFonts.poppins(fontSize: 12, color: Colors.black)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAbsenList() {
+    return FutureBuilder<List<Map<String, dynamic>>>( 
+      future: _absenList,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Text("Tidak ada data absen.");
+        }
+        return Column(
+          children: snapshot.data!.map((absen) {
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(vertical: 10),
+              child: GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PresensiScreen(
+                      idSiswa: int.parse(_idSiswa!),
+                      namaMapel: absen['nama_mapel'],
+                      idMapel: int.parse(absen['id_mapel'].toString()),
+                      idAbsen: int.parse(absen['id_absen'].toString()),
+                      idGuru: int.parse(absen['id_guru'].toString()),
+                      namaGuru: absen['nama_guru'],
+                      jamSelesai: absen['jam_selesai'],
+                    ),
+                  ),
+                ),
+                child: SubjectCard(
+                  title: absen['nama_mapel'],
+                  imageUrl: 'https://cdn.builder.io/api/v1/image/assets/TEMP/6df8e9989b87bd8f60b47a6b3e513432886bb730613aff9afd63933074797b3d',
+                  semester: absen['nama_guru'],
+                  year: _formatDateWithTimezone(absen['tanggal']),
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildTugasList() {
+    return FutureBuilder<List<Map<String, dynamic>>>( 
+      future: _tugasList,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Text("Tidak ada data tugas.");
+        }
+        return Column(
+          children: snapshot.data!.map((tugas) {
+            DateTime deadline = DateTime.parse(tugas['deadline']);
+            if (DateTime.now().isAfter(deadline)) return const SizedBox.shrink();
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(vertical: 10),
+              child: GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TugasWidget(
+                      tugas: tugas,
+                      idSiswa: int.parse(_idSiswa!),
+                      onClose: () {},
+                    ),
+                  ),
+                ),
+                child: SubjectCard(
+                  title: tugas['nama_tugas'],
+                  imageUrl: 'https://cdn.builder.io/api/v1/image/assets/TEMP/6df8e9989b87bd8f60b47a6b3e513432886bb730613aff9afd63933074797b3d',
+                  semester: tugas['nama_mapel'],
+                  year: _formatDeadline(tugas['deadline']),
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  void _showSidebar(BuildContext context) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        pageBuilder: (_, __, ___) => const _SidebarOverlay(),
+        transitionsBuilder: (_, animation, __, child) {
+          return SlideTransition(
+            position: Tween(begin: const Offset(-1, 0), end: Offset.zero).animate(animation),
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+
+    // Format deadline with zone time (WIB)
+  String _formatDeadline(String deadlineString) {
+    // Initialize timezone data
+    tz.initializeTimeZones();
+    final jakarta = tz.getLocation('Asia/Jakarta');
+    
+    DateTime dt = DateTime.parse(deadlineString);
+    final jakartaDateTime = tz.TZDateTime.from(dt, jakarta);
+
+    return DateFormat('dd MMM yyyy – kk:mm').format(jakartaDateTime);
+  }
+
+
+  // Format tanggal dengan zona waktu WIB
+  String _formatDateWithTimezone(String dateString) {
+    // Initialize timezone data
+    tz.initializeTimeZones();
+    final jakarta = tz.getLocation('Asia/Jakarta');
+    
+    DateTime dt = DateTime.parse(dateString);
+    final jakartaDateTime = tz.TZDateTime.from(dt, jakarta);
+
+    return DateFormat('dd MMM yyyy – kk:mm').format(jakartaDateTime);
+  }
 }
 
-// Fungsi format tanggal
-String _formatDeadline(String deadline) {
-  if (deadline == null || deadline.isEmpty) return '';
-
-  DateTime dateTime = DateTime.tryParse(deadline) ?? DateTime.now();
-
-  // Format: YYYY-MM-DD - HH:MM
-  String formattedDate = "${dateTime.year}-${_twoDigits(dateTime.month)}-${_twoDigits(dateTime.day)}";
-  String formattedTime = "${_twoDigits(dateTime.hour)}:${_twoDigits(dateTime.minute)}";
-
-  return "$formattedDate - $formattedTime";
-}
-
-String _twoDigits(int n) => n.toString().padLeft(2, '0');
-
-// Sidebar Overlay
 class _SidebarOverlay extends StatelessWidget {
   const _SidebarOverlay({Key? key}) : super(key: key);
 

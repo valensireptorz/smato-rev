@@ -1,0 +1,79 @@
+<%- include('../partials/_head.ejs') %>
+<%- include('../partials/_nav.ejs') %>
+
+<div class="container mt-5">
+  <h2 class="mb-4">Form Tambah Data Guru</h2>
+
+  <% if (messages.success) { %>
+    <div class="alert alert-success"><%= messages.success %></div>
+  <% } %>
+  <% if (messages.error) { %>
+    <div class="alert alert-danger"><%= messages.error %></div>
+  <% } %>
+
+  <form action="/users/store" method="POST" enctype="multipart/form-data">
+    <div class="row mb-3">
+      <!-- Input for Username -->
+      <div class="col-md-6">
+        <label for="username" class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" required>
+      </div>
+
+      <!-- Input for Password -->
+      <div class="col-md-6">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" name="password" class="form-control" required>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <!-- Input for Level Users -->
+      <div class="col-md-6">
+        <label for="level_users" class="form-label">Level</label>
+        <select name="level_users" class="form-select" required>
+          <option value="">-- Pilih Level --</option>
+          <option value="admin">Admin</option>
+          <option value="guru">Guru</option>
+        </select>
+      </div>
+
+      <!-- Input for Foto Users -->
+      <div class="col-md-6">
+        <label for="foto_users" class="form-label">Upload Foto (Opsional)</label>
+        <input type="file" name="foto_users" class="form-control">
+      </div>
+    </div>
+
+ <!-- Select for Guru Kelas -->
+<div class="mb-3">
+    <label for="id" class="form-label">Guru Kelas</label>
+    <select name="id" class="form-select" required>
+      <% guruKelas.forEach(item => { %>
+        <option value="<%= item.id %>"><%= item.nama_guru %> - <%= item.kode_kelas %></option>
+      <% }) %>
+    </select>
+  </div>
+  
+  <!-- Select for Mata Pelajaran -->
+  <div class="mb-3">
+    <label for="id_mapel" class="form-label">Mata Pelajaran</label>
+    <select name="id_mapel" class="form-select" required>
+      <option value="">-- Pilih Mapel --</option>
+      <% mapelList.forEach(mapel => { %>
+        <option value="<%= mapel.id_mapel %>"><%= mapel.nama_mapel %></option>
+      <% }) %>
+    </select>
+  </div>
+  
+
+  
+
+    <!-- Buttons -->
+    <div class="d-flex justify-content-between">
+      <a href="/guru_list" class="btn btn-secondary">Kembali</a>
+      <button type="submit" class="btn btn-primary">Simpan</button>
+    </div>
+  </form>
+</div>
+
+<%- include('../partials/_foot.ejs') %>

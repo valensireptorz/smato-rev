@@ -1,35 +1,76 @@
 var express = require("express");
-const Model_Users = require("../model/Model_Users"); // Import Model_Users
 var router = express.Router();
 
-router.get("/", async function (req, res, next) {
-  try {
-    let level_users = req.session.level; // Mendapatkan level dari sesi
-    let id = req.session.userId; // Mendapatkan id pengguna dari sesi
+const bcrypt = require("bcrypt");
+const path = require("path");
+const multer = require("multer");
 
-    // Mengambil data user berdasarkan id dari sesi
-    let Data = await Model_Users.getId(id); 
+const Model_Users = require("../model/Model_Users");
+const Model_Mapel = require("../model/Model_Mapel");
+const Model_Guru_Kelas = require("../model/Model_Guru_Kelas");
 
-    if (Data.length > 0) { // Memeriksa apakah data user ada
-      if (Data[0].level_users !== "siswa") {
-        // Jika level bukan siswa, arahkan ke logout
-        res.redirect("/logout");
-      } else {
-        // Jika level adalah siswa, render halaman dengan data pengguna
-        res.render("users/index", {
-          title: "Users Home",
-          username: Data[0].username,
-          foto_users: Data[0].foto_users,
-          level: level_users,
-        });
-      }
-    } else {
-      res.status(401).json({ error: "User tidak ada" }); // Menampilkan error jika user tidak ditemukan
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(501).json("Butuh akses login");
+// Konfigurasi multer (UPLOAD FOTO)
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/images/upload");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
   }
 });
+const upload = multer({ storage: storage }); // ✅ Upload middleware siap digunakan
+
+
+// POST /users/store - Simpan data guru
+router.post('/store', upload.single('foto_users'), async (req, res) => {
+  try {
+    const { username, password, level_users, id, id_mapel } = req.body;
+
+    // Tangani file foto
+    let fotoFile = null;
+    if (req.file) {
+      fotoFile = req.file.filename;
+    }
+
+    const hashedPassword = bcrypt.hashSync(password, 10);
+
+    const userData = {
+      username,
+      password: hashedPassword,
+      level_users,
+      foto_users: fotoFile,
+      id,
+      id_mapel
+    };
+
+    await Model_Users.Store(userData);
+
+    req.flash('success', 'Data guru berhasil disimpan');
+    res.redirect('/guru_list');
+  } catch (error) {
+    console.error('Error saving user:', error);
+    req.flash('error', 'Gagal menyimpan data guru');
+    res.redirect('/users/create');
+  }
+});
+
+
+
+router.get('/guru_list', async function (req, res) {
+  try {
+    const guruOnly = await Model_Users.getAllWithRelasi();
+    res.render('users/guru_list', {
+      title: 'Daftar Guru',
+      users: guruOnly,
+      level: req.session.level,
+      messages: req.flash()
+    });
+  } catch (error) {
+    console.error(error);
+    req.flash('error', 'Gagal mengambil data guru');
+    res.redirect('/');
+  }
+});
+
 
 module.exports = router;

@@ -53,21 +53,31 @@
 </div>
 
 <script>
-  // Function to set the current date and time
-  document.addEventListener("DOMContentLoaded", function() {
-    // Get current date
-    const currentDate = new Date();
-    
-    // Format date to YYYY-MM-DD
-    const formattedDate = currentDate.toISOString().split('T')[0];
-    document.getElementById("tanggal").value = formattedDate;
+  // Set nilai tanggal dan jam_mulai sesuai zona waktu Asia/Jakarta (WIB)
+  document.addEventListener("DOMContentLoaded", function () {
+    // Gunakan Intl.DateTimeFormat untuk zona waktu Asia/Jakarta
+    const formatter = new Intl.DateTimeFormat("id-ID", {
+      timeZone: "Asia/Jakarta",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
 
-    // Format time to HH:MM (24-hour format)
-    const hours = String(currentDate.getHours()).padStart(2, '0');
-    const minutes = String(currentDate.getMinutes()).padStart(2, '0');
-    const currentTime = `${hours}:${minutes}`;
-    document.getElementById("jam_mulai").value = currentTime;
+    // Dapatkan bagian-bagian waktu
+    const parts = formatter.formatToParts(new Date());
+    const partMap = Object.fromEntries(parts.map(p => [p.type, p.value]));
+
+    const formattedDate = `${partMap.year}-${partMap.month}-${partMap.day}`;
+    const formattedTime = `${partMap.hour}:${partMap.minute}`;
+
+    // Set ke input
+    document.getElementById("tanggal").value = formattedDate;
+    document.getElementById("jam_mulai").value = formattedTime;
   });
 </script>
+
 
 <%- include('../partials/_foot.ejs') %>
