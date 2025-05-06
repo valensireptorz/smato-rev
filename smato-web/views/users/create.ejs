@@ -2,7 +2,7 @@
 <%- include('../partials/_nav.ejs') %>
 
 <div class="container mt-5">
-  <h2 class="mb-4">Form Tambah Data Guru</h2>
+  <h2 class="mb-4">Form Tambah Data Akun Guru</h2>
 
   <% if (messages.success) { %>
     <div class="alert alert-success"><%= messages.success %></div>
@@ -29,10 +29,8 @@
     <div class="row mb-3">
       <!-- Input for Level Users -->
       <div class="col-md-6">
-        <label for="level_users" class="form-label">Level</label>
-        <select name="level_users" class="form-select" required>
-          <option value="">-- Pilih Level --</option>
-          <option value="admin">Admin</option>
+        <label for="level_users" class="form-label"></label>
+        <select name="level_users" class="form-select" required hidden>
           <option value="guru">Guru</option>
         </select>
       </div>
@@ -75,5 +73,7 @@
     </div>
   </form>
 </div>
+
+
 
 <%- include('../partials/_foot.ejs') %>

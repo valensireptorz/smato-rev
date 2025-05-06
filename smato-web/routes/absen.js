@@ -6,7 +6,7 @@ const Model_Mapel = require("../model/Model_Mapel.js");
 const Model_Users = require("../model/Model_Users.js");
 const Model_Guru = require("../model/Model_Guru.js");
 const Model_Kelas = require("../model/Model_Kelas.js");
-
+const Model_Guru_Kelas = require('../model/Model_Guru_Kelas');
 // router.get('/', async (req, res) => {
 //   const nama_mapel = req.query.nama_mapel;
 

@@ -3,6 +3,7 @@ import '../screens/beranda_screens.dart';
 import '../screens/profile_screens.dart';
 import '../screens/login_screens.dart';
 import '../theme/app_theme.dart';
+import 'dart:ui';
 
 class SidebarWidget extends StatelessWidget {
   final bool isOverlay;
@@ -11,83 +12,184 @@ class SidebarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 250,
+      width: 270,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [AppTheme.primaryBlue, AppTheme.primaryBlue.withOpacity(0.9)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.primaryBlue.withOpacity(0.95),
+            Color(0xFF1A4D8C),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
-        borderRadius: const BorderRadius.horizontal(right: Radius.circular(40)),
+        borderRadius: const BorderRadius.horizontal(right: Radius.circular(25)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
-            blurRadius: 20,
-            spreadRadius: 2,
+            blurRadius: 15,
+            spreadRadius: 1,
+            offset: Offset(2, 0),
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Profile section
-          ClipRRect(
-            borderRadius: BorderRadius.circular(50),
-            child: Image.network(
-              'https://cdn.builder.io/api/v1/image/assets/TEMP/3aedf3d81aae4520b759f5861584b0016130a69299fdd5f206e6d76a9266ba31',
-              width: 75,
-              height: 75,
-              fit: BoxFit.cover,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.horizontal(right: Radius.circular(25)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05),
             ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'E-Smato Siswa\nSMAN 1 Bluto',
-            style: AppTheme.titleStyle.copyWith(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 30),
-          // Divider line
-          Divider(color: Colors.white.withOpacity(0.6)),
-          const SizedBox(height: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 50),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header with profile and school info
+                Center(
+                  child: Column(
+                    children: [
+                      // Profile picture with elegant border
+                      Container(
+                        padding: EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.7),
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(50),
+                          child: Image.network(
+                            'https://cdn.builder.io/api/v1/image/assets/TEMP/3aedf3d81aae4520b759f5861584b0016130a69299fdd5f206e6d76a9266ba31',
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      
+                      // School name with elegant typography
+                      Text(
+                        'E-Smato Siswa',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'SMAN 1 Bluto',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.white.withOpacity(0.85),
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 40),
+                
+                // Elegant divider
+                Container(
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withOpacity(0.01),
+                        Colors.white.withOpacity(0.2),
+                        Colors.white.withOpacity(0.01),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                  ),
+                ),
+                
+                const SizedBox(height: 30),
 
-          // Navigation items with icons
-          _buildNavItem(
-            context,
-            title: 'Beranda',
-            icon: Icons.home,
-            onTap: () {
-              Navigator.push(
-                context,
-                _createPageRoute(const BerandaScreen()),
-              );
-            },
+                // Menu section title
+                Padding(
+                  padding: const EdgeInsets.only(left: 4, bottom: 12),
+                  child: Text(
+                    'MENU',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withOpacity(0.6),
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
+                
+                // Navigation menu items
+                _buildNavItem(
+                  context,
+                  title: 'Beranda',
+                  icon: Icons.home_rounded,
+                  isActive: true,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      _createPageRoute(const BerandaScreen()),
+                    );
+                  },
+                ),
+                
+                _buildNavItem(
+                  context,
+                  title: 'Profil',
+                  icon: Icons.person_rounded,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      _createPageRoute(const ProfileScreen()),
+                    );
+                  },
+                ),
+                
+                const Spacer(),
+                
+                // Exit button at the bottom
+                _buildNavItem(
+                  context,
+                  title: 'Keluar',
+                  icon: Icons.logout_rounded,
+                  isDestructive: true,
+                  onTap: () {
+                    _showLogoutDialog(context);
+                  },
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // App version info
+                Center(
+                  child: Text(
+                    'v1.0.0',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white.withOpacity(0.4),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          _buildNavItem(
-            context,
-            title: 'Profil',
-            icon: Icons.person,
-            onTap: () {
-              Navigator.push(
-                context,
-                _createPageRoute(const ProfileScreen()),
-              );
-            },
-          ),
-          _buildNavItem(
-            context,
-            title: 'Keluar',
-            icon: Icons.exit_to_app,
-            onTap: () {
-              _showLogoutDialog(context);
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -97,74 +199,219 @@ class SidebarWidget extends StatelessWidget {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const begin = Offset(-1.0, 0.0);
+        const begin = Offset(-0.5, 0.0);
         const end = Offset.zero;
-        const curve = Curves.ease;
+        const curve = Curves.easeOutCubic;
         final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
         final offsetAnimation = animation.drive(tween);
-        return SlideTransition(position: offsetAnimation, child: child);
+        
+        return SlideTransition(
+          position: offsetAnimation, 
+          child: FadeTransition(
+            opacity: animation,
+            child: child,
+          ),
+        );
       },
+      transitionDuration: const Duration(milliseconds: 400),
     );
   }
 
-  // Widget to build each navigation item with icon
-  Widget _buildNavItem(BuildContext context,
-      {required String title, required IconData icon, VoidCallback? onTap}) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.white, size: 25),
-            const SizedBox(width: 15),
-            Text(
-              title,
-              style: AppTheme.titleStyle.copyWith(
-                fontSize: 16,
-                color: Colors.white,
+  // Widget to build each navigation item with enhanced styling
+  Widget _buildNavItem(
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    bool isActive = false,
+    bool isDestructive = false,
+    VoidCallback? onTap,
+  }) {
+    Color itemColor = isDestructive
+        ? Color(0xFFFF5C5C)
+        : isActive
+            ? Colors.white
+            : Colors.white.withOpacity(0.7);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: isActive ? Colors.white.withOpacity(0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              // Icon with subtle background for active state
+              Container(
+                height: 36,
+                width: 36,
+                decoration: BoxDecoration(
+                  color: isActive ? Colors.white.withOpacity(0.15) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  color: itemColor,
+                  size: 22,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(width: 14),
+              
+              // Menu text
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                  color: itemColor,
+                  letterSpacing: 0.2,
+                ),
+              ),
+              
+              // Right indicator for active state
+              if (isActive) ...[
+                const Spacer(),
+                Container(
+                  height: 20,
+                  width: 3,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // Show logout confirmation dialog
+  // Show logout confirmation dialog with enhanced styling
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: AppTheme.primaryBlue,
-          title: const Text(
-            'Konfirmasi',
-            style: TextStyle(color: Colors.white),
-          ),
-          content: const Text(
-            'Apakah Anda yakin ingin logout?',
-            style: TextStyle(color: Colors.white),
-          ),
-          actions: [
-            TextButton(
-              child: const Text('Batal', style: TextStyle(color: Colors.white)),
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-              },
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Container(
+            width: 320,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                ),
+              ],
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text('Ya, Logout'),
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                );
-              },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Warning icon
+                Container(
+                  height: 60,
+                  width: 60,
+                  decoration: BoxDecoration(
+                    color: Color(0xFFFEF2F2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.logout_rounded,
+                    color: Color(0xFFEF4444),
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                // Title
+                Text(
+                  'Konfirmasi Keluar',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // Content
+                Text(
+                  'Apakah Anda yakin ingin keluar dari aplikasi E-Smato?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Action buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close the dialog
+                        },
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          side: BorderSide(color: Colors.black12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          'Batal',
+                          style: TextStyle(
+                            color: Colors.black54,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop(); // Close the dialog
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LoginScreen()),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          backgroundColor: Color(0xFFEF4444),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          'Ya, Keluar',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );

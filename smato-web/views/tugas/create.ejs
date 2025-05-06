@@ -17,6 +17,28 @@
       <input type="text" class="form-control" name="nama_tugas" id="nama_tugas" placeholder="Nama Tugas" required>
     </div>
 
+    <!-- Add these fields after the mapel section -->
+
+<div class="mb-3">
+  <label for="id_guru" class="form-label">Guru</label>
+  <select class="form-control" name="id_guru" required>
+    <option value="">-- Pilih Guru --</option>
+    <% dataGuru.forEach((guru) => { %>
+      <option value="<%= guru.id_guru %>"><%= guru.nama_guru %></option>
+    <% }); %>
+  </select>
+</div>
+
+<div class="mb-3">
+  <label for="id_kelas" class="form-label">Kelas</label>
+  <select class="form-control" name="id_kelas" required>
+    <option value="">-- Pilih Kelas --</option>
+    <% dataKelas.forEach((kelas) => { %>
+      <option value="<%= kelas.id_kelas %>"><%= kelas.kode_kelas %></option>
+    <% }); %>
+  </select>
+</div>
+
     <div class="mb-3">
       <label for="deskripsi" class="form-label">Deskripsi</label>
       <input type="text" class="form-control" name="deskripsi" id="deskripsi" placeholder="Deskripsi Tugas" required>

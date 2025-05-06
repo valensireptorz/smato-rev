@@ -2,6 +2,7 @@ const connection = require('../config/database');
 const Model_Mapel = require("../model/Model_Mapel.js");
 
 class Model_Absen {
+    
 
     static async getAll() {
         return new Promise((resolve, reject) => {

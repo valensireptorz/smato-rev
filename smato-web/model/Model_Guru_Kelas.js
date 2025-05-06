@@ -1,7 +1,27 @@
 const connection = require('../config/database');
 
 class Model_Guru_Kelas {
+    static async getByGuru(id_guru) {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT k.id_kelas, k.kode_kelas 
+                FROM guru_kelas gk
+                JOIN kelas k ON gk.id_kelas = k.id_kelas
+                WHERE gk.id_guru = ?
+                ORDER BY k.kode_kelas ASC
+            `;
+            connection.query(query, [id_guru], (err, rows) => {
+                if (err) {
+                    console.error('Error in getByGuru:', err);
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
 
+    // [Kode yang sudah ada tetap dipertahankan tanpa perubahan]
     static async getAll() {
         return new Promise((resolve, reject) => {
             const query = `
@@ -13,16 +33,15 @@ class Model_Guru_Kelas {
             `;
             connection.query(query, (err, rows) => {
                 if (err) {
-                    console.error('Error executing query in getAll():', err); // Log error di console
+                    console.error('Error executing query in getAll():', err);
                     reject(err);
                 } else {
-                    console.log('Query result in getAll():', rows); // Log hasil query
+                    console.log('Query result in getAll():', rows);
                     resolve(rows);
                 }
             });
         });
     }
-    
 
     static async Store(data) {
         try {
@@ -41,7 +60,6 @@ class Model_Guru_Kelas {
             throw error;
         }
     }
-    
 
     static async getId(id) {
         return new Promise((resolve, reject) => {
@@ -78,7 +96,6 @@ class Model_Guru_Kelas {
             });
         });
     }
-
 }
 
 module.exports = Model_Guru_Kelas;

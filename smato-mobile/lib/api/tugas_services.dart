@@ -7,6 +7,7 @@ class TugasModel {
   final String namaTugas;
   final String deskripsi;
   final String deadline;
+ 
 
   TugasModel({
     required this.idTugas,
@@ -14,12 +15,14 @@ class TugasModel {
     required this.namaTugas,
     required this.deskripsi,
     required this.deadline,
+  
   });
 
   factory TugasModel.fromJson(Map<String, dynamic> json) {
     return TugasModel(
       idTugas: json['id_tugas'].toString(),
       idMapel: json['id_mapel'].toString(),
+   
       namaTugas: json['nama_tugas'],
       deskripsi: json['deskripsi'],
       deadline: json['deadline'],
@@ -29,6 +32,7 @@ class TugasModel {
   Map<String, dynamic> toJson() {
     return {
       'id_mapel': idMapel,
+      
       'nama_tugas': namaTugas,
       'deskripsi': deskripsi,
       'deadline': deadline,
@@ -38,7 +42,7 @@ class TugasModel {
 
 
 class TugasService {
-  static const String baseUrl = 'http://192.168.1.28:3000/api/tugas';
+  static const String baseUrl = 'http://192.168.1.5:3000/api/tugas';
 
   // Ambil semua data tugas
   static Future<List<Map<String, dynamic>>> getAllTugas() async {

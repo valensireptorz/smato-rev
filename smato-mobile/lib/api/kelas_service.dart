@@ -25,7 +25,7 @@ class KelasModel {
 }
 
 class KelasService {
-  static const String baseUrl = 'http://192.168.1.28:3000/api/kelas';
+  static const String baseUrl = 'http://192.168.1.5:3000/api/kelas';
 
   // Ambil semua data kelas
   static Future<List<KelasModel>> getAllKelas() async {

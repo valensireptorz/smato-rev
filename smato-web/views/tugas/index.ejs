@@ -34,40 +34,46 @@
 
   <!-- Tabel Tugas -->
   <table class="table table-bordered">
-    <thead>
+  <!-- Update the table header -->
+<thead>
+  <tr>
+    <th>No</th>
+    <th>Nama Tugas</th>
+    <th>Guru</th>
+    <th>Kelas</th>
+    <th>Deskripsi</th>
+    <th>Deadline</th>
+    <th>Aksi</th>
+  </tr>
+</thead>
+
+<!-- Update the table body -->
+<tbody>
+  <% if (dataTugas && dataTugas.length > 0) { %>
+    <% dataTugas.forEach((tugas, i) => { %>
       <tr>
-        <th>No</th>
-        <th>Nama Tugas</th>
-        <th>Deskripsi</th>
-        <th>Deadline</th>
-        <th>Aksi</th>
+        <td><%= i + 1 %></td>
+        <td><%= tugas.nama_tugas %></td>
+        <td><%= tugas.nama_guru %></td>
+        <td><%= tugas.kode_kelas %></td>
+        <td><%= tugas.deskripsi %></td>
+        <td><%= new Date(tugas.deadline).toLocaleDateString() %></td>
+        <td>
+          <% if (level === 'guru') { %>
+          
+            <a href="/tugas/delete/<%= tugas.id_tugas %>" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus?')">Hapus</a>
+          <% } else { %>
+            <span class="text-muted">Tidak tersedia</span>
+          <% } %>
+        </td>
       </tr>
-    </thead>
-    <tbody>
-      <% if (dataTugas && dataTugas.length > 0) { %>
-        <% dataTugas.forEach((tugas, i) => { %>
-          <tr>
-            <td><%= i + 1 %></td>
-            <td><%= tugas.nama_tugas %></td>
-            <td><%= tugas.deskripsi %></td>
-            <td><%= new Date(tugas.deadline).toLocaleDateString() %></td>
-            <td>
-              <% if (level === 'guru') { %>
-                <a href="/tugas/edit/<%= tugas.id_tugas %>" class="btn btn-warning btn-sm">Edit</a>
-                <a href="/tugas/delete/<%= tugas.id_tugas %>" class="btn btn-danger btn-sm" onclick="return confirm('Yakin ingin menghapus?')">Hapus</a>
-              <% } else { %>
-                <span class="text-muted">Tidak tersedia</span>
-              <% } %>
-             
-            </td>
-          </tr>
-        <% }) %>
-      <% } else { %>
-        <tr>
-          <td colspan="5" class="text-center">Tidak ada tugas.</td>
-        </tr>
-      <% } %>
-    </tbody>
+    <% }) %>
+  <% } else { %>
+    <tr>
+      <td colspan="7" class="text-center">Tidak ada tugas.</td>
+    </tr>
+  <% } %>
+</tbody>
   </table>
 </div>
 

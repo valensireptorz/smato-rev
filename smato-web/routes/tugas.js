@@ -5,6 +5,8 @@ const moment = require("moment-timezone");
 const Model_Tugas = require("../model/Model_Tugas.js");
   const Model_Mapel = require("../model/Model_Mapel.js");
   const Model_Users = require("../model/Model_Users.js");
+  const Model_Guru = require("../model/Model_Guru.js");
+  const Model_Kelas = require("../model/Model_Kelas.js");
 
   // router.get("/", async (req, res) => {
   //   const nama_mapel = req.query.nama_mapel;
@@ -70,6 +72,12 @@ router.get("/", async (req, res) => {
             
             // Ambil tugas berdasarkan mata pelajaran guru
             dataTugas = await Model_Tugas.getByMapel(id_mapel);
+            
+            // Gabungkan kode_kelas ke dalam data tugas
+            for (let tugas of dataTugas) {
+              const kelas = await Model_Kelas.getById(tugas.id_kelas);
+              tugas.kode_kelas = kelas ? kelas.kode_kelas : '-';
+            }
           }
         }
       }
@@ -83,6 +91,12 @@ router.get("/", async (req, res) => {
         if (mapel) {
           id_mapel = mapel.id_mapel;
           dataTugas = await Model_Tugas.getByMapel(id_mapel);
+          
+          // Gabungkan kode_kelas ke dalam data tugas
+          for (let tugas of dataTugas) {
+            const kelas = await Model_Kelas.getById(tugas.id_kelas);
+            tugas.kode_kelas = kelas ? kelas.kode_kelas : '-';
+          }
         }
       }
     }
@@ -103,7 +117,8 @@ router.get("/", async (req, res) => {
 
 
 
-// GET CREATE
+
+// In GET CREATE route
 router.get("/create/:id_mapel", async function (req, res) {
   const id_mapel = req.params.id_mapel;
 
@@ -118,7 +133,10 @@ router.get("/create/:id_mapel", async function (req, res) {
     return res.redirect("/tugas");
   }
 
-  const users = await Model_Users.getAll();
+  // Get guru data (assuming you have Model_Guru)
+  const guru = await Model_Guru.getAll();
+  // Get kelas data for this mapel/guru
+  const kelas = await Model_Kelas.getAll(); // Or filter by guru/mapel if needed
   const now = moment().tz('Asia/Jakarta').format("YYYY-MM-DDTHH:mm");
 
   res.render("tugas/create", {
@@ -127,17 +145,17 @@ router.get("/create/:id_mapel", async function (req, res) {
     nama_tugas: "",
     deskripsi: "",
     deadline: now,
-    dataUsers: users,
+    dataGuru: guru,
+    dataKelas: kelas,
     level: req.session.level
   });
 });
 
-
-// POST STORE
+// In POST STORE route
 router.post("/store", async function (req, res) {
   try {
-    const { id_mapel, nama_tugas, deskripsi, deadline } = req.body;
-    const Data = { id_mapel, nama_tugas, deskripsi, deadline };
+    const { id_mapel, id_guru, id_kelas, nama_tugas, deskripsi, deadline } = req.body;
+    const Data = { id_mapel, id_guru, id_kelas, nama_tugas, deskripsi, deadline };
     await Model_Tugas.Store(Data);
     req.flash("success", "Berhasil menyimpan data!");
     res.redirect("/tugas");

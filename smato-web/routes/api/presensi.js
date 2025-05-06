@@ -94,7 +94,7 @@ router.post("/presensi", async function (req, res) {
     if (cekPresensi.length > 0) {
       return res.status(200).json({
         success: false,
-        message: "Anda sudah presensi untuk mata pelajaran ini.",
+        message: "Anda sudah presensi untuk mapel ini.",
       });
     }
 

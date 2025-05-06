@@ -3,51 +3,54 @@ const Model_Matkul = require("../model/Model_Mapel.js");
 const Model_Users = require("../model/Model_Users.js");
 
 class Model_Tugas {
-    // Get all tugas with mapel and guru info
-    static async getAll() {
-        return new Promise((resolve, reject) => {
-            const query = `
-                SELECT t.*, m.nama_mapel, g.nama_guru 
-                FROM tugas t
-                LEFT JOIN mapel m ON t.id_mapel = m.id_mapel
-                LEFT JOIN guru g ON t.id_guru = g.id_guru
-                ORDER BY t.id_tugas DESC
-            `;
-            
-            connection.query(query, (err, rows) => {
-                if (err) {
-                    console.error("Error in Model_Tugas.getAll():", err);
-                    reject(err);
-                } else {
-                    resolve(rows);
-                }
-            });
-        });
-    }
+    // In Model_Tugas.js
 
-    // Store new tugas
-    static async Store(data) {
-        return new Promise((resolve, reject) => {
-            // Validate required fields
-            if (!data.id_mapel || !data.nama_tugas || !data.deskripsi || !data.deadline) {
-                const error = new Error("Missing required fields");
-                console.error("Validation error:", error);
-                reject(error);
-                return;
+// Update getAll method to include kelas info
+static async getAll() {
+    return new Promise((resolve, reject) => {
+        const query = `
+            SELECT t.*, m.nama_mapel, g.nama_guru, k.kode_kelas
+            FROM tugas t
+            LEFT JOIN mapel m ON t.id_mapel = m.id_mapel
+            LEFT JOIN guru g ON t.id_guru = g.id_guru
+            LEFT JOIN kelas k ON t.id_kelas = k.id_kelas
+            ORDER BY t.id_tugas DESC
+        `;
+        
+        connection.query(query, (err, rows) => {
+            if (err) {
+                console.error("Error in Model_Tugas.getAll():", err);
+                reject(err);
+            } else {
+                resolve(rows);
             }
-
-            connection.query('INSERT INTO tugas SET ?', data, (err, result) => {
-                if (err) {
-                    console.error("Error in Model_Tugas.Store():", err);
-                    console.error("SQL:", err.sql);
-                    reject(err);
-                } else {
-                    console.log("Tugas created with ID:", result.insertId);
-                    resolve(result);
-                }
-            });
         });
-    }
+    });
+}
+
+// Update Store method to include id_guru and id_kelas
+static async Store(data) {
+    return new Promise((resolve, reject) => {
+        // Validate required fields
+        if (!data.id_mapel || !data.id_guru || !data.id_kelas || !data.nama_tugas || !data.deskripsi || !data.deadline) {
+            const error = new Error("Missing required fields");
+            console.error("Validation error:", error);
+            reject(error);
+            return;
+        }
+
+        connection.query('INSERT INTO tugas SET ?', data, (err, result) => {
+            if (err) {
+                console.error("Error in Model_Tugas.Store():", err);
+                console.error("SQL:", err.sql);
+                reject(err);
+            } else {
+                console.log("Tugas created with ID:", result.insertId);
+                resolve(result);
+            }
+        });
+    });
+}
 
     // Get tugas by ID
     static async getId(id) {

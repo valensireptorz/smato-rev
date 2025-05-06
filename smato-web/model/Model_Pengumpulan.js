@@ -2,25 +2,30 @@ const connect = require('../config/database');
 
 class Model_Pengumpulan {
 
-  // ✅ Ambil semua data pengumpulan (khusus admin)
-  static async getAll() {
-    return new Promise((resolve, reject) => {
-      const query = `
-        SELECT 
-          pengumpulan.*, 
-          siswa.nama_siswa, 
-          mapel.nama_mapel 
-        FROM pengumpulan
-        LEFT JOIN siswa ON pengumpulan.id_siswa = siswa.id_siswa
-        LEFT JOIN mapel ON pengumpulan.id_mapel = mapel.id_mapel
-        ORDER BY pengumpulan.upload_time DESC
-      `;
-      connect.query(query, (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
+ // ✅ Ambil semua data pengumpulan (khusus admin)
+static async getAll() {
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT 
+        pengumpulan.*, 
+        siswa.nama_siswa, 
+        mapel.nama_mapel,
+        guru.nama_guru,
+        tugas.nama_tugas
+      FROM pengumpulan
+      LEFT JOIN siswa ON pengumpulan.id_siswa = siswa.id_siswa
+      LEFT JOIN mapel ON pengumpulan.id_mapel = mapel.id_mapel
+      LEFT JOIN guru ON pengumpulan.id_guru = guru.id_guru
+      LEFT JOIN tugas ON pengumpulan.id_tugas = tugas.id_tugas
+      ORDER BY pengumpulan.upload_time DESC
+    `;
+    connect.query(query, (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
     });
-  }
+  });
+}
+
 
   // ✅ Ambil semua pengumpulan berdasarkan id_siswa
   static async getAllPengumpulan(id_siswa) {
@@ -108,6 +113,26 @@ class Model_Pengumpulan {
       });
     });
   }
+
+  // ✅ Hapus data pengumpulan berdasarkan id_pengumpulan
+static async delete(id_pengumpulan) {
+  return new Promise((resolve, reject) => {
+    const query = `
+      DELETE FROM pengumpulan 
+      WHERE id_pengumpulan = ?
+    `;
+    connect.query(query, [id_pengumpulan], (err, result) => {
+      if (err) {
+        console.error("Gagal menghapus data pengumpulan:", err);
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
 }
+
+}
+
 
 module.exports = Model_Pengumpulan;

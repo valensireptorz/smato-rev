@@ -21,34 +21,28 @@
         <th>Nama Mapel</th>
         <th>Upload Time</th>
         <th>Nama Tugas</th>
-        <th>Nama Siswa</th>
-        
         <th>Nama Guru</th>
         <th>File Tugas</th>
         <th>Aksi</th>
       </tr>
     </thead>
     <tbody>
-      <% if (dataPengumpulan.length === 0) { %>
+      <% if (dataPengumpulan && dataPengumpulan.length === 0) { %>
         <tr>
-          <td colspan="11" class="text-center">Belum ada pengumpulan tugas</td>
+          <td colspan="8" class="text-center">Belum ada pengumpulan tugas</td>
         </tr>
       <% } else { %>
         <% dataPengumpulan.forEach((item, index) => { %>
           <tr>
             <td><%= index + 1 %></td>
-           
             <td><%= item.nama_siswa %></td>
             <td><%= item.nama_mapel %></td>
             <td><%= item.upload_time || '-' %></td>
             <td><%= item.nama_tugas %></td>
-            <td><%= item.nama_siswa %></td>
-            
             <td><%= item.nama_guru || '-' %></td>
             <td>
               <% if (item.file_tugas) { %>
                 <a href="/pengumpulan/download/<%= item.file_tugas %>" class="btn btn-sm btn-primary">Unduh</a>
-
               <% } else { %>
                 <span class="text-muted">Belum Upload</span>
               <% } %>
@@ -58,18 +52,19 @@
                 <% if (!item.file_tugas) { %>
                   <a href="/pengumpulan/edit/<%= item.id_tugas %>" class="btn btn-sm btn-success">Upload</a>
                 <% } else { %>
-                  <a href="/pengumpulan/edit/<%= item.id_tugas %>" class="btn btn-sm btn-warning">Edit</a>
+                 
                 <% } %>
               <% } %>
-
+    
               <% if (level === 'guru') { %>
-                <a href="/pengumpulan/delete/<%= item.id_tugas %>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus tugas ini?')">Delete</a>
+                <a href="/pengumpulan/delete/<%= item.id_pengumpulan %>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus tugas ini?')">Delete</a>
               <% } %>
             </td>
           </tr>
         <% }) %>
       <% } %>
     </tbody>
+    
   </table>
 </div>
 
