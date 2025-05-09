@@ -1,71 +1,445 @@
 <%- include('../partials/_head.ejs') %>
+<!-- Custom CSS -->
+<style>
+  :root {
+    --primary-color: #2c3e50;
+    --accent-color: #3498db;
+    --success-color: #2ecc71;
+    --danger-color: #e74c3c;
+    --warning-color: #f39c12;
+    --light-bg: #f8f9fa;
+    --dark-text: #2c3e50;
+    --light-text: #ecf0f1;
+    --shadow: 0 4px 6px rgba(0,0,0,0.1);
+    --radius: 8px;
+  }
+  
+  body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f5f7fa;
+    color: var(--dark-text);
+  }
+  
+  .dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e1e5e8;
+  }
+  
+  .page-title {
+    font-weight: 700;
+    color: var(--primary-color);
+    position: relative;
+    margin-bottom: 0;
+  }
+  
+  .page-title:after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 80px;
+    height: 4px;
+    background: var(--accent-color);
+    border-radius: 2px;
+  }
+  
+  .card {
+    background: #ffffff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: none;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+  
+  .card-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    padding: 1.25rem 1.5rem;
+  }
+  
+  .table-responsive {
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  
+  .data-table {
+    width: 100%;
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  
+  .data-table thead th {
+    background-color: var(--primary-color);
+    color: var(--light-text);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+    position: relative;
+  }
+  
+  .data-table tbody tr {
+    transition: all 0.2s ease;
+  }
+  
+  .data-table tbody tr:hover {
+    background-color: rgba(52, 152, 219, 0.05);
+  }
+  
+  .data-table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    font-size: 0.95rem;
+  }
+  
+  .status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.8rem;
+    display: inline-block;
+    text-align: center;
+  }
+  
+  .status-pending {
+    background-color: rgba(243, 156, 18, 0.15);
+    color: var(--warning-color);
+  }
+  
+  .status-completed {
+    background-color: rgba(46, 204, 113, 0.15);
+    color: var(--success-color);
+  }
+  
+  .btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+  }
+  
+  .btn-primary {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+  }
+  
+  .btn-primary:hover {
+    background-color: #2980b9;
+    border-color: #2980b9;
+  }
+  
+  .btn-success {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+  }
+  
+  .btn-success:hover {
+    background-color: #27ae60;
+    border-color: #27ae60;
+  }
+  
+  .btn-danger {
+    background-color: var(--danger-color);
+    border-color: var(--danger-color);
+  }
+  
+  .btn-danger:hover {
+    background-color: #c0392b;
+    border-color: #c0392b;
+  }
+  
+  .btn-action {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.25rem;
+  }
+  
+  .alert {
+    border-radius: var(--radius);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    border: none;
+  }
+  
+  .alert-success {
+    background-color: rgba(46, 204, 113, 0.15);
+    color: var(--success-color);
+    border-left: 4px solid var(--success-color);
+  }
+  
+  .alert-danger {
+    background-color: rgba(231, 76, 60, 0.15);
+    color: var(--danger-color);
+    border-left: 4px solid var(--danger-color);
+  }
+  
+  .empty-state {
+    padding: 3rem;
+    text-align: center;
+  }
+  
+  .empty-state i {
+    font-size: 3rem;
+    color: #d1d8e0;
+    margin-bottom: 1rem;
+  }
+  
+  .empty-state h4 {
+    color: #8395a7;
+    margin-bottom: 0.5rem;
+  }
+  
+  .empty-state p {
+    color: #a5b1c2;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+  .student-name {
+    font-weight: 600;
+  }
+  
+  .teacher-name {
+    font-size: 0.9rem;
+  }
+  
+  .task-name {
+    font-weight: 500;
+  }
+  
+  .timestamp {
+    color: #7f8c8d;
+    font-size: 0.85rem;
+  }
+  
+  .action-column {
+    width: 120px;
+  }
+  
+  /* Animation for new entries */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .new-entry {
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 992px) {
+    .dashboard-container {
+      padding: 1rem;
+    }
+    
+    .data-table {
+      min-width: 800px;
+    }
+  }
+</style>
+
 <%- include('../partials/_nav.ejs') %>
 
-<div class="container mt-5">
-  <h2 class="mb-4">Riwayat Pengumpulan Tugas</h2>
+<div class="dashboard-container">
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">Riwayat Pengumpulan Tugas</h2>
+      <br>
+      <p class="text-muted">Pantau dan kelola pengumpulan tugas siswa secara efektif</p>
+    </div>
+    <div>
+      <button class="btn btn-primary" id="exportBtn" hidden>
+        <i class="fas fa-file-export me-2"></i> Ekspor Data
+      </button>
+    </div>
+  </div>
 
   <% if (messageError && messageError.length > 0) { %>
-    <div class="alert alert-danger"><%= messageError[0] %></div>
+    <div class="alert alert-danger">
+      <i class="fas fa-exclamation-circle me-2"></i>
+      <%= messageError[0] %>
+    </div>
   <% } %>
 
   <% if (success && success.length > 0) { %>
-    <div class="alert alert-success"><%= success[0] %></div>
+    <div class="alert alert-success">
+      <i class="fas fa-check-circle me-2"></i>
+      <%= success[0] %>
+    </div>
   <% } %>
 
-  <table class="table table-bordered table-striped">
-    <thead class="table-dark">
-      <tr>
-        <th>No</th>
-      
-        <th>Nama Siswa</th>
-        <th>Nama Mapel</th>
-        <th>Upload Time</th>
-        <th>Nama Tugas</th>
-        <th>Nama Guru</th>
-        <th>File Tugas</th>
-        <th>Aksi</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% if (dataPengumpulan && dataPengumpulan.length === 0) { %>
-        <tr>
-          <td colspan="8" class="text-center">Belum ada pengumpulan tugas</td>
-        </tr>
-      <% } else { %>
-        <% dataPengumpulan.forEach((item, index) => { %>
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Daftar Pengumpulan</h5>
+      <div class="input-group" style="max-width: 300px;">
+        <input type="text" class="form-control" placeholder="Cari..." id="searchInput">
+        <button class="btn btn-primary" type="button">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table data-table">
+        <thead>
           <tr>
-            <td><%= index + 1 %></td>
-            <td><%= item.nama_siswa %></td>
-            <td><%= item.nama_mapel %></td>
-            <td><%= item.upload_time || '-' %></td>
-            <td><%= item.nama_tugas %></td>
-            <td><%= item.nama_guru || '-' %></td>
-            <td>
-              <% if (item.file_tugas) { %>
-                <a href="/pengumpulan/download/<%= item.file_tugas %>" class="btn btn-sm btn-primary">Unduh</a>
-              <% } else { %>
-                <span class="text-muted">Belum Upload</span>
-              <% } %>
-            </td>
-            <td>
-              <% if (level === 'guru') { %>
-                <% if (!item.file_tugas) { %>
-                  <a href="/pengumpulan/edit/<%= item.id_tugas %>" class="btn btn-sm btn-success">Upload</a>
-                <% } else { %>
-                 
-                <% } %>
-              <% } %>
-    
-              <% if (level === 'guru') { %>
-                <a href="/pengumpulan/delete/<%= item.id_pengumpulan %>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus tugas ini?')">Delete</a>
-              <% } %>
-            </td>
+            <th style="width: 60px;">No</th>
+            <th>Nama Siswa</th>
+            <th>Mata Pelajaran</th>
+            <th>Nama Tugas</th>
+            <th>Tanggal Pengumpulan</th>
+            <th>Status</th>
+            <th>File</th>
+            <th class="action-column">Aksi</th>
           </tr>
-        <% }) %>
-      <% } %>
-    </tbody>
-    
-  </table>
+        </thead>
+        <tbody>
+          <% if (dataPengumpulan && dataPengumpulan.length === 0) { %>
+            <tr>
+              <td colspan="8">
+                <div class="empty-state">
+                  <i class="fas fa-folder-open"></i>
+                  <h4>Belum Ada Pengumpulan</h4>
+                  <p>Belum ada tugas yang dikumpulkan oleh siswa saat ini.</p>
+                </div>
+              </td>
+            </tr>
+          <% } else { %>
+            <% dataPengumpulan.forEach((item, index) => { %>
+              <tr class="<%= index < 3 ? 'new-entry' : '' %>">
+                <td class="text-center"><%= index + 1 %></td>
+                <td>
+                  <div class="student-name"><%= item.nama_siswa %></div>
+                </td>
+                <td><%= item.nama_mapel %></td>
+                <td>
+                  <div class="task-name"><%= item.nama_tugas %></div>
+                  <small class="teacher-name text-muted"><i class="fas fa-user-tie me-1"></i> <%= item.nama_guru || '-' %></small>
+                </td>
+                <td>
+                  <% if (item.upload_time) { %>
+                    <div class="timestamp">
+                      <i class="far fa-calendar-alt me-1"></i>
+                      <%= new Date(item.upload_time).toLocaleDateString('id-ID', { 
+                        day: 'numeric', 
+                        month: 'long', 
+                        year: 'numeric'
+                      }) %>
+                    </div>
+                    <div class="timestamp">
+                      <i class="far fa-clock me-1"></i>
+                      <%= new Date(item.upload_time).toLocaleTimeString('id-ID', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }) %>
+                    </div>
+                  <% } else { %>
+                    <span class="timestamp">-</span>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (item.file_tugas) { %>
+                    <span class="status-badge status-completed">
+                      <i class="fas fa-check-circle me-1"></i> Sudah Dikumpulkan
+                    </span>
+                  <% } else { %>
+                    <span class="status-badge status-pending">
+                      <i class="fas fa-clock me-1"></i> Belum Dikumpulkan
+                    </span>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (item.file_tugas) { %>
+                    <a href="/pengumpulan/download/<%= item.file_tugas %>" class="btn btn-sm btn-primary">
+                      <i class="fas fa-download me-1"></i> Unduh
+                    </a>
+                  <% } else { %>
+                    <span class="text-muted">
+                      <i class="fas fa-minus-circle me-1"></i> Belum Upload
+                    </span>
+                  <% } %>
+                </td>
+                <td>
+                  <div class="d-flex">
+                    <% if (level === 'guru') { %>
+                      <% if (!item.file_tugas) { %>
+                        <a href="/pengumpulan/edit/<%= item.id_tugas %>" class="btn btn-sm btn-success me-1" data-bs-toggle="tooltip" title="Upload Tugas">
+                          <i class="fas fa-upload"></i>
+                        </a>
+                      <% } %>
+                      <a href="/pengumpulan/delete/<%= item.id_pengumpulan %>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus tugas ini?')" data-bs-toggle="tooltip" title="Hapus">
+                        <i class="fas fa-trash"></i>
+                      </a>
+                    <% } %>
+                  </div>
+                </td>
+              </tr>
+            <% }) %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>
+
+<!-- Add FontAwesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+<!-- Add Poppins font -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Add JavaScript for interactive features -->
+<script>
+  // Initialize tooltips
+  document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    const tableRows = document.querySelectorAll('.data-table tbody tr');
+    
+    searchInput.addEventListener('keyup', function() {
+      const searchTerm = searchInput.value.toLowerCase();
+      
+      tableRows.forEach(row => {
+        const rowText = row.textContent.toLowerCase();
+        if (rowText.includes(searchTerm)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+    
+    // Export functionality (placeholder)
+    const exportBtn = document.getElementById('exportBtn');
+    exportBtn.addEventListener('click', function() {
+      alert('Fitur ekspor data akan segera hadir!');
+    });
+    
+    // Initialize tooltips if Bootstrap is available
+    if (typeof bootstrap !== 'undefined') {
+      const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
+    }
+  });
+</script>
 
 <%- include('../partials/_foot.ejs') %>

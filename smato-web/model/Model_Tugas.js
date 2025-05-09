@@ -1,5 +1,5 @@
 const connection = require('../config/database');
-const Model_Matkul = require("../model/Model_Mapel.js"); 
+const Model_Mapel = require("../model/Model_Mapel.js"); 
 const Model_Users = require("../model/Model_Users.js");
 
 class Model_Tugas {

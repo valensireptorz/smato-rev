@@ -7,34 +7,7 @@ const Model_Users = require("../model/Model_Users.js");
 const Model_Guru = require("../model/Model_Guru.js");
 const Model_Kelas = require("../model/Model_Kelas.js");
 const Model_Guru_Kelas = require('../model/Model_Guru_Kelas');
-// router.get('/', async (req, res) => {
-//   const nama_mapel = req.query.nama_mapel;
 
-//   try {
-//     const dataMapel = await Model_Mapel.getAll();
-//     let dataAbsen = [];
-//     let id_mapel = null;
-
-//     if (nama_mapel) {
-//       const mapel = await Model_Mapel.getByNama(nama_mapel);
-//       if (mapel) {
-//         id_mapel = mapel.id_mapel;
-//         dataAbsen = await Model_Absen.getByMapelId(id_mapel);
-//       }
-//     }
-
-//     res.render('absen/index', {
-//       dataMapel,
-//       dataAbsen,
-//       nama_mapel,
-//       id_mapel,
-//       level: req.session.level
-//     });
-
-//   } catch (err) {
-//     res.status(500).send("Terjadi kesalahan: " + err.message);
-//   }
-// });
 
 router.get("/", async (req, res) => {
   // Gunakan 'let' untuk nama_mapel karena nilainya mungkin diubah nanti
@@ -95,12 +68,14 @@ router.get("/", async (req, res) => {
       dataAbsen,
       nama_mapel,
       id_mapel,
-      level: userLevel
+      level: userLevel,
+      messages: req.flash() // Tambahkan ini
     });
 
   } catch (err) {
     console.error("Error:", err);
-    res.status(500).send("Terjadi kesalahan: " + err.message);
+    req.flash('error', 'Gagal mengambil data absen: ' + err.message); // Tambahkan ini
+    res.redirect('/');
   }
 });
 
@@ -140,14 +115,21 @@ router.get("/create/:id_mapel", async function(req, res, next) {
   }
 
   let kelas = await Model_Kelas.getAll();
-  let guru = await Model_Guru.getAll();
+  //let guru = await Model_Guru.getAll(); // Tidak perlu ambil semua guru
+
+  // Dapatkan id dan nama guru dari session
+  const id_guru_login = req.session.userId;
+  const nama_guru_login = req.session.username;
 
   res.render("absen/create", {
     id_mapel: mapel[0].id_mapel,
     nama_mapel: mapel[0].nama_mapel,
-    dataGuru: guru,
+    //dataGuru: guru,  // Tidak perlu mengirim semua guru
     dataKelas: kelas,
     level: req.session.level,
+    id_guru_login: id_guru_login,
+    nama_guru_login: nama_guru_login,
+    messages: req.flash()
   });
 });
 
@@ -176,6 +158,10 @@ router.get("/edit/(:id)", async function(req, res, next) {
     let level_users = req.session.level;
     let id = req.params.id;
     let rows = await Model_Absen.getId(id);
+    if(!rows || rows.length === 0){
+      req.flash('error', "Data Absen tidak ditemukan");
+      return res.redirect('/absen');
+    }
     let mapel = await Model_Mapel.getAll();
     let guru = await Model_Guru.getAll(); // Tambahkan ambil guru
     let kelas = await Model_Kelas.getAll(); // ambil semua data kelas
@@ -192,10 +178,13 @@ router.get("/edit/(:id)", async function(req, res, next) {
       dataGuru: guru,
       dataKelas: kelas, // tambahkan ini juga
       level: level_users,
+      messages: req.flash()
     });
     
   } catch (err) {
     console.log(err);
+    req.flash('error', "Gagal mengambil data absen");
+    res.redirect('/absen');
   }
 });
 
@@ -204,8 +193,8 @@ router.post("/update/(:id)", async function(req, res, next) {
   try {
     let id = req.params.id;
     let { id_mapel, id_guru, tanggal, jam_mulai, jam_selesai, id_kelas } = req.body;
-let Data = { id_mapel, id_guru, tanggal, jam_mulai, jam_selesai, id_kelas };
-await Model_Absen.Update(id, Data);
+    let Data = { id_mapel, id_guru, tanggal, jam_mulai, jam_selesai, id_kelas };
+    await Model_Absen.Update(id, Data);
 
     req.flash("success", "Berhasil memperbarui data");
     res.redirect("/absen");
@@ -219,9 +208,15 @@ await Model_Absen.Update(id, Data);
 
 router.get("/delete/(:id)", async function(req, res) {
   let id = req.params.id;
-  await Model_Absen.Delete(id);
-  req.flash("success", "Data terhapus!");
-  res.redirect("/absen");
+  try{
+    await Model_Absen.Delete(id);
+    req.flash("success", "Data terhapus!");
+    res.redirect("/absen");
+  }catch(err){
+    console.log(err);
+    req.flash("error", "Gagal menghapus data");
+    res.redirect('/absen');
+  }
 });
 
 module.exports = router;

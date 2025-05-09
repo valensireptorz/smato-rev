@@ -1,61 +1,149 @@
 <%- include('../partials/_head.ejs') %>
 
 <%- include('../partials/_nav.ejs') %>
-          <!-- Content wrapper -->
-          <div class="content-wrapper">
-            <!-- Content -->
-            <%- include('../partials/_message.ejs') %>
-            <div class="container-xxl flex-grow-1 container-p-y">
-              <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Tables /</span> kelas</h4>
+<!-- Content wrapper -->
+<div class="content-wrapper">
+  <!-- Content -->
+  <%- include('../partials/_message.ejs') %>
+  <div class="container-xxl flex-grow-1 container-p-y">
+    
+    <!-- Header with breadcrumb and search -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <h4 class="fw-bold py-2 mb-2">
+          <span class="text-muted fw-light">Tables /</span> 
+          <span>Kelas</span>
+        </h4>
+      </div>
+      <div class="col-md-6">
+        <div class="d-flex justify-content-md-end align-items-center gap-2 py-2">
+          <div class="input-group input-group-merge">
+            <span class="input-group-text"><i class="bx bx-search"></i></span>
+            <input type="text" class="form-control" id="searchInput" placeholder="Cari kelas..." onkeyup="searchTable()">
+          </div>
+        </div>
+      </div>
+    </div>
 
-              <!-- Basic Bootstrap Table -->
-              <div class="card">
-                <h5 class="card-header">Tabel Kelas 🏫</h5>
-                <div class="table-responsive text-nowrap">
-                <% if (level == "admin") {%>
+    <!-- Card for table -->
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0">Data Kelas</h5>
+        <div class="card-tools">
+          <% if (level == "admin") { %>
+            <a href="/kelas/create" class="btn btn-primary">
+              <i class="bx bx-plus me-1"></i> Tambah Kelas
+            </a>
+          <% } %>
+        </div>
+      </div>
+      
+      <div class="table-responsive">
+        <table class="table table-hover table-striped">
+          <thead class="table-light">
+            <tr>
+              <th class="text-center" width="60">#</th>
+              <th>Kode Kelas</th>
+              <% if (level == "admin") { %>
+                <th class="text-center" width="100">Actions</th>
+              <% } %>
+            </tr>
+          </thead>
+          <tbody class="table-border-bottom-0" id="kelasTableBody">
+            <% if(data.length > 0) { %>
+              <% for(var i = 0; i < data.length; i++) { %>
+                <tr>
+                  <td class="text-center"><%= (i+1) %></td>
+                  <td><strong><%= data[i].kode_kelas %></strong></td>
+                  <% if (level == "admin") { %>
+                    <td class="text-center">
+                      <div class="d-inline-flex">
+                        <a href="/kelas/edit/<%= data[i].id_kelas %>" class="btn btn-sm btn-icon btn-outline-primary me-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
+                          <i class="bx bx-edit-alt"></i>
+                        </a>
+                        <a href="/kelas/delete/<%= data[i].id_kelas %>" class="btn btn-sm btn-icon btn-outline-danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete" onclick="return confirm('Apakah Anda yakin ingin menghapus kelas ini?')">
+                          <i class="bx bx-trash"></i>
+                        </a>
+                      </div>
+                    </td>
+                  <% } %>
+                </tr>
+              <% } %>
+            <% } else { %>
+              <tr>
+                <td colspan="<%= level == 'admin' ? 3 : 2 %>" class="text-center py-4">
+                  <div class="text-center">
+                    <i class="bx bx-folder-open text-primary mb-2" style="font-size: 3rem;"></i>
+                    <p class="mb-0">Tidak ada data kelas yang tersedia</p>
+                  </div>
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Pagination and data info -->
+      <div class="card-footer d-flex justify-content-between align-items-center py-3">
+        <div class="pagination-info">
+          <small class="text-muted">Menampilkan <span id="showing-entries"><%= data.length %></span> kelas</small>
+        </div>
+        <% if (data.length > 10) { %>
+          <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item prev">
+                <a class="page-link" href="javascript:void(0);"><i class="tf-icon bx bx-chevrons-left"></i></a>
+              </li>
+              <li class="page-item active">
+                <a class="page-link" href="javascript:void(0);">1</a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="javascript:void(0);">2</a>
+              </li>
+              <li class="page-item next">
+                <a class="page-link" href="javascript:void(0);"><i class="tf-icon bx bx-chevrons-right"></i></a>
+              </li>
+            </ul>
+          </nav>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <!--/ Basic Bootstrap Table -->
+  
+  <%- include('../partials/_foot.ejs') %>
+</div>
 
-                    <div class="mt-3 px-3">
-                        <a href="/kelas/create" class="btn btn-sm btn-primary">Tambah</a>
-                        </div>
-                        <% } %>
-
-                  <table class="table">
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Kode Kelas</th>
-                        <% if (level == "admin") {%>
-                        <th>Actions</th>
-                        <% } %>
-                      </tr>
-                    </thead>
-                    <tbody class="table-border-bottom-0">
-                        <% for(var i = 0; i < data.length; i++){ %>
-                      <tr>
-                        <th scope="row"><%= (i+1) %></th>
-                        <td><%= data[i].kode_kelas %></td>
-                        <% if (level == "admin") {%>
-                        <td>
-                          <div class="dropdown">
-                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                              <i class="bx bx-dots-vertical-rounded"></i>
-                            </button>
-                            <div class="dropdown-menu">
-                              <a class="dropdown-item" href="/kelas/edit/<%= data[i].id_kelas %>""
-                                ><i class="bx bx-edit-alt me-1"></i> Edit</a
-                              >
-                              <a class="dropdown-item" href="/kelas/delete/<%= data[i].id_kelas %>""
-                                ><i class="bx bx-trash me-1"></i> Delete</a
-                              >
-                            </div>
-                          </div>
-                        </td>
-                        <% } %>
-                      </tr>
-                      <% } %>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              <!--/ Basic Bootstrap Table -->
-              <%- include('../partials/_foot.ejs') %>
+<script>
+  // Initialize tooltips
+  document.addEventListener('DOMContentLoaded', function() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  });
+  
+  // Table search functionality
+  function searchTable() {
+    const input = document.getElementById('searchInput');
+    const filter = input.value.toUpperCase();
+    const tbody = document.getElementById('kelasTableBody');
+    const rows = tbody.getElementsByTagName('tr');
+    let visibleCount = 0;
+    
+    for (let i = 0; i < rows.length; i++) {
+      const td = rows[i].getElementsByTagName('td')[1]; // Kode Kelas column
+      if (td) {
+        const txtValue = td.textContent || td.innerText;
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+          rows[i].style.display = '';
+          visibleCount++;
+        } else {
+          rows[i].style.display = 'none';
+        }
+      }
+    }
+    
+    document.getElementById('showing-entries').textContent = visibleCount;
+  }
+</script>

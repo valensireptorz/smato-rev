@@ -13,6 +13,7 @@ var usersRouter = require('./routes/users');
 var superusersRouter = require('./routes/superusers');
 var megausersRouter = require('./routes/megausers');
 
+
 var guruRouter = require('./routes/guru');
 var kelasRouter = require('./routes/kelas');
 var mapelRouter = require('./routes/mapel');
@@ -68,7 +69,7 @@ app.use(session({
   app.use('/users', usersRouter);
   app.use('/superusers', superusersRouter);
   app.use('/megausers', megausersRouter);
-
+ 
   app.use('/guru', guruRouter);
   app.use('/kelas', kelasRouter);
   app.use('/mapel', mapelRouter);

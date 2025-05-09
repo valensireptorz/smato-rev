@@ -72,12 +72,6 @@ router.get("/", async (req, res) => {
             
             // Ambil tugas berdasarkan mata pelajaran guru
             dataTugas = await Model_Tugas.getByMapel(id_mapel);
-            
-            // Gabungkan kode_kelas ke dalam data tugas
-            for (let tugas of dataTugas) {
-              const kelas = await Model_Kelas.getById(tugas.id_kelas);
-              tugas.kode_kelas = kelas ? kelas.kode_kelas : '-';
-            }
           }
         }
       }
@@ -91,12 +85,6 @@ router.get("/", async (req, res) => {
         if (mapel) {
           id_mapel = mapel.id_mapel;
           dataTugas = await Model_Tugas.getByMapel(id_mapel);
-          
-          // Gabungkan kode_kelas ke dalam data tugas
-          for (let tugas of dataTugas) {
-            const kelas = await Model_Kelas.getById(tugas.id_kelas);
-            tugas.kode_kelas = kelas ? kelas.kode_kelas : '-';
-          }
         }
       }
     }
@@ -114,7 +102,6 @@ router.get("/", async (req, res) => {
     res.status(500).send("Terjadi kesalahan: " + err.message);
   }
 });
-
 
 
 

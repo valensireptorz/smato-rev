@@ -49,7 +49,7 @@ class AbsenModel {
 }
 
 class AbsenService {
-  static const String baseUrl = 'http://192.168.1.5:3000/api/absen';
+  static const String baseUrl = 'http://192.168.154.120:3000/api/absen';
 
   // Ambil semua data absen
  // Bukan List<AbsenModel> lagi

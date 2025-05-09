@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class PresensiService {
-  static const String baseUrl = 'http://192.168.1.5:3000/api/presensi';
+  static const String baseUrl = 'http://192.168.154.120:3000/api/presensi';
 
   // Kirim Presensi
   Future<Map<String, dynamic>> kirimPresensi(String idSiswa, String idMapel, String idAbsen,String idGuru) async {

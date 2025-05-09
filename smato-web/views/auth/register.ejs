@@ -1,169 +1,795 @@
 <!DOCTYPE html>
-
-<html lang="en" class="light-style customizer-hide" dir="ltr" data-theme="theme-default"
-  data-assets-path="../sneat/assets/" data-template="vertical-menu-template-free">
+<html lang="id" dir="ltr" data-theme="light">
 
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-
-  <title>Register</title>
-
-  <meta name="description" content="" />
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+  <title>Register | Dashboard</title>
+  <meta name="description" content="Sistem Manajemen Terpadu" />
+  
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="../img/smato.png" />
-
+  
   <!-- Fonts -->
-  <link rel="preconnect" href="sneat/https://fonts.googleapis.com" />
-  <link rel="preconnect" href="sneat/https://fonts.gstatic.com" crossorigin />
-  <link
-    href="sneat/https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap"
-    rel="stylesheet" />
-
-  <!-- Icons. Uncomment required icon fonts -->
-  <link rel="stylesheet" href="../sneat/assets/vendor/fonts/boxicons.css" />
-
-  <!-- Core CSS -->
-  <link rel="stylesheet" href="../sneat/assets/vendor/css/core.css" class="template-customizer-core-css" />
-  <link rel="stylesheet" href="../sneat/assets/vendor/css/theme-default.css" class="template-customizer-theme-css" />
-  <link rel="stylesheet" href="../sneat/assets/css/demo.css" />
-
-  <!-- Vendors CSS -->
-  <link rel="stylesheet" href="../sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
-
-  <!-- Page CSS -->
-  <!-- Page -->
-  <link rel="stylesheet" href="../sneat/assets/vendor/css/pages/page-auth.css" />
-  <!-- Helpers -->
-  <script src="../sneat/assets/vendor/js/helpers.js"></script>
-
-  <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
-  <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
-  <script src="../sneat/assets/js/config.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  
+  <!-- Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/boxicons@latest/css/boxicons.min.css" rel="stylesheet" />
+  
+  <!-- Animation Libraries -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+  
+  <style>
+    :root {
+      --primary: #4361ee;
+      --primary-hover: #3a56d4;
+      --secondary: #6c757d;
+      --success: #2ecc71;
+      --info: #3498db;
+      --warning: #f39c12;
+      --danger: #e74c3c;
+      --light: #f8f9fa;
+      --dark: #343a40;
+      --bg-color: #f5f7ff;
+      --card-bg: #ffffff;
+      --text-color: #495057;
+      --text-muted: #6c757d;
+      --border-color: #e9ecef;
+      --shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+      --transition-normal: all 0.3s ease;
+      --transition-fast: all 0.2s ease;
+    }
+    
+    #particles-js {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      z-index: -1;
+      background-color: var(--bg-color);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+    
+    .container {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    
+    .register-wrapper {
+      width: 100%;
+      max-width: 480px;
+    }
+    
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: var(--transition-normal);
+      animation: fadeInUp 0.8s;
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .card-body {
+      padding: 2.5rem;
+    }
+    
+    .brand-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 2rem;
+      animation: fadeInDown 0.8s;
+    }
+    
+    .brand-logo {
+      height: 50px;
+      width: auto;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background-color: var(--primary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 0.75rem;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(67, 97, 238, 0.4);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(67, 97, 238, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(67, 97, 238, 0);
+      }
+    }
+    
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .brand-icon i {
+      color: white;
+      font-size: 1.5rem;
+    }
+    
+    .brand-text {
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: var(--text-color);
+      position: relative;
+    }
+    
+    .brand-text::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -4px;
+      left: 0;
+      background-color: var(--primary);
+      animation: widthExpand 0.8s forwards 0.8s;
+    }
+    
+    @keyframes widthExpand {
+      to {
+        width: 100%;
+      }
+    }
+    
+    h2 {
+      font-weight: 700;
+      font-size: 1.75rem;
+      color: var(--text-color);
+      margin-bottom: 0.5rem;
+    }
+    
+    .subtitle {
+      font-weight: 400;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+    
+    .form-group {
+      position: relative;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: slideUpFade 0.5s forwards;
+    }
+    
+    .form-group:nth-child(1) {
+      animation-delay: 0.2s;
+    }
+    
+    .form-group:nth-child(2) {
+      animation-delay: 0.4s;
+    }
+    
+    .form-group:nth-child(3) {
+      animation-delay: 0.6s;
+    }
+    
+    .form-group:nth-child(4) {
+      animation-delay: 0.8s;
+    }
+    
+    @keyframes slideUpFade {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: var(--text-color);
+    }
+    
+    .form-control {
+      width: 100%;
+      height: 48px;
+      padding: 0.75rem 1rem;
+      font-size: 0.95rem;
+      background-color: #f9fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      transition: var(--transition-fast);
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
+    }
+    
+    .form-control:focus + .input-highlight {
+      width: 100%;
+    }
+    
+    .input-highlight {
+      position: absolute;
+      height: 2px;
+      width: 0;
+      background-color: var(--primary);
+      bottom: 0;
+      left: 0;
+      transition: var(--transition-normal);
+    }
+    
+    .password-toggle {
+      position: relative;
+    }
+    
+    .password-toggle .toggle-icon {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    
+    .custom-file-input {
+      position: relative;
+      width: 100%;
+    }
+    
+    .custom-file-input input[type="file"] {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 48px;
+      padding: 0.75rem 1rem;
+      opacity: 0;
+      cursor: pointer;
+    }
+    
+    .custom-file-label {
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      z-index: 1;
+      height: 48px;
+      padding: 0.75rem 1rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+      background-color: #f9fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .custom-file-label::after {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 1rem;
+      content: "Browse";
+      color: white;
+      background-color: var(--primary);
+      border-left: inherit;
+      border-radius: 0 8px 8px 0;
+    }
+    
+    .form-check {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeIn 0.5s forwards 1s;
+    }
+    
+    .form-check-input {
+      width: 18px;
+      height: 18px;
+      margin-right: 0.5rem;
+      cursor: pointer;
+      border: 1.5px solid var(--border-color);
+      border-radius: 4px;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-color: white;
+      position: relative;
+      transition: var(--transition-fast);
+    }
+    
+    .form-check-input:checked {
+      background-color: var(--primary);
+      border-color: var(--primary);
+    }
+    
+    .form-check-input:checked::before {
+      content: '✓';
+      position: absolute;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    
+    .form-check-label {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    
+    .form-check-label a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: var(--transition-fast);
+    }
+    
+    .form-check-label a:hover {
+      color: var(--primary-hover);
+      text-decoration: underline;
+    }
+    
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      font-size: 1rem;
+      font-weight: 500;
+      text-align: center;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+      opacity: 0;
+      animation: fadeIn 0.5s forwards 1.2s;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+    
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background-color: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.5s, height 0.5s;
+      z-index: -1;
+    }
+    
+    .btn-primary:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+    
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+    
+    .login-link {
+      margin-top: 2rem;
+      text-align: center;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      opacity: 0;
+      animation: fadeIn 0.5s forwards 1.4s;
+    }
+    
+    .login-link a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: var(--transition-fast);
+    }
+    
+    .login-link a:hover {
+      color: var(--primary-hover);
+      text-decoration: underline;
+    }
+    
+    .register-footer {
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      opacity: 0;
+      animation: fadeIn 0.5s forwards 1.6s;
+    }
+    
+    /* File upload styling */
+    .file-upload-wrapper {
+      position: relative;
+    }
+    
+    .file-upload-input {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 48px;
+      margin: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    
+    .file-upload-text {
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      z-index: 0;
+      height: 48px;
+      padding: 0.75rem 1rem;
+      font-weight: 400;
+      line-height: 1.5;
+      color: var(--text-muted);
+      background-color: #f9fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .file-upload-button {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 0;
+      display: block;
+      padding: 0 1rem;
+      color: #fff;
+      background-color: var(--primary);
+      border-radius: 0 8px 8px 0;
+      display: flex;
+      align-items: center;
+    }
+    
+    .ripple {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      transform: scale(0);
+      animation: ripple 0.6s linear;
+      pointer-events: none;
+    }
+    
+    @keyframes ripple {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+    
+    .focused .input-highlight {
+      width: 100%;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 576px) {
+      .card-body {
+        padding: 2rem 1.5rem;
+      }
+    }
+  </style>
 </head>
 
 <body>
-  <!-- Content -->
-
-  <div class="container-xxl">
-    <div class="authentication-wrapper authentication-basic container-p-y">
-      <div class="authentication-inner">
-        <!-- Register Card -->
-        <div class="card">
-          <div class="card-body">
-            <!-- Logo -->
-            <div class="app-brand justify-content-center">
-              <a href="sneat/index.html" class="app-brand-link gap-2">
-                <span class="app-brand-logo demo">
-                  <svg width="25" viewBox="0 0 25 42" version="1.1" xmlns="http://www.w3.org/2000/svg"
-                    xmlns:xlink="http://www.w3.org/1999/xlink">
-                    
-                    <g id="g-app-brand" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-                      <g id="Brand-Logo" transform="translate(-27.000000, -15.000000)">
-                        <g id="Icon" transform="translate(27.000000, 15.000000)">
-                          <g id="Mask" transform="translate(0.000000, 8.000000)">
-                            <mask id="mask-2" fill="white">
-                              <use xlink:href="#path-1"></use>
-                            </mask>
-                            <use fill="#696cff" xlink:href="#path-1"></use>
-                            <g id="Path-3" mask="url(#mask-2)">
-                              <use fill="#696cff" xlink:href="#path-3"></use>
-                              <use fill-opacity="0.2" fill="#FFFFFF" xlink:href="#path-3"></use>
-                            </g>
-                            <g id="Path-4" mask="url(#mask-2)">
-                              <use fill="#696cff" xlink:href="#path-4"></use>
-                              <use fill-opacity="0.2" fill="#FFFFFF" xlink:href="#path-4"></use>
-                            </g>
-                          </g>
-                          <g id="Triangle"
-                            transform="translate(19.000000, 11.000000) rotate(-300.000000) translate(-19.000000, -11.000000) ">
-                            <use fill="#696cff" xlink:href="#path-5"></use>
-                            <use fill-opacity="0.2" fill="#FFFFFF" xlink:href="#path-5"></use>
-                          </g>
-                        </g>
-                      </g>
-                    </g>
-                  </svg>
-                </span>
-                <span class="app-brand-text demo text-body fw-bolder">Halaman Register</span>
-              </a>
+  <!-- Background Particles -->
+  <div id="particles-js"></div>
+  
+  <div class="container">
+    <div class="register-wrapper">
+      <div class="card">
+        <div class="card-body">
+          <!-- Brand Logo -->
+          <div class="brand-wrapper">
+            <div class="brand-logo">
+              <div class="brand-icon">
+                <i class='bx bx-cube-alt'></i>
+              </div>
+              <span class="brand-text">SMA NEGERI 1 BLUTO</span>
             </div>
-            <!-- /Logo -->
-            <h4 class="mb-2">Buat Akun!🏫</h4>
-
-            <form class="mb-3" action="/saveusers" method="POST" enctype="multipart/form-data">
-              <div class="mb-3">
-                <label for="username" class="form-label">Username</label>
-                <input type="text" class="form-control" id="username" name="username" placeholder="Enter your username"
-                  autofocus />
-              </div>
-              <div class="mb-3 form-password-toggle">
-                <label class="form-label" for="password">Password</label>
-                <div class="input-group input-group-merge">
-                  <input type="password" id="password" class="form-control" name="password"
-                    placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
-                    aria-describedby="password" />
-                  <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
-                </div>
-              </div>
-
-              <div class="mb-3 form-file">
-                <label class="form-label" for="password">Foto</label>
-                <div class="input-group input-group-merge">
-                  <input type="file" id="foto_users" class="form-control" name="foto_users" />
-                </div>
-              </div>
-
-              <div class="mb-3">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" id="terms-conditions" name="terms" />
-                  <label class="form-check-label" for="terms-conditions">
-                    I agree to
-                    <a href="javascript:void(0);">privacy policy & terms</a>
-                  </label>
-                </div>
-              </div>
-              <button class="btn btn-primary d-grid w-100">Sign up</button>
-            </form>
-
-            <p class="text-center">
-              <span>Already have an account?</span>
-              <a href="login">
-                <span>Sign in instead</span>
-              </a>
-            </p>
           </div>
+          
+          <!-- Register Header -->
+          <h2 class="animate__animated animate__fadeIn animate__delay-1s">Buat Akun Baru</h2>
+          <p class="subtitle animate__animated animate__fadeIn animate__delay-1s">Silakan lengkapi formulir di bawah untuk mendaftar</p>
+          
+          <!-- Register Form -->
+          <form id="formRegistration" action="/saveusers" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+              <label for="username" class="form-label">Username</label>
+              <input type="text" id="username" class="form-control" name="username" placeholder="Masukkan username Anda" autofocus required />
+              <div class="input-highlight"></div>
+            </div>
+            
+            <div class="form-group">
+              <label for="password" class="form-label">Password</label>
+              <div class="password-toggle">
+                <input type="password" id="password" class="form-control" name="password" placeholder="Masukkan password Anda" required />
+                <div class="input-highlight"></div>
+                <span class="toggle-icon" onclick="togglePassword()">
+                  <i class='bx bx-hide'></i>
+                </span>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="foto_users" class="form-label">Foto Profil</label>
+              <div class="file-upload-wrapper">
+                <input type="file" id="foto_users" class="file-upload-input" name="foto_users" onchange="updateFileLabel(this)" />
+                <div class="file-upload-text">
+                  <span id="file-label">Pilih file foto...</span>
+                </div>
+                <span class="file-upload-button">
+                  <i class='bx bx-upload mr-1'></i> Browse
+                </span>
+              </div>
+            </div>
+            
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="terms-conditions" name="terms" required />
+              <label class="form-check-label" for="terms-conditions">
+                Saya menyetujui <a href="javascript:void(0);">kebijakan privasi & ketentuan</a>
+              </label>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Daftar Sekarang</button>
+            
+            <div class="login-link">
+              <span>Sudah memiliki akun?</span> <a href="login">Masuk disini</a>
+            </div>
+          </form>
         </div>
-        <!-- Register Card -->
+      </div>
+      
+      <div class="register-footer">
+        &copy; 2025 SMA NEGERI 1 BLUTO - Sistem Manajemen SISWA
       </div>
     </div>
   </div>
 
-  <!-- / Content -->
-
-  
-
-  <!-- Core JS -->
-  <!-- build:js assets/vendor/js/core.js -->
-  <script src="../sneat/assets/vendor/libs/jquery/jquery.js"></script>
-  <script src="../sneat/assets/vendor/libs/popper/popper.js"></script>
-  <script src="../sneat/assets/vendor/js/bootstrap.js"></script>
-  <script src="../sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-
-  <script src="../sneat/assets/vendor/js/menu.js"></script>
-  <!-- endbuild -->
-
-  <!-- Vendors JS -->
-
-  <!-- Main JS -->
-  <script src="../sneat/assets/js/main.js"></script>
-
-  <!-- Page JS -->
-
-  <!-- Place this tag in your head or just before your close body tag. -->
-  <script async defer src="https://buttons.github.io/buttons.js"></script>
+  <script>
+    function togglePassword() {
+      const passwordField = document.getElementById('password');
+      const toggleIcon = document.querySelector('.toggle-icon i');
+      
+      if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        toggleIcon.classList.remove('bx-hide');
+        toggleIcon.classList.add('bx-show');
+      } else {
+        passwordField.type = 'password';
+        toggleIcon.classList.remove('bx-show');
+        toggleIcon.classList.add('bx-hide');
+      }
+    }
+    
+    function updateFileLabel(input) {
+      const fileName = input.files[0]?.name || 'Pilih file foto...';
+      document.getElementById('file-label').textContent = fileName;
+    }
+    
+    // Inisialisasi particles.js
+    document.addEventListener('DOMContentLoaded', function() {
+      particlesJS('particles-js', {
+        "particles": {
+          "number": {
+            "value": 80,
+            "density": {
+              "enable": true,
+              "value_area": 800
+            }
+          },
+          "color": {
+            "value": "#4361ee"
+          },
+          "shape": {
+            "type": "circle",
+            "stroke": {
+              "width": 0,
+              "color": "#000000"
+            },
+            "polygon": {
+              "nb_sides": 5
+            }
+          },
+          "opacity": {
+            "value": 0.5,
+            "random": false,
+            "anim": {
+              "enable": false,
+              "speed": 1,
+              "opacity_min": 0.1,
+              "sync": false
+            }
+          },
+          "size": {
+            "value": 3,
+            "random": true,
+            "anim": {
+              "enable": false,
+              "speed": 40,
+              "size_min": 0.1,
+              "sync": false
+            }
+          },
+          "line_linked": {
+            "enable": true,
+            "distance": 150,
+            "color": "#4361ee",
+            "opacity": 0.4,
+            "width": 1
+          },
+          "move": {
+            "enable": true,
+            "speed": 2,
+            "direction": "none",
+            "random": false,
+            "straight": false,
+            "out_mode": "out",
+            "bounce": false,
+            "attract": {
+              "enable": false,
+              "rotateX": 600,
+              "rotateY": 1200
+            }
+          }
+        },
+        "interactivity": {
+          "detect_on": "canvas",
+          "events": {
+            "onhover": {
+              "enable": true,
+              "mode": "grab"
+            },
+            "onclick": {
+              "enable": true,
+              "mode": "push"
+            },
+            "resize": true
+          },
+          "modes": {
+            "grab": {
+              "distance": 140,
+              "line_linked": {
+                "opacity": 1
+              }
+            },
+            "bubble": {
+              "distance": 400,
+              "size": 40,
+              "duration": 2,
+              "opacity": 8,
+              "speed": 3
+            },
+            "repulse": {
+              "distance": 200,
+              "duration": 0.4
+            },
+            "push": {
+              "particles_nb": 4
+            },
+            "remove": {
+              "particles_nb": 2
+            }
+          }
+        },
+        "retina_detect": true
+      });
+      
+      // Tambahkan efek ripple pada tombol
+      const buttons = document.querySelectorAll('.btn');
+      
+      buttons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          let x = e.clientX - e.target.getBoundingClientRect().left;
+          let y = e.clientY - e.target.getBoundingClientRect().top;
+          
+          let ripple = document.createElement('span');
+          ripple.style.left = x + 'px';
+          ripple.style.top = y + 'px';
+          ripple.className = 'ripple';
+          
+          this.appendChild(ripple);
+          
+          setTimeout(() => {
+            ripple.remove();
+          }, 600);
+        });
+      });
+      
+      // Tambahkan efek fokus pada input
+      const inputs = document.querySelectorAll('.form-control');
+      inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+          this.parentElement.classList.add('focused');
+        });
+        
+        input.addEventListener('blur', function() {
+          this.parentElement.classList.remove('focused');
+        });
+      });
+    });
+  </script>
 </body>
-
 </html>

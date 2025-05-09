@@ -12,7 +12,7 @@ router.get("/getall", async (req, res) => {
       success: true,
       message: "Berhasil mengambil semua data guru",
       data: data,
-    });
+    });z
   } catch (error) {
     console.error("Error getAll guru:", error);
     res.status(500).json({

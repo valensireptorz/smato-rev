@@ -2,19 +2,219 @@
 <%- include('../partials/_nav.ejs') %>
 <div class="container-fluid">
   <%- include('../partials/_message.ejs') %>
+  <!-- Profil Guru -->
   <div class="row justify-content-center mt-5">
     <div class="col-md-6">
       <div class="card">
         <div class="card-body text-center">
           <h1 class="card-title">Hai, <%= username %> !!</h1>
-          <img src="/images/upload/<%= foto_users %>" class="img-fluid rounded-circle mb-4" alt="Foto Pengguna" style="max-width: 200px;">
-          
-        </div>
-        <div class="card-footer text-muted">
-          <a href="/logout" class="btn btn-danger">Logout</a>
+          <img src="/images/upload/<%= foto_users %>" class="img-fluid rounded-circle mb-4" alt="Foto Pengguna" style="max-width: 100px;">
         </div>
       </div>
     </div>
   </div>
+
+  <% if (typeof kelasStats != 'undefined' && kelasStats.length > 0) { %>
+  <!-- Ringkasan Siswa -->
+  <div class="row mt-4">
+    <div class="col-xl-4 col-md-6 mb-4">
+      <div class="card border-left-primary shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                Total Siswa</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800"><%= totalSiswa %> Siswa</div>
+            </div>
+            <div class="col-auto">
+              <i class="bx bxs-user-detail fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-4 col-md-6 mb-4">
+      <div class="card border-left-success shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                Jumlah Kelas</div>
+              <div class="h5 mb-0 font-weight-bold text-gray-800"><%= kelasStats.length %> Kelas</div>
+            </div>
+            <div class="col-auto">
+              <i class="bx bxs-school fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-xl-4 col-md-6 mb-4">
+      <div class="card border-left-info shadow h-100 py-2">
+        <div class="card-body">
+          <div class="row no-gutters align-items-center">
+            <div class="col mr-2">
+              <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                Kelas Terbanyak
+              </div>
+              <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                <%= kelasStats[0].kode_kelas %> (<%= kelasStats[0].count %> Siswa)
+              </div>
+            </div>
+            <div class="col-auto">
+              <i class="bx bxs-star fa-2x text-gray-300"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grafik dan Informasi Kelas -->
+  <div class="row">
+    <!-- Grafik Distribusi Siswa -->
+    <div class="col-xl-8 col-lg-7">
+      <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">Distribusi Siswa per Kelas</h6>
+        </div>
+        <div class="card-body">
+          <div class="chart-area">
+            <canvas id="distribusiSiswa"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daftar Kelas -->
+    <div class="col-xl-4 col-lg-5">
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Persentase Siswa per Kelas</h6>
+        </div>
+        <div class="card-body">
+          <% for(var i = 0; i < kelasStats.length; i++) { %>
+          <h4 class="small font-weight-bold">
+            <%= kelasStats[i].kode_kelas %> 
+            <span class="float-right"><%= kelasStats[i].count %> Siswa (<%= kelasStats[i].percentage %>%)</span>
+          </h4>
+          <div class="progress mb-4">
+            <div class="progress-bar bg-<%= i % 5 === 0 ? 'primary' : i % 5 === 1 ? 'success' : i % 5 === 2 ? 'info' : i % 5 === 3 ? 'warning' : 'danger' %>" 
+                role="progressbar" style="width:<%= kelasStats[i].percentage %>%" 
+                aria-valuenow="<%= kelasStats[i].percentage %>" aria-valuemin="0" aria-valuemax="100">
+            </div>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+  <% } else { %>
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="alert alert-info">
+        Belum ada data siswa yang tersedia.
+      </div>
+    </div>
+  </div>
+  <% } %>
 </div>
+
+<!-- Script untuk chart -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    <% if (typeof kelasStats != 'undefined' && kelasStats.length > 0) { %>
+      var ctx = document.getElementById('distribusiSiswa').getContext('2d');
+      
+      // Data kelas dan jumlah siswa
+      var labels = [
+        <% for(var i = 0; i < kelasStats.length; i++) { %>
+          '<%= kelasStats[i].kode_kelas %>'<%= i < kelasStats.length-1 ? ',' : '' %>
+        <% } %>
+      ];
+      
+      var data = [
+        <% for(var i = 0; i < kelasStats.length; i++) { %>
+          <%= kelasStats[i].count %><%= i < kelasStats.length-1 ? ',' : '' %>
+        <% } %>
+      ];
+      
+      var borderColors = [
+        'rgba(78, 115, 223, 1)',
+        'rgba(28, 200, 138, 1)',
+        'rgba(54, 185, 204, 1)',
+        'rgba(246, 194, 62, 1)',
+        'rgba(231, 74, 59, 1)'
+      ];
+      
+      var backgroundColors = [
+        'rgba(78, 115, 223, 0.8)',
+        'rgba(28, 200, 138, 0.8)',
+        'rgba(54, 185, 204, 0.8)',
+        'rgba(246, 194, 62, 0.8)',
+        'rgba(231, 74, 59, 0.8)'
+      ];
+      
+      // Duplicate colors if needed
+      while (backgroundColors.length < labels.length) {
+        backgroundColors = backgroundColors.concat(backgroundColors);
+        borderColors = borderColors.concat(borderColors);
+      }
+      
+      // Buat chart
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Jumlah Siswa',
+            data: data,
+            backgroundColor: backgroundColors.slice(0, labels.length),
+            borderColor: borderColors.slice(0, labels.length),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          maintainAspectRatio: false,
+          layout: {
+            padding: {
+              left: 10,
+              right: 25,
+              top: 25,
+              bottom: 0
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  var label = 'Jumlah Siswa: ';
+                  var value = context.raw || 0;
+                  var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                  var percentage = Math.round((value / total) * 100);
+                  return label + value + ' (' + percentage + '%)';
+                }
+              }
+            }
+          }
+        }
+      });
+    <% } %>
+  });
+</script>
+
 <%- include('../partials/_foot.ejs') %>
