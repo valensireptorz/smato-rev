@@ -1,7 +1,42 @@
 const connection = require('../config/database');
 
 class Model_Users{
+    
+// Tambahkan metode ini ke Model_Users.js
 
+// Mendapatkan user berdasarkan id_guru
+static async getByGuruId(id_guru) {
+    return new Promise((resolve, reject) => {
+        connection.query(
+            'SELECT * FROM users WHERE id_guru = ?',
+            [id_guru],
+            (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows.length > 0 ? rows[0] : null);
+                }
+            }
+        );
+    });
+}
+
+// Menghapus user berdasarkan id_guru
+static async deleteByGuruId(id_guru) {
+    return new Promise((resolve, reject) => {
+        connection.query(
+            'DELETE FROM users WHERE id_guru = ?',
+            [id_guru],
+            (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            }
+        );
+    });
+}
     static async getGuruMapel(id_guru) {
         return new Promise((resolve, reject) => {
             // Hapus 'g.kode_kelas' dari daftar kolom yang dipilih

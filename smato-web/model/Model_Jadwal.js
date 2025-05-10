@@ -1,6 +1,25 @@
 const connection = require("../config/database");
 
 class Model_Jadwal {
+  static getJadwalByMapelKelasHari(id_mapel, id_kelas, hari) {
+    return new Promise((resolve, reject) => {
+      const sql = `SELECT j.*, m.nama_mapel, g.nama_guru, k.kode_kelas
+                   FROM jadwal j
+                   JOIN mapel m ON m.id_mapel = j.id_mapel
+                   JOIN guru g ON g.id_guru = j.id_guru
+                   JOIN kelas k ON k.id_kelas = j.id_kelas
+                   WHERE j.id_mapel = ? AND j.id_kelas = ? AND j.hari = ?
+                   LIMIT 1`;
+                   
+      connection.query(sql, [id_mapel, id_kelas, hari], (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(results.length > 0 ? results[0] : null);
+        }
+      });
+    });
+  }
 
   static getByKelas(kelas) {
     return new Promise((resolve, reject) => {

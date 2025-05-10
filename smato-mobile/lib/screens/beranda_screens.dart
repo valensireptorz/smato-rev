@@ -65,6 +65,7 @@ class _BerandaScreenState extends State<BerandaScreen>
     );
     _animationController.forward();
   }
+  
 
   @override
   void dispose() {

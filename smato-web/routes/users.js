@@ -24,7 +24,7 @@ const upload = multer({ storage: storage }); // ✅ Upload middleware siap digun
 // POST /users/store - Simpan data guru
 router.post('/store', upload.single('foto_users'), async (req, res) => {
   try {
-    const { username, password, level_users, id, id_mapel } = req.body;
+    const { username, password, level_users, id_guru, id_mapel } = req.body;
 
     // Tangani file foto
     let fotoFile = null;
@@ -39,7 +39,7 @@ router.post('/store', upload.single('foto_users'), async (req, res) => {
       password: hashedPassword,
       level_users,
       foto_users: fotoFile,
-      id,
+      id_guru,
       id_mapel
     };
 

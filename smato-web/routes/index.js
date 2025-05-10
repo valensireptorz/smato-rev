@@ -28,9 +28,6 @@
       try {
         // Ambil semua user dari database
         let semuaUsers = await Model_Users.getAll();
-        
-        
-
         // Filter hanya user dengan level_users == 'guru'
         let guruOnly = semuaUsers.filter(user => user.level_users === 'guru');
 
@@ -75,6 +72,7 @@ router.get('/create', async function (req, res) {
 
 
 
+// Route untuk menyimpan user baru
 router.post('/store', function (req, res, next) {
   upload(req, res, function (err) {
     if (err) {
@@ -86,9 +84,19 @@ router.post('/store', function (req, res, next) {
   });
 }, async (req, res) => {
   try {
-    const { username, password, level_users, id, id_mapel } = req.body;
+    const { username, password, level_users, id_guru, id_mapel } = req.body;
 
-    // Tangani file foto
+    // Debugging untuk pastikan data diterima
+    console.log("req.body:", req.body);
+
+    const id_users = id_guru; // gunakan id guru dari form sebagai id_users
+
+    // Validasi id_users
+    if (!id_users) {
+      req.flash('error', 'ID Guru tidak ditemukan');
+      return res.redirect('/users/create');
+    }
+
     let fotoFile = null;
     if (req.file) {
       fotoFile = req.file.filename;
@@ -97,13 +105,16 @@ router.post('/store', function (req, res, next) {
     const hashedPassword = bcrypt.hashSync(password, 10);
 
     const userData = {
+      id_users,              // ID guru dijadikan id_users
       username,
       password: hashedPassword,
       level_users,
       foto_users: fotoFile,
-      id,
+      id_guru: id_guru,                    // id guru (foreign key)
       id_mapel
     };
+
+    console.log("Data yang akan disimpan:", userData);
 
     await Model_Users.Store(userData);
 
@@ -115,6 +126,7 @@ router.post('/store', function (req, res, next) {
     res.redirect('/users/create');
   }
 });
+
 
 
 

@@ -7,7 +7,7 @@ const Model_Users = require("../model/Model_Users.js");
 const Model_Guru = require("../model/Model_Guru.js");
 const Model_Kelas = require("../model/Model_Kelas.js");
 const Model_Guru_Kelas = require('../model/Model_Guru_Kelas');
-
+const Model_Jadwal = require("../model/Model_Jadwal.js");
 
 router.get("/", async (req, res) => {
   // Gunakan 'let' untuk nama_mapel karena nilainya mungkin diubah nanti
@@ -100,37 +100,82 @@ router.post("/presensi", async function(req, res) {
 
 
 router.get("/create/:id_mapel", async function(req, res, next) {
-  let id_mapel = req.params.id_mapel;
+  try {
+    let id_mapel = req.params.id_mapel;
+    let id_kelas = req.query.id_kelas; // Ambil id_kelas dari query parameter
+    
+    // Mendapatkan nama hari sekarang dalam Bahasa Indonesia
+    const hariMap = {
+      'Sunday': 'Minggu',
+      'Monday': 'Senin',
+      'Tuesday': 'Selasa',
+      'Wednesday': 'Rabu',
+      'Thursday': 'Kamis',
+      'Friday': 'Jumat',
+      'Saturday': 'Sabtu'
+    };
+    
+    const today = new Date();
+    const dayName = today.toLocaleDateString('en-US', { weekday: 'long' });
+    const hari = hariMap[dayName]; // Konversi ke format bahasa Indonesia
 
-  // Cek apakah id_mapel valid
-  if (!id_mapel || isNaN(id_mapel)) {
-    req.flash("error", "ID Mata Pelajaran tidak valid");
-    return res.redirect("/absen");
+    // Cek apakah id_mapel valid
+    if (!id_mapel || isNaN(id_mapel)) {
+      req.flash("error", "ID Mata Pelajaran tidak valid");
+      return res.redirect("/absen");
+    }
+
+    // Ambil data mapel
+    let mapel = await Model_Mapel.getId(id_mapel);
+    if (!mapel || mapel.length === 0) {
+      req.flash("error", "Mata Pelajaran tidak ditemukan");
+      return res.redirect("/absen");
+    }
+    
+    // Dapatkan id dan nama guru dari session
+    const id_guru_login = req.session.userId;
+    const nama_guru_login = req.session.username;
+
+    // Ambil semua data kelas
+    let kelas = await Model_Guru_Kelas.getKelas(id_guru_login);
+    
+    // Variabel untuk menyimpan data jadwal yang ditemukan
+    let jam_mulai = '';
+    let jam_selesai = '';
+    
+    // Jika id_kelas disediakan, cari jadwal yang sesuai
+    if (id_kelas) {
+      console.log("proses list jadwal")
+      // Import Model_Jadwal jika belum
+      const jadwalData = await Model_Jadwal.getJadwalByMapelKelasHari(id_mapel, id_kelas, hari);
+      
+      console.log(jadwalData);
+      
+      if (jadwalData) {
+        jam_mulai = jadwalData.jam_mulai;
+        jam_selesai = jadwalData.jam_selesai;
+      }
+    }
+
+    // Render tampilan dengan data yang diperoleh
+    res.render("absen/create", {
+      id_mapel: mapel[0].id_mapel,
+      nama_mapel: mapel[0].nama_mapel,
+      dataKelas: kelas,
+      level: req.session.level,
+      id_guru_login: id_guru_login,
+      nama_guru_login: nama_guru_login,
+      jam_mulai: jam_mulai,
+      jam_selesai: jam_selesai,
+      id_kelas: id_kelas || '',
+      hari: hari, // Kirim juga nama hari untuk ditampilkan
+      messages: req.flash()
+    });
+  } catch (err) {
+    console.log(err);
+    req.flash("error", "Terjadi kesalahan: " + err.message);
+    res.redirect("/absen");
   }
-
-  let mapel = await Model_Mapel.getId(id_mapel);
-  if (!mapel || mapel.length === 0) {
-    req.flash("error", "Mata Pelajaran tidak ditemukan");
-    return res.redirect("/absen");
-  }
-
-  let kelas = await Model_Kelas.getAll();
-  //let guru = await Model_Guru.getAll(); // Tidak perlu ambil semua guru
-
-  // Dapatkan id dan nama guru dari session
-  const id_guru_login = req.session.userId;
-  const nama_guru_login = req.session.username;
-
-  res.render("absen/create", {
-    id_mapel: mapel[0].id_mapel,
-    nama_mapel: mapel[0].nama_mapel,
-    //dataGuru: guru,  // Tidak perlu mengirim semua guru
-    dataKelas: kelas,
-    level: req.session.level,
-    id_guru_login: id_guru_login,
-    nama_guru_login: nama_guru_login,
-    messages: req.flash()
-  });
 });
 
 

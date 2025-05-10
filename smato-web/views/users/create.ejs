@@ -11,7 +11,7 @@
     <div class="alert alert-danger"><%= messages.error %></div>
   <% } %>
 
-  <form action="/users/store" method="POST" enctype="multipart/form-data">
+  <form action="/store" method="POST" enctype="multipart/form-data">
     <div class="row mb-3">
       <!-- Input for Username -->
       <div class="col-md-6">
@@ -42,15 +42,20 @@
       </div>
     </div>
 
- <!-- Select for Guru Kelas -->
+<!-- Select for Guru Kelas -->
+<!-- Select for Guru Kelas -->
 <div class="mb-3">
-    <label for="id" class="form-label">Guru Kelas</label>
-    <select name="id" class="form-select" required>
-      <% guruKelas.forEach(item => { %>
-        <option value="<%= item.id %>"><%= item.nama_guru %> - <%= item.kode_kelas %></option>
-      <% }) %>
-    </select>
-  </div>
+  <label for="id" class="form-label">Guru Kelas</label>
+  <select name="id_guru" class="form-select" required>
+    <% guruKelas.forEach(item => { %>
+      <option value="<%= item.id_guru %>"><%= item.nama_guru %> - <%= item.kode_kelas %></option>
+    <% }) %>
+  </select>
+</div>
+
+
+
+
   
   <!-- Select for Mata Pelajaran -->
   <div class="mb-3">

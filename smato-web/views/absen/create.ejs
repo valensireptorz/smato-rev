@@ -3,6 +3,13 @@
 
 <div class="container mt-5">
   <h3>Tambah Absen</h3>
+  
+  <% if (messages.error) { %>
+    <div class="alert alert-danger">
+      <%= messages.error %>
+    </div>
+  <% } %>
+  
   <form action="/absen/store" method="POST">
     
     <div class="mb-3">
@@ -14,32 +21,40 @@
     <div class="mb-3">
       <label for="id_guru" class="form-label">Guru</label>
       <input type="text" class="form-control" value="<%= nama_guru_login %>" readonly>
-      <input type="id" name="id_guru" value="<%= id_guru_login %>">
+      <input type="text" name="id_guru" value="<%= id_guru_login %>">
     </div>
 
     <div class="mb-3">
       <label for="id_kelas" class="form-label">Kelas</label>
-      <select class="form-control" name="id_kelas" required>
+      <select class="form-control" name="id_kelas" id="id_kelas" required onchange="updateJadwal()">
         <option value="">-- Pilih Kelas --</option>
         <% dataKelas.forEach((kelas) => { %>
-          <option value="<%= kelas.id_kelas %>"><%= kelas.nama_kelas %> - <%= kelas.kode_kelas %></option>
+          <option value="<%= kelas.id_kelas %>" <%= id_kelas == kelas.id_kelas ? 'selected' : '' %>>
+            <%= kelas.kode_kelas %>
+          </option>
         <% }); %>
       </select>
     </div>
     
     <div class="mb-3">
-      <label for="jam_selesai" class="form-label">Jam Selesai</label>
-      <input type="time" class="form-control" name="jam_selesai" required>
-    </div>
-    
-    <div class="mb-3">
-      <label for="tanggal" class="form-label"></label>
-      <input type="date" class="form-control" name="tanggal" id="tanggal" required hidden>
+      <label for="tanggal" class="form-label">Tanggal</label>
+      <input type="date" class="form-control" name="tanggal" id="tanggal" required>
     </div>
 
     <div class="mb-3">
-      <label for="jam_mulai" class="form-label"></label>
-      <input type="time" class="form-control" name="jam_mulai" id="jam_mulai" required hidden>
+      <label for="jam_mulai" class="form-label">Jam Mulai</label>
+      <input type="time" class="form-control" name="jam_mulai" id="jam_mulai" required 
+             value="<%= locals.jam_mulai ? jam_mulai : '' %>">
+      <% if (locals.id_kelas && !locals.jam_mulai) { %>
+        <small class="text-warning">Tidak ditemukan jadwal untuk hari ini</small>
+      <% } %>
+    </div>
+    
+    <div class="mb-3">
+      <label for="jam_selesai" class="form-label">Jam Selesai</label>
+      <input type="time" class="form-control" name="jam_selesai" id="jam_selesai" required readonly
+             value="<%= locals.jam_selesai ? jam_selesai : '' %>">
+      <small class="text-muted">Jam selesai diambil otomatis dari jadwal</small>
     </div>
 
     <button type="submit" class="btn btn-primary">Simpan</button>
@@ -47,17 +62,15 @@
 </div>
 
 <script>
-  // Set nilai tanggal dan jam_mulai sesuai zona waktu Asia/Jakarta (WIB)
+  // Set nilai tanggal sesuai zona waktu Asia/Jakarta (WIB)
   document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById('id_kelas').addEventListener('change', updateJadwal);
     // Gunakan Intl.DateTimeFormat untuk zona waktu Asia/Jakarta
     const formatter = new Intl.DateTimeFormat("id-ID", {
       timeZone: "Asia/Jakarta",
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
     });
 
     // Dapatkan bagian-bagian waktu
@@ -65,12 +78,63 @@
     const partMap = Object.fromEntries(parts.map(p => [p.type, p.value]));
 
     const formattedDate = `${partMap.year}-${partMap.month}-${partMap.day}`;
-    const formattedTime = `${partMap.hour}:${partMap.minute}`;
 
-    // Set ke input
+    // Set ke input tanggal
     document.getElementById("tanggal").value = formattedDate;
-    document.getElementById("jam_mulai").value = formattedTime;
+    
+    // Jika jam mulai tidak diisi dari jadwal, gunakan waktu saat ini
+    if (!document.getElementById("jam_mulai").value) {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById("jam_mulai").value = `${hours}:${minutes}`;
+    }
+    
+    // Jika jam selesai tidak diisi dari jadwal, set dengan nilai default (jam mulai + 2 jam)
+    const jamMulaiInput = document.getElementById("jam_mulai");
+    const jamSelesaiInput = document.getElementById("jam_selesai");
+    
+    if (!jamSelesaiInput.value && jamMulaiInput.value) {
+      const [hours, minutes] = jamMulaiInput.value.split(':').map(Number);
+      const endTime = new Date();
+      endTime.setHours(hours, minutes, 0);
+      endTime.setTime(endTime.getTime() + 2 * 60 * 60 * 1000); // tambah 2 jam
+      
+      const endHours = String(endTime.getHours()).padStart(2, '0');
+      const endMinutes = String(endTime.getMinutes()).padStart(2, '0');
+      jamSelesaiInput.value = `${endHours}:${endMinutes}`;
+    }
+    
+    // Tambahkan event listener untuk update jam selesai saat jam mulai berubah
+    jamMulaiInput.addEventListener('change', updateJamSelesai);
+    
+    function updateJamSelesai() {
+      // Hanya jalankan jika tidak ada data jadwal
+      if (!("<%= locals.jam_selesai %>")) {
+        const [hours, minutes] = jamMulaiInput.value.split(':').map(Number);
+        const endTime = new Date();
+        endTime.setHours(hours, minutes, 0);
+        endTime.setTime(endTime.getTime() + 2 * 60 * 60 * 1000); // tambah 2 jam
+        
+        const endHours = String(endTime.getHours()).padStart(2, '0');
+        const endMinutes = String(endTime.getMinutes()).padStart(2, '0');
+        jamSelesaiInput.value = `${endHours}:${endMinutes}`;
+      }
+    }
   });
+  
+  // Fungsi untuk update jadwal saat kelas dipilih
+  function updateJadwal() {
+    const id_kelas = document.getElementById('id_kelas').value;
+    console.log("updateJadwal() dipanggil. ID Kelas:", id_kelas); // Log saat fungsi dipanggil
+
+    if (id_kelas) {
+      // Redirect ke halaman yang sama dengan parameter id_kelas
+      const targetUrl = `/absen/create/<%= id_mapel %>?id_kelas=${id_kelas}`;
+      console.log("Redirecting to:", targetUrl); // Log URL tujuan
+      window.location.href = targetUrl;
+    }
+  }
 </script>
 
 <%- include('../partials/_foot.ejs') %>
