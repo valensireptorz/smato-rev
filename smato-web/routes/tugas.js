@@ -3,41 +3,13 @@ var router = express.Router();
 const moment = require("moment-timezone");
 
 const Model_Tugas = require("../model/Model_Tugas.js");
-  const Model_Mapel = require("../model/Model_Mapel.js");
-  const Model_Users = require("../model/Model_Users.js");
-  const Model_Guru = require("../model/Model_Guru.js");
-  const Model_Kelas = require("../model/Model_Kelas.js");
+const Model_Mapel = require("../model/Model_Mapel.js");
+const Model_Users = require("../model/Model_Users.js");
+const Model_Guru = require("../model/Model_Guru.js");
+const Model_Kelas = require("../model/Model_Kelas.js");
+const Model_Guru_Kelas = require("../model/Model_Guru_Kelas.js");
 
-  // router.get("/", async (req, res) => {
-  //   const nama_mapel = req.query.nama_mapel;
-
-  //   try {
-  //     const dataMapel = await Model_Mapel.getAll();
-  //     let dataTugas = [];
-  //     let id_mapel = null;
-
-  //     if (nama_mapel) {
-  //       const mapel = await Model_Mapel.getByNama(nama_mapel);
-  //       if (mapel) {
-  //         id_mapel = mapel.id_mapel;
-  //         dataTugas = await Model_Tugas.getByMapel(id_mapel);
-  //       }
-  //     }
-
-  //     res.render("tugas/index", {
-  //       dataMapel,
-  //       dataTugas,
-  //       nama_mapel,
-  //       id_mapel,
-  //       level: req.session.level
-  //     });
-
-  //   } catch (err) {
-  //     res.status(500).send("Terjadi kesalahan: " + err.message);
-  //   }
-  // });
-
-// Modifikasi router.get("/")
+// Tampilkan daftar tugas
 router.get("/", async (req, res) => {
   // Gunakan 'let' untuk nama_mapel karena nilainya mungkin diubah nanti
   let nama_mapel = req.query.nama_mapel;
@@ -86,6 +58,9 @@ router.get("/", async (req, res) => {
           id_mapel = mapel.id_mapel;
           dataTugas = await Model_Tugas.getByMapel(id_mapel);
         }
+      } else {
+        // Jika tidak ada mapel yang dipilih, tampilkan semua tugas
+        dataTugas = await Model_Tugas.getAll();
       }
     }
 
@@ -94,120 +69,232 @@ router.get("/", async (req, res) => {
       dataTugas,
       nama_mapel,
       id_mapel,
-      level: userLevel
+      level: userLevel,
+      messages: {
+        success: req.flash('success'),
+        error: req.flash('error')
+      }
     });
 
   } catch (err) {
     console.error("Error:", err);
-    res.status(500).send("Terjadi kesalahan: " + err.message);
+    req.flash("error", "Terjadi kesalahan: " + err.message);
+    res.redirect("/");
   }
 });
 
-
-
-// In GET CREATE route
+// Form tambah tugas
 router.get("/create/:id_mapel", async function (req, res) {
-  const id_mapel = req.params.id_mapel;
-
-  if (!id_mapel || isNaN(id_mapel)) {
-    req.flash("error", "ID Mata Pelajaran tidak valid");
-    return res.redirect("/tugas");
-  }
-
-  const mapel = await Model_Mapel.getId(id_mapel);
-  if (!mapel || mapel.length === 0) {
-    req.flash("error", "Mata Pelajaran tidak ditemukan");
-    return res.redirect("/tugas");
-  }
-
-  // Get guru data (assuming you have Model_Guru)
-  const guru = await Model_Guru.getAll();
-  // Get kelas data for this mapel/guru
-  const kelas = await Model_Kelas.getAll(); // Or filter by guru/mapel if needed
-  const now = moment().tz('Asia/Jakarta').format("YYYY-MM-DDTHH:mm");
-
-  res.render("tugas/create", {
-    id_mapel: mapel[0].id_mapel,
-    nama_mapel: mapel[0].nama_mapel,
-    nama_tugas: "",
-    deskripsi: "",
-    deadline: now,
-    dataGuru: guru,
-    dataKelas: kelas,
-    level: req.session.level
-  });
-});
-
-// In POST STORE route
-router.post("/store", async function (req, res) {
   try {
-    const { id_mapel, id_guru, id_kelas, nama_tugas, deskripsi, deadline } = req.body;
-    const Data = { id_mapel, id_guru, id_kelas, nama_tugas, deskripsi, deadline };
-    await Model_Tugas.Store(Data);
-    req.flash("success", "Berhasil menyimpan data!");
-    res.redirect("/tugas");
-  } catch (err) {
-    console.log(err);
-    req.flash("error", "Terjadi kesalahan pada fungsi");
-    res.redirect("/tugas");
-  }
-});
+    const id_mapel = req.params.id_mapel;
 
+    if (!id_mapel || isNaN(id_mapel)) {
+      req.flash("error", "ID Mata Pelajaran tidak valid");
+      return res.redirect("/tugas");
+    }
 
-// GET EDIT
-router.get("/edit/:id", async function (req, res) {
-  try {
-    const id = req.params.id;
-    const rows = await Model_Tugas.getId(id);
-    const mapel = await Model_Mapel.getAll();
-    const users = await Model_Users.getAll();
+    // Ambil data mapel
+    const mapelData = await Model_Mapel.getId(id_mapel);
+    if (!mapelData || mapelData.length === 0) {
+      req.flash("error", "Mata Pelajaran tidak ditemukan");
+      return res.redirect("/tugas");
+    }
 
-    res.render("tugas/edit", {
-      id: rows[0].id_tugas,
-      id_mapel: rows[0].id_mapel,
-      nama_mapel: rows[0].nama_mapel,
-      nama_tugas: rows[0].nama_tugas,
-      deskripsi: rows[0].deskripsi,
-      deadline: rows[0].deadline,
-      dataMapel: mapel,
-      dataUsers: users,
-      level: req.session.level
+    // Dapatkan id guru dari session
+    const id_guru_login = req.session.userId;
+    
+    // Ambil data user yang login
+    const userData = await Model_Users.getId(id_guru_login);
+    if (!userData || userData.length === 0) {
+      req.flash("error", "Data user tidak ditemukan");
+      return res.redirect("/tugas");
+    }
+    
+    // Ambil ID guru dari tabel users
+    const id_guru = userData[0].id_guru;
+    const nama_guru_login = req.session.username;
+    
+    // Jika tidak ada id_guru yang terkait, berarti user bukan guru
+    if (!id_guru) {
+      req.flash("error", "Akun Anda tidak terkait dengan data guru");
+      return res.redirect("/tugas");
+    }
+    
+    // Ambil kelas yang diampu oleh guru tersebut
+    const kelasData = await Model_Guru_Kelas.getKelas(id_guru);
+    
+    // Default deadline (seminggu dari sekarang, jam 23:59)
+    const nextWeek = moment().tz('Asia/Jakarta').add(1, 'weeks').format("YYYY-MM-DDT23:59");
+
+    res.render("tugas/create", {
+      id_mapel: mapelData[0].id_mapel,
+      nama_mapel: mapelData[0].nama_mapel,
+      id_guru_login: id_guru,
+      nama_guru_login: nama_guru_login,
+      dataKelas: kelasData,
+      level: req.session.level,
+      messages: {
+        success: req.flash('success'),
+        error: req.flash('error')
+      }
     });
   } catch (err) {
     console.log(err);
-    req.flash("error", "Gagal memuat data tugas");
+    req.flash("error", "Terjadi kesalahan: " + err.message);
     res.redirect("/tugas");
   }
 });
 
+// Simpan tugas baru
+router.post("/store", async function (req, res) {
+  try {
+    const { id_mapel, id_guru, id_kelas, nama_tugas, deskripsi, deadline } = req.body;
+    
+    // Validasi input
+    if (!id_mapel || !id_guru || !id_kelas || !nama_tugas || !deskripsi || !deadline) {
+      req.flash("error", "Semua field harus diisi!");
+      return res.redirect(`/tugas/create/${id_mapel}`);
+    }
+    
+    // Data untuk disimpan - TANPA kolom tanggal
+    const Data = { 
+      id_mapel, 
+      id_guru, 
+      id_kelas, 
+      nama_tugas, 
+      deskripsi, 
+      deadline
+      // Hapus kolom tanggal karena tidak ada di tabel
+    };
+    
+    await Model_Tugas.Store(Data);
+    req.flash("success", "Berhasil menyimpan data tugas!");
+    res.redirect("/tugas");
+  } catch (err) {
+    console.log(err);
+    req.flash("error", "Terjadi kesalahan pada fungsi: " + err.message);
+    res.redirect("/tugas");
+  }
+});
 
-// POST UPDATE
+// Edit tugas
+router.get("/edit/:id", async function (req, res) {
+  try {
+    const id = req.params.id;
+    const tugasData = await Model_Tugas.getId(id);
+    
+    if (!tugasData) {
+      req.flash("error", "Data tugas tidak ditemukan");
+      return res.redirect("/tugas");
+    }
+    
+    // Dapatkan id guru dari session
+    const id_guru_login = req.session.userId;
+    
+    // Ambil data user yang login
+    const userData = await Model_Users.getId(id_guru_login);
+    if (!userData || userData.length === 0) {
+      req.flash("error", "Data user tidak ditemukan");
+      return res.redirect("/tugas");
+    }
+    
+    // Ambil ID guru dari tabel users
+    const id_guru = userData[0].id_guru;
+    
+    // Jika user adalah guru tetapi bukan pembuat tugas ini, redirect
+    if (req.session.level === 'guru' && tugasData.id_guru !== id_guru) {
+      req.flash("error", "Anda hanya dapat mengedit tugas yang Anda buat");
+      return res.redirect("/tugas");
+    }
+    
+    const mapelData = await Model_Mapel.getAll();
+    
+    // Ambil kelas yang diampu oleh guru tersebut
+    const kelasData = await Model_Guru_Kelas.getKelas(id_guru);
+
+    // Format deadline untuk input datetime-local
+    const deadline = moment(tugasData.deadline).format("YYYY-MM-DDTHH:mm");
+
+    res.render("tugas/edit", {
+      id: tugasData.id_tugas,
+      id_mapel: tugasData.id_mapel,
+      nama_mapel: tugasData.nama_mapel,
+      id_guru: tugasData.id_guru,
+      id_kelas: tugasData.id_kelas,
+      nama_tugas: tugasData.nama_tugas,
+      deskripsi: tugasData.deskripsi,
+      deadline: deadline,
+      dataMapel: mapelData,
+      dataKelas: kelasData,
+      level: req.session.level,
+      messages: {
+        success: req.flash('success'),
+        error: req.flash('error')
+      }
+    });
+  } catch (err) {
+    console.log(err);
+    req.flash("error", "Gagal memuat data tugas: " + err.message);
+    res.redirect("/tugas");
+  }
+});
+
+// Update tugas
 router.post("/update/:id", async function (req, res) {
   try {
     const id = req.params.id;
-    const { id_mapel, nama_tugas, deskripsi, deadline } = req.body;
-    const Data = { id_mapel, nama_tugas, deskripsi, deadline };
+    const { id_mapel, id_guru, id_kelas, nama_tugas, deskripsi, deadline } = req.body;
+    
+    // Validasi input
+    if (!id_mapel || !id_guru || !id_kelas || !nama_tugas || !deskripsi || !deadline) {
+      req.flash("error", "Semua field harus diisi!");
+      return res.redirect(`/tugas/edit/${id}`);
+    }
+    
+    const Data = { id_mapel, id_guru, id_kelas, nama_tugas, deskripsi, deadline };
     await Model_Tugas.Update(id, Data);
     req.flash("success", "Berhasil memperbarui data");
     res.redirect("/tugas");
   } catch (err) {
     console.log(err);
-    req.flash("error", "Terjadi kesalahan pada fungsi");
+    req.flash("error", "Terjadi kesalahan pada fungsi: " + err.message);
     res.redirect("/tugas");
   }
 });
 
-
-// GET DELETE
+// Hapus tugas
 router.get("/delete/:id", async function (req, res) {
   try {
     const id = req.params.id;
+    
+    // Ambil data tugas
+    const tugasData = await Model_Tugas.getId(id);
+    if (!tugasData) {
+      req.flash("error", "Data tugas tidak ditemukan");
+      return res.redirect("/tugas");
+    }
+    
+    // Dapatkan id guru dari session
+    const id_guru_login = req.session.userId;
+    
+    // Ambil data user yang login
+    const userData = await Model_Users.getId(id_guru_login);
+    
+    // Jika user adalah guru, periksa apakah dia yang membuat tugas ini
+    if (req.session.level === 'guru') {
+      const id_guru = userData[0].id_guru;
+      if (tugasData.id_guru !== id_guru) {
+        req.flash("error", "Anda hanya dapat menghapus tugas yang Anda buat");
+        return res.redirect("/tugas");
+      }
+    }
+    
     await Model_Tugas.Delete(id);
-    req.flash("success", "Data terhapus!");
+    req.flash("success", "Data tugas berhasil dihapus!");
     res.redirect("/tugas");
   } catch (err) {
     console.log(err);
-    req.flash("error", "Terjadi kesalahan saat menghapus");
+    req.flash("error", "Terjadi kesalahan saat menghapus: " + err.message);
     res.redirect("/tugas");
   }
 });

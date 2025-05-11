@@ -42,7 +42,7 @@ class TugasModel {
 
 
 class TugasService {
-  static const String baseUrl = 'http://192.168.1.9:3000/api/tugas';
+  static const String baseUrl = 'http://192.168.1.15:3000/api/tugas';
 
   // Ambil semua data tugas
   static Future<List<Map<String, dynamic>>> getAllTugas() async {

@@ -5,6 +5,39 @@ var connection = require("../config/database.js");
 const Model_Guru = require("../model/Model_Guru.js");
 const Model_Users = require("../model/Model_Users.js");
 
+// Endpoint untuk memeriksa ketersediaan NIP (untuk form tambah)
+router.get("/check-nip/:nip", async function (req, res) {
+  try {
+    const nip = req.params.nip;
+    const exists = await Model_Guru.checkNipExists(nip);
+    
+    if (exists) {
+      return res.json({ exists: true, message: "NIP sudah digunakan oleh guru lain" });
+    } else {
+      return res.json({ exists: false, message: "NIP tersedia dan dapat digunakan" });
+    }
+  } catch (error) {
+    return res.status(500).json({ error: "Terjadi kesalahan saat memeriksa NIP" });
+  }
+});
+
+// Endpoint untuk memeriksa ketersediaan NIP (untuk form edit)
+router.get("/check-nip/:nip/edit/:id", async function (req, res) {
+  try {
+    const nip = req.params.nip;
+    const id = req.params.id;
+    const exists = await Model_Guru.checkNipExistsExcept(nip, id);
+    
+    if (exists) {
+      return res.json({ exists: true, message: "NIP sudah digunakan oleh guru lain" });
+    } else {
+      return res.json({ exists: false, message: "NIP tersedia dan dapat digunakan" });
+    }
+  } catch (error) {
+    return res.status(500).json({ error: "Terjadi kesalahan saat memeriksa NIP" });
+  }
+});
+
 router.get("/", async function (req, res, next) {
   try {
     let level_users = req.session.level;
@@ -38,24 +71,27 @@ router.post("/store", async function (req, res, next) {
   try {
     let { nama_guru, nip } = req.body;
 
+    // Validasi input
     if (!nama_guru || !nip) {
       req.flash("error", "Nama guru dan NIP tidak boleh kosong!");
       return res.redirect("/guru/create");
     }
 
-    let Data = { 
-      nama_guru, 
-      nip: parseInt(nip) || 0 // Jika nip adalah angka, pastikan dikonversi
-    };
+    // Periksa apakah NIP sudah ada
+    const nipExists = await Model_Guru.checkNipExists(nip);
+    if (nipExists) {
+      req.flash("error", "NIP sudah digunakan oleh guru lain!");
+      return res.redirect("/guru/create");
+    }
 
-    await Model_Guru.Store(Data); // Gunakan Model_Guru, bukan Model_guru
+    // Jika NIP unik, simpan data guru baru
+    let Data = { nama_guru, nip };
+    await Model_Guru.Store(Data);
     req.flash("success", "Berhasil menyimpan data!");
-    res.redirect("/guru");
-
+    return res.redirect("/guru");
   } catch (error) {
-    console.error("Error saat menyimpan data guru:", error);
     req.flash("error", "Terjadi kesalahan pada fungsi");
-    res.redirect("/guru");
+    return res.redirect("/guru");
   }
 });
 
@@ -92,6 +128,7 @@ router.post("/update/(:id)", async function (req, res, next) {
     res.redirect("/guru")
   }
 })
+
 
 router.get("/delete/(:id)", async function (req, res) {
   let id = req.params.id;

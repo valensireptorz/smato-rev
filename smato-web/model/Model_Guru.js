@@ -70,6 +70,33 @@ class Model_Guru {
         });
     }
 
+    // Metode baru untuk memeriksa apakah NIP sudah ada di database
+    static async checkNipExists(nip) {
+        return new Promise((resolve, reject) => {
+            connection.query('SELECT COUNT(*) as count FROM guru WHERE nip = ?', [nip], function(err, result) {
+                if (err) {
+                    reject(err);
+                } else {
+                    // Jika count > 0, berarti NIP sudah ada
+                    resolve(result[0].count > 0);
+                }
+            })
+        });
+    }
+
+    // Metode baru untuk memeriksa apakah NIP sudah ada, kecuali untuk guru dengan ID tertentu
+    static async checkNipExistsExcept(nip, id) {
+        return new Promise((resolve, reject) => {
+            connection.query('SELECT COUNT(*) as count FROM guru WHERE nip = ? AND id_guru != ?', [nip, id], function(err, result) {
+                if (err) {
+                    reject(err);
+                } else {
+                    // Jika count > 0, berarti NIP digunakan oleh guru lain
+                    resolve(result[0].count > 0);
+                }
+            })
+        });
+    }
 }
 
 module.exports = Model_Guru;

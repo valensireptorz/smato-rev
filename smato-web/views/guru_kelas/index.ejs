@@ -1,50 +1,466 @@
 <%- include('../partials/_head.ejs') %>
 
+<!-- Custom CSS -->
+<style>
+  :root {
+    --primary-color: #3c6e71;
+    --secondary-color: #284b63;
+    --accent-color: #d9d9d9;
+    --light-color: #f4f4f9;
+    --dark-color: #353535;
+  }
+  
+  body {
+    background-color: #f5f7fa;
+    font-family: 'Poppins', sans-serif;
+    color: var(--dark-color);
+  }
+  
+  .page-header {
+    background-color: var(--primary-color);
+    padding: 40px 0;
+    margin-bottom: 40px;
+    color: white;
+    border-radius: 0 0 15px 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  
+  .page-header h1 {
+    font-weight: 700;
+    font-size: 28px;
+    margin-bottom: 0;
+  }
+  
+  .breadcrumb {
+    background: transparent;
+    padding-left: 0;
+  }
+  
+  .breadcrumb-item a {
+    color: rgba(255,255,255,0.8);
+  }
+  
+  .content-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 30px;
+    margin-bottom: 30px;
+  }
+  
+  .content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #eaedf1;
+    padding-bottom: 15px;
+  }
+  
+  .content-title {
+    font-weight: 600;
+    font-size: 20px;
+    margin-bottom: 0;
+  }
+  
+  .btn-custom-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: all 0.3s;
+  }
+  
+  .btn-custom-primary:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  
+  .alert {
+    border-radius: 8px;
+    border-left: 4px solid;
+    padding: 15px 20px;
+  }
+  
+  .alert-success {
+    border-left-color: #28a745;
+    background-color: rgba(40, 167, 69, 0.1);
+  }
+  
+  .alert-danger {
+    border-left-color: #dc3545;
+    background-color: rgba(220, 53, 69, 0.1);
+  }
+  
+  .data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .data-table thead {
+    background-color: #f5f7fa;
+  }
+  
+  .data-table th {
+    font-weight: 600;
+    color: var(--secondary-color);
+    text-transform: uppercase;
+    font-size: 14px;
+    padding: 15px;
+    border: none;
+    border-bottom: 2px solid #eaedf1;
+  }
+  
+  .data-table td {
+    padding: 12px 15px;
+    vertical-align: middle;
+    border: none;
+    border-bottom: 1px solid #eaedf1;
+  }
+  
+  .data-table tbody tr {
+    transition: all 0.2s;
+  }
+  
+  .data-table tbody tr:hover {
+    background-color: rgba(60, 110, 113, 0.05);
+  }
+  
+  .guru-badge {
+    background-color: rgba(60, 110, 113, 0.1);
+    color: var(--primary-color);
+    border-radius: 50px;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    display: inline-block;
+  }
+  
+  .kelas-badge {
+    background-color: rgba(40, 75, 99, 0.1);
+    color: var(--secondary-color);
+    border-radius: 50px;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    display: inline-block;
+  }
+  
+  .btn-action {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  
+  .btn-warning {
+    background-color: #f59f00;
+    border-color: #f59f00;
+    color: white;
+  }
+  
+  .btn-warning:hover {
+    background-color: #e09200;
+    border-color: #e09200;
+    color: white;
+  }
+  
+  .btn-danger {
+    background-color: #fa5252;
+    border-color: #fa5252;
+  }
+  
+  .btn-danger:hover {
+    background-color: #e03131;
+    border-color: #e03131;
+  }
+  
+  .pagination {
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  .pagination .page-item .page-link {
+    color: var(--primary-color);
+    border-radius: 6px;
+    margin: 0 3px;
+  }
+  
+  .pagination .page-item.active .page-link {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 40px 0;
+  }
+  
+  .empty-state img {
+    max-width: 200px;
+    margin-bottom: 20px;
+    opacity: 0.7;
+  }
+  
+  .empty-state h4 {
+    font-weight: 600;
+    color: var(--secondary-color);
+  }
+  
+  .empty-state p {
+    color: #6c757d;
+  }
+  
+  @media (max-width: 768px) {
+    .page-header {
+      padding: 25px 0;
+    }
+    .content-card {
+      padding: 20px 15px;
+    }
+    .content-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .content-title {
+      margin-bottom: 15px;
+    }
+  }
+
+  /* Animation styles */
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .btn-add {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-add:after {
+    content: "";
+    background: rgba(255,255,255,0.3);
+    position: absolute;
+    top: -50%;
+    left: -60%;
+    width: 20px;
+    height: 200%;
+    opacity: 0;
+    transform: rotate(35deg);
+    transition: all 1s cubic-bezier(0.19, 1, 0.22, 1);
+  }
+  
+  .btn-add:hover:after {
+    left: 120%;
+    opacity: 1;
+    transition-duration: 0.7s;
+  }
+</style>
+
+<!-- Modified Navigation -->
 <%- include('../partials/_nav.ejs') %>
 
-<div class="container mt-5">
-  <h2>Data Guru dan Kelas</h2>
-  <% if (level == "admin") {%>
-  <a href="/guru_kelas/create" class="btn btn-primary mb-3">+ Tambah Relasi</a>
-  <% } %>
-  <% if (messages.success) { %>
-    <div class="alert alert-success"><%= messages.success %></div>
-  <% } %>
-  <% if (messages.error) { %>
-    <div class="alert alert-danger"><%= messages.error %></div>
-  <% } %>
-
-  <table class="table table-bordered">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Nama Guru</th>
-        <th>Nama Kelas</th>
-        <% if (level == "admin") {%>
-        <th>Aksi</th>
+<!-- Page Content -->
+<div class="page-header fade-in">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-8">
+        <h1>Data Guru dan Kelas</h1>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Beranda</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Data Guru dan Kelas</li>
+          </ol>
+        </nav>
+      </div>
+      <div class="col-md-4 d-flex align-items-center justify-content-end">
+        <% if (level == "admin") { %>
+          <a href="/guru_kelas/create" class="btn btn-light btn-add">
+            <i class="fas fa-plus-circle mr-2"></i> Tambah Relasi
+          </a>
         <% } %>
-      </tr>
-    </thead>
-    <tbody>
-      <% data.forEach((row, index) => { %>
-        <tr>
-          <td><%= index + 1 %></td>
-          <td><%= row.nama_guru %></td>
-          <td><%= row.kode_kelas %></td>
-          <% if (level == "admin") {%>
-          <td>
-        
-            <a href="/guru_kelas/edit/<%= row.id %>" class="btn btn-sm btn-warning">Edit</a>
-
-            <a href="/guru_kelas/delete/<%= row.id %>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus relasi ini?')">Hapus</a>
-            
-          </td>
-          <% } %>
-        </tr>
-        
-      <% }) %>
-    </tbody>
-  </table>
+      </div>
+    </div>
+  </div>
 </div>
+
+<div class="container fade-in">
+  <div class="content-card">
+    <div class="content-header">
+      <h3 class="content-title">
+        <i class="fas fa-link mr-2"></i> Relasi Guru dan Kelas
+      </h3>
+      <div class="d-flex">
+        <div class="input-group mr-2" style="width: 250px;">
+          <input type="text" class="form-control" id="searchInput" placeholder="Cari..." aria-label="Search">
+          <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </div>
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fas fa-download mr-1"></i> Export
+          </button>
+          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="exportDropdown">
+            <a class="dropdown-item" href="#"><i class="far fa-file-excel mr-2"></i> Excel</a>
+            <a class="dropdown-item" href="#"><i class="far fa-file-pdf mr-2"></i> PDF</a>
+            <a class="dropdown-item" href="#"><i class="far fa-file-csv mr-2"></i> CSV</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <% if (messages.success) { %>
+      <div class="alert alert-success fade-in">
+        <i class="fas fa-check-circle mr-2"></i>
+        <%= messages.success %>
+      </div>
+    <% } %>
+    <% if (messages.error) { %>
+      <div class="alert alert-danger fade-in">
+        <i class="fas fa-exclamation-circle mr-2"></i>
+        <%= messages.error %>
+      </div>
+    <% } %>
+
+    <% if (data.length > 0) { %>
+      <div class="table-responsive">
+        <table class="table data-table" id="dataTable">
+          <thead>
+            <tr>
+              <th width="5%">#</th>
+              <th width="40%">Nama Guru</th>
+              <th width="30%">Kelas</th>
+              <% if (level == "admin") { %>
+              <th width="25%" class="text-center">Aksi</th>
+              <% } %>
+            </tr>
+          </thead>
+          <tbody>
+            <% data.forEach((row, index) => { %>
+              <tr class="fade-in" style="animation-delay: <%= index * 0.05 %>s;">
+                <td><%= index + 1 %></td>
+                <td>
+                  <div class="guru-badge">
+                    <i class="fas fa-user-tie mr-2"></i>
+                    <%= row.nama_guru %>
+                  </div>
+                </td>
+                <td>
+                  <div class="kelas-badge">
+                    <i class="fas fa-chalkboard mr-2"></i>
+                    <%= row.kode_kelas %>
+                  </div>
+                </td>
+                <% if (level == "admin") { %>
+                <td class="text-center">
+                  <a href="/guru_kelas/edit/<%= row.id %>" class="btn btn-action btn-warning mr-1">
+                    <i class="fas fa-edit mr-1"></i> Edit
+                  </a>
+                  <a href="/guru_kelas/delete/<%= row.id %>" class="btn btn-action btn-danger" 
+                     onclick="return confirm('Apakah Anda yakin ingin menghapus relasi ini?')">
+                    <i class="fas fa-trash-alt mr-1"></i> Hapus
+                  </a>
+                </td>
+                <% } %>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Pagination -->
+      <nav aria-label="Page navigation">
+        <ul class="pagination">
+          <li class="page-item disabled">
+            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Sebelumnya</a>
+          </li>
+          <li class="page-item active"><a class="page-link" href="#">1</a></li>
+          <li class="page-item"><a class="page-link" href="#">2</a></li>
+          <li class="page-item"><a class="page-link" href="#">3</a></li>
+          <li class="page-item">
+            <a class="page-link" href="#">Selanjutnya</a>
+          </li>
+        </ul>
+      </nav>
+    <% } else { %>
+      <div class="empty-state">
+        <img src="https://cdn-icons-png.flaticon.com/512/6598/6598519.png" alt="No Data">
+        <h4>Belum Ada Data</h4>
+        <p>Belum ada relasi guru dan kelas yang tersedia.</p>
+        <% if (level == "admin") { %>
+          <a href="/guru_kelas/create" class="btn btn-custom-primary mt-3">
+            <i class="fas fa-plus-circle mr-2"></i> Tambah Relasi Baru
+          </a>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+  
+  <!-- Stats Cards -->
+  <div class="row">
+    <div class="col-md-4">
+      <div class="content-card text-center">
+        <i class="fas fa-user-tie fa-3x mb-3" style="color: var(--primary-color);"></i>
+        <h4>Total Guru</h4>
+        <h2 class="font-weight-bold"><%= data.length > 0 ? [...new Set(data.map(item => item.nama_guru))].length : 0 %></h2>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="content-card text-center">
+        <i class="fas fa-chalkboard fa-3x mb-3" style="color: var(--secondary-color);"></i>
+        <h4>Total Kelas</h4>
+        <h2 class="font-weight-bold"><%= data.length > 0 ? [...new Set(data.map(item => item.kode_kelas))].length : 0 %></h2>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="content-card text-center">
+        <i class="fas fa-link fa-3x mb-3" style="color: #f59f00;"></i>
+        <h4>Total Relasi</h4>
+        <h2 class="font-weight-bold"><%= data.length %></h2>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Search functionality
+  const searchInput = document.getElementById('searchInput');
+  const dataTable = document.getElementById('dataTable');
+  
+  if(searchInput && dataTable) {
+    searchInput.addEventListener('keyup', function() {
+      const searchValue = this.value.toLowerCase();
+      const rows = dataTable.querySelectorAll('tbody tr');
+      
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchValue) ? '' : 'none';
+      });
+    });
+  }
+  
+  // Add fade-in class to elements for animation
+  const elementsToAnimate = document.querySelectorAll('.content-card, .alert');
+  elementsToAnimate.forEach((element, index) => {
+    element.classList.add('fade-in');
+    element.style.animationDelay = `${index * 0.1}s`;
+  });
+});
+</script>
 
 <%- include('../partials/_foot.ejs') %>

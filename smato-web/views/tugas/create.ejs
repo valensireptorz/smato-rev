@@ -3,6 +3,19 @@
 
 <div class="container mt-5">
   <h3>Tambah Tugas</h3>
+  
+  <% if (messages.error) { %>
+    <div class="alert alert-danger">
+      <%= messages.error %>
+    </div>
+  <% } %>
+  
+  <% if (messages.success) { %>
+    <div class="alert alert-success">
+      <%= messages.success %>
+    </div>
+  <% } %>
+  
   <form action="/tugas/store" method="POST">
     
     <!-- Tampilkan nama mapel dan sembunyikan id_mapel -->
@@ -11,37 +24,35 @@
       <input type="text" class="form-control" value="<%= nama_mapel %>" readonly>
       <input type="hidden" name="id_mapel" value="<%= id_mapel %>">
     </div>
+    
+    <!-- Guru dari session login (readonly) -->
+    <div class="mb-3">
+      <label for="id_guru" class="form-label">Guru</label>
+      <input type="text" class="form-control" value="<%= nama_guru_login %>" readonly>
+      <input type="hidden" name="id_guru" value="<%= id_guru_login %>">
+    </div>
+
+    <!-- Kelas yang diampu oleh guru tersebut -->
+    <div class="mb-3">
+      <label for="id_kelas" class="form-label">Kelas</label>
+      <select class="form-control" name="id_kelas" id="id_kelas" required>
+        <option value="">-- Pilih Kelas --</option>
+        <% dataKelas.forEach((kelas) => { %>
+          <option value="<%= kelas.id_kelas %>">
+            <%= kelas.kode_kelas %>
+          </option>
+        <% }); %>
+      </select>
+    </div>
 
     <div class="mb-3">
       <label for="nama_tugas" class="form-label">Nama Tugas</label>
       <input type="text" class="form-control" name="nama_tugas" id="nama_tugas" placeholder="Nama Tugas" required>
     </div>
 
-    <!-- Add these fields after the mapel section -->
-
-<div class="mb-3">
-  <label for="id_guru" class="form-label">Guru</label>
-  <select class="form-control" name="id_guru" required>
-    <option value="">-- Pilih Guru --</option>
-    <% dataGuru.forEach((guru) => { %>
-      <option value="<%= guru.id_guru %>"><%= guru.nama_guru %></option>
-    <% }); %>
-  </select>
-</div>
-
-<div class="mb-3">
-  <label for="id_kelas" class="form-label">Kelas</label>
-  <select class="form-control" name="id_kelas" required>
-    <option value="">-- Pilih Kelas --</option>
-    <% dataKelas.forEach((kelas) => { %>
-      <option value="<%= kelas.id_kelas %>"><%= kelas.kode_kelas %></option>
-    <% }); %>
-  </select>
-</div>
-
     <div class="mb-3">
       <label for="deskripsi" class="form-label">Deskripsi</label>
-      <input type="text" class="form-control" name="deskripsi" id="deskripsi" placeholder="Deskripsi Tugas" required>
+      <textarea class="form-control" name="deskripsi" id="deskripsi" rows="3" placeholder="Deskripsi Tugas" required></textarea>
     </div>
 
     <div class="mb-3">
@@ -49,9 +60,31 @@
       <input type="datetime-local" class="form-control" name="deadline" id="deadline" required>
     </div>
     
-
     <button type="submit" class="btn btn-primary">Simpan</button>
+    <a href="/tugas" class="btn btn-secondary">Kembali</a>
   </form>
 </div>
+
+<script>
+  // Set nilai default untuk deadline (seminggu dari sekarang)
+  document.addEventListener("DOMContentLoaded", function () {
+    // Gunakan Intl.DateTimeFormat untuk zona waktu Asia/Jakarta
+    const now = new Date();
+    const nextWeek = new Date(now);
+    nextWeek.setDate(now.getDate() + 7); // Seminggu dari sekarang
+    
+    // Format tanggal untuk datetime-local input
+    const year = nextWeek.getFullYear();
+    const month = String(nextWeek.getMonth() + 1).padStart(2, '0');
+    const day = String(nextWeek.getDate()).padStart(2, '0');
+    const hours = String(23).padStart(2, '0'); // Default 23:59
+    const minutes = String(59).padStart(2, '0');
+    
+    const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+    
+    // Set ke input deadline
+    document.getElementById("deadline").value = formattedDateTime;
+  });
+</script>
 
 <%- include('../partials/_foot.ejs') %>

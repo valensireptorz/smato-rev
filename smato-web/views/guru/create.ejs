@@ -1,44 +1,262 @@
 <%- include('../partials/_head.ejs') %>
 
 <%- include('../partials/_nav.ejs') %>
-          <!-- Content wrapper -->
-          <div class="content-wrapper">
-            <!-- Content -->
+<!-- Content wrapper -->
+<div class="content-wrapper">
+  <!-- Content -->
+  <div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">
+      <span class="text-muted fw-light">Forms/</span> Add Guru
+      <a href="/guru" class="btn btn-secondary btn-sm float-end"><i class="bx bx-arrow-back me-1"></i> Kembali</a>
+    </h4>
 
-            <div class="container-xxl flex-grow-1 container-p-y">
-              <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Forms/</span> Add guru</h4>
+    <!-- Basic Layout & Basic with Icons -->
+    <div class="row">
+      <!-- Basic Layout -->
+      <div class="col-xxl">
+        <div class="card mb-4">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <h5 class="mb-0">Tambah Data Guru</h5>
+            <small class="text-muted float-end">Masukkan data guru baru</small>
+          </div>
+          <div class="card-body">
+            <% if (messages.error) { %>
+              <div class="alert alert-danger alert-dismissible" role="alert">
+                <div><%= messages.error %></div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            <% } %>
+            <% if (messages.success) { %>
+              <div class="alert alert-success alert-dismissible" role="alert">
+                <div><%= messages.success %></div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            <% } %>
 
-              <!-- Basic Layout & Basic with Icons -->
-              <div class="row">
-                <!-- Basic Layout -->
-                <div class="col-xxl">
-                  <div class="card mb-4">
-                    <div class="card-header d-flex align-items-center justify-content-between">
-                      <h5 class="mb-0">guru</h5>
-                      <small class="text-muted float-end"></small>
-                    </div>
-                    <div class="card-body">
-                      <form action="/guru/store" method="POST">
-                        <div class="row mb-3">
-                          <label class="col-sm-2 col-form-label" for="basic-default-name">Name</label>
-                          <div class="col-sm-10">
-                            <input type="text" class="form-control" name="nama_guru" id="nama_guru" placeholder="Name" />
-                          </div>
-                        </div>
-                        <div class="row mb-3">
-                          <label class="col-sm-2 col-form-label" for="basic-default-name">NIP</label>
-                          <div class="col-sm-10">
-                            <input type="text" class="form-control" name="nip" id="nip" placeholder="NIP" />
-                          </div>
-                        </div>
-                        <div class="row justify-content-end">
-                          <div class="col-sm-10">
-                            <button type="submit" class="btn btn-primary">Save</button>
-                          </div>
-                        </div>
-                      </form>
-                    </div>
+            <form id="formCreateGuru" action="/guru/store" method="POST">
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="nama_guru">Nama Guru</label>
+                <div class="col-sm-10">
+                  <div class="input-group input-group-merge">
+                    <span class="input-group-text"><i class="bx bx-user"></i></span>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      name="nama_guru" 
+                      id="nama_guru" 
+                      placeholder="Nama lengkap guru"
+                      value="<%= nama_guru %>"
+                      required
+                    />
                   </div>
+                  <div class="form-text">Masukkan nama lengkap guru beserta gelar</div>
                 </div>
-                            <%- include('../partials/_foot.ejs') %>
+              </div>
+              
+              <div class="row mb-3">
+                <label class="col-sm-2 col-form-label" for="nip">NIP</label>
+                <div class="col-sm-10">
+                  <div class="input-group input-group-merge">
+                    <span class="input-group-text"><i class="bx bx-id-card"></i></span>
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      name="nip" 
+                      id="nip" 
+                      placeholder="Nomor Induk Pegawai"
+                      value="<%= nip %>"
+                      required
+                    />
+                    <button type="button" class="btn btn-primary" id="btnCheckNip">
+                      <i class="bx bx-check"></i> Cek NIP
+                    </button>
+                  </div>
+                  <div id="nipFeedback" class="form-text">Masukkan NIP tanpa spasi</div>
+                  <div id="nipResult" class="mt-2"></div>
+                </div>
+              </div>
+              
+              <div class="row justify-content-end">
+                <div class="col-sm-10">
+                  <button type="button" class="btn btn-outline-secondary me-2" onclick="resetForm()">
+                    <i class="bx bx-reset me-1"></i> Reset
+                  </button>
+                  <button type="submit" class="btn btn-primary" id="btnSubmit">
+                    <i class="bx bx-save me-1"></i> Simpan
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const nipInput = document.getElementById('nip');
+  const btnCheckNip = document.getElementById('btnCheckNip');
+  const nipResult = document.getElementById('nipResult');
+  const formCreateGuru = document.getElementById('formCreateGuru');
+  const btnSubmit = document.getElementById('btnSubmit');
+  
+  let nipValid = false;
+  let isChecking = false;
+  
+  // Function to check if NIP exists
+  function checkNip() {
+    const nip = nipInput.value.trim();
+    
+    if (!nip) {
+      showNipResult('warning', 'NIP tidak boleh kosong');
+      return;
+    }
+    
+    if (!/^\d+$/.test(nip)) {
+      showNipResult('warning', 'NIP hanya boleh berisi angka');
+      return;
+    }
+    
+    // Show loading state
+    isChecking = true;
+    showNipResult('loading', 'Memeriksa ketersediaan NIP...');
+    
+    // Make AJAX request to check NIP
+    fetch(`/guru/check-nip/${nip}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        if (data.exists) {
+          // NIP already exists
+          showNipResult('error', data.message);
+          nipValid = false;
+        } else {
+          // NIP is available
+          showNipResult('success', data.message);
+          nipValid = true;
+        }
+      })
+      .catch(error => {
+        console.error('Error checking NIP:', error);
+        showNipResult('error', 'Terjadi kesalahan saat memeriksa NIP');
+        nipValid = false;
+      })
+      .finally(() => {
+        isChecking = false;
+      });
+  }
+  
+  // Function to display NIP check result
+  function showNipResult(type, message) {
+    nipResult.innerHTML = '';
+    
+    let icon, colorClass;
+    switch (type) {
+      case 'success':
+        icon = 'bx-check-circle';
+        colorClass = 'text-success';
+        break;
+      case 'error':
+        icon = 'bx-x-circle';
+        colorClass = 'text-danger';
+        break;
+      case 'warning':
+        icon = 'bx-error-circle';
+        colorClass = 'text-warning';
+        break;
+      case 'loading':
+        // For loading, use a spinner instead
+        nipResult.innerHTML = `
+          <div class="d-flex align-items-center">
+            <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <span class="text-muted">${message}</span>
+          </div>
+        `;
+        return;
+    }
+    
+    nipResult.innerHTML = `
+      <div class="d-flex align-items-center ${colorClass}">
+        <i class="bx ${icon} me-2"></i>
+        <span>${message}</span>
+      </div>
+    `;
+  }
+  
+  // Check NIP when button is clicked
+  btnCheckNip.addEventListener('click', function() {
+    if (!isChecking) {
+      checkNip();
+    }
+  });
+  
+  // Check NIP when focus leaves the input field
+  nipInput.addEventListener('blur', function() {
+    const nip = nipInput.value.trim();
+    if (nip && !isChecking) {
+      checkNip();
+    }
+  });
+  
+  // Clear validation result when NIP is changed
+  nipInput.addEventListener('input', function() {
+    if (nipResult.innerHTML !== '') {
+      nipResult.innerHTML = '';
+      nipValid = false;
+    }
+  });
+  
+  // Form submission validation
+  formCreateGuru.addEventListener('submit', function(event) {
+    const nama = document.getElementById('nama_guru').value.trim();
+    const nip = nipInput.value.trim();
+    
+    if (!nama) {
+      event.preventDefault();
+      alert('Nama guru tidak boleh kosong');
+      return;
+    }
+    
+    if (!nip) {
+      event.preventDefault();
+      alert('NIP tidak boleh kosong');
+      return;
+    }
+    
+    // If NIP validation was never performed, do it now
+    if (nipResult.innerHTML === '') {
+      event.preventDefault();
+      checkNip();
+      setTimeout(() => {
+        if (nipValid) {
+          formCreateGuru.submit();
+        }
+      }, 1500);
+      return;
+    }
+    
+    // If NIP is not valid, prevent form submission
+    if (!nipValid) {
+      event.preventDefault();
+      alert('NIP yang dimasukkan sudah digunakan oleh guru lain. Harap gunakan NIP yang berbeda.');
+    }
+  });
+});
+
+// Function to reset form
+function resetForm() {
+  document.getElementById('nama_guru').value = '';
+  document.getElementById('nip').value = '';
+  document.getElementById('nipResult').innerHTML = '';
+}
+</script>
+
+<%- include('../partials/_foot.ejs') %>

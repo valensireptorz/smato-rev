@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class SiswaService {
-  static const String baseUrl = 'http://192.168.1.9:3000/api/siswa';
+  static const String baseUrl = 'http://192.168.1.15:3000/api/siswa';
 
   Future<Map<String, dynamic>> login(String nis, String password) async {
     final response = await http.post(

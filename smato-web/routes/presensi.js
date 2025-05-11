@@ -8,7 +8,7 @@ const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fet
 // ✅ Tampilkan semua data presensi (khusus admin)
 router.get("/semua", async (req, res) => {
   try {
-    const response = await fetch("http://192.168.1.9:3000/api/presensi/semua");
+    const response = await fetch("http://192.168.1.15:3000/api/presensi/semua");
     const data = await response.json();
 
     if (!data.success) {

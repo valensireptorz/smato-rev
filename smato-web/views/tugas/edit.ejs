@@ -1,82 +1,71 @@
 <%- include('../partials/_head.ejs') %>
+<%- include('../partials/_nav.ejs') %>
 
-<!-- Content wrapper -->
-<div class="content-wrapper">
-  <!-- Content -->
-  <div class="container-xxl flex-grow-1 container-p-y">
-    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Forms/</span> Upload Tugas</h4>
-
-    <!-- Parent Row -->
-    <div class="row">
-      <!-- Left Section -->
-      <div class="col-md-6">
-        <div class="card mb-4">
-          <div class="card-header d-flex align-items-center justify-content-between">
-            <h5 class="mb-0">Tugas</h5>
-            <small class="text-muted float-end"></small>
-          </div>
-          <!-- Basic Bootstrap Table -->
-          <div class="readUpdate">
-            <div class="d-flex flex-wrap">
-              <div class="card mb-4 mx-2" style="width: 40rem;">
-                <ul class="list-group list-group-flush">
-                  <li class="list-group-item"><h4><%= nama_mapel %></h4></li>
-                  <li class="list-group-item"><b><%= nama_tugas %></b></li>
-                  <li class="list-group-item"><a>Deskripsi : </a> <%= deskripsi %></li>
-                  <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span><a>Deadline : </a> <%= deadline %></span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          <!--/ Basic Bootstrap Table -->
-        </div>
-      </div>
-      <!-- Right Section -->
-      <div class="col-md-6">
-        <div class="card mb-4">
-          <div class="card-header">
-            <h5 class="mb-0">Upload Tugas</h5>
-          </div>
-          <div class="card-body formUpload">
-            <form action="/tugas/update/<%= id %>" method="POST" enctype="multipart/form-data">
-              <div  class="row mb-3">
-                <label class="col-sm-2 col-form-label" for="basic-default-name">MataPelajaran</label>
-                <div class="col-sm-10">
-                  <input type="text" class="form-control" name="id_mapel" id="id_mapel" value="<%= id_mapel %>" />
-                </div>
-              </div>
-              <div  class="row mb-3">
-                <label class="col-sm-2 col-form-label" for="basic-default-name">Nama Tugas</label>
-                <div class="col-sm-10">
-                  <input type="text" class="form-control" name="nama_tugas" id="nama_tugas" value="<%= nama_tugas %>" />
-                </div>
-              </div>
-              <div  class="row mb-3">
-                <label class="col-sm-2 col-form-label" for="basic-default-name">Deskripsi</label>
-                <div class="col-sm-10">
-                  <input type="text" class="form-control" name="deskripsi" id="deskripsi" value="<%= deskripsi %>" />
-                </div>
-              </div>
-              <div  class="row mb-3">
-                <label class="col-sm-2 col-form-label" for="basic-default-name">Deadline</label>
-                <div class="col-sm-10">
-                  <input type="datetime-local" class="form-control" name="deadline" id="deadline" value="<%= deadline %>" />
-                </div>
-              </div>
-              
-              <div class="row justify-content-end">
-                <div class="col-sm-10">
-                  <button type="submit" class="btn btn-primary">Upload</button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
+<div class="container mt-5">
+  <h3>Edit Tugas</h3>
+  
+  <% if (messages.error) { %>
+    <div class="alert alert-danger">
+      <%= messages.error %>
     </div>
-    <!--/ Parent Row -->
+  <% } %>
+  
+  <% if (messages.success) { %>
+    <div class="alert alert-success">
+      <%= messages.success %>
+    </div>
+  <% } %>
+  
+  <form action="/tugas/update/<%= id %>" method="POST">
+    
+    <!-- Tampilkan nama mapel dan sembunyikan id_mapel -->
+    <div class="mb-3">
+      <label class="form-label">Mata Pelajaran</label>
+      <input type="text" class="form-control" value="<%= nama_mapel %>" readonly>
+      <input type="hidden" name="id_mapel" value="<%= id_mapel %>">
+    </div>
+    
+    <!-- Guru readonly -->
+    <div class="mb-3">
+      <label for="id_guru" class="form-label">Guru</label>
+      <input type="text" class="form-control" value="<%= level === 'admin' ? 'Admin' : nama_guru %>" readonly>
+      <input type="hidden" name="id_guru" value="<%= id_guru %>">
+    </div>
 
-  </div>
-  <%- include('../partials/_foot.ejs') %>
+    <!-- Kelas yang diampu oleh guru tersebut -->
+    <div class="mb-3">
+      <label for="id_kelas" class="form-label">Kelas</label>
+      <select class="form-control" name="id_kelas" id="id_kelas" required>
+        <option value="">-- Pilih Kelas --</option>
+        <% dataKelas.forEach((kelas) => { %>
+          <option value="<%= kelas.id_kelas %>" <%= id_kelas == kelas.id_kelas ? 'selected' : '' %>>
+            <%= kelas.kode_kelas %>
+          </option>
+        <% }); %>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="nama_tugas" class="form-label">Nama Tugas</label>
+      <input type="text" class="form-control" name="nama_tugas" id="nama_tugas" 
+             placeholder="Nama Tugas" value="<%= nama_tugas %>" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="deskripsi" class="form-label">Deskripsi</label>
+      <textarea class="form-control" name="deskripsi" id="deskripsi" rows="3" 
+                placeholder="Deskripsi Tugas" required><%= deskripsi %></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="deadline" class="form-label">Deadline</label>
+      <input type="datetime-local" class="form-control" name="deadline" 
+             id="deadline" value="<%= deadline %>" required>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Update</button>
+    <a href="/tugas" class="btn btn-secondary">Kembali</a>
+  </form>
+</div>
+
+<%- include('../partials/_foot.ejs') %>
