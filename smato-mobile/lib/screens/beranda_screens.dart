@@ -46,8 +46,8 @@ class _BerandaScreenState extends State<BerandaScreen>
   void initState() {
     super.initState();
     _loadSiswaData();
-    _absenList = AbsenService.getAllAbsen();
-    _tugasList = TugasService.getAllTugas();
+    _loadAbsenData();
+    _loadTugasData();
     
     // Load submission status
     _loadSubmissionStatus();
@@ -65,8 +65,32 @@ class _BerandaScreenState extends State<BerandaScreen>
     );
     _animationController.forward();
   }
-  
-
+  // Tambahkan method baru untuk memuat data absen berdasarkan ID siswa
+Future<void> _loadAbsenData() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    String idSiswa = prefs.getString('id_siswa') ?? '1';
+    
+    setState(() {
+      _absenList = AbsenService.getAbsenBySiswa(idSiswa);
+    });
+  } catch (e) {
+    print('Error loading absen data: $e');
+  }
+}
+// Tambahkan method untuk memuat data tugas berdasarkan ID siswa
+Future<void> _loadTugasData() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    String idSiswa = prefs.getString('id_siswa') ?? '1';
+    
+    setState(() {
+      _tugasList = TugasService.getTugasBySiswa(idSiswa);
+    });
+  } catch (e) {
+    print('Error loading tugas data: $e');
+  }
+}
   @override
   void dispose() {
     _animationController.dispose();
@@ -158,8 +182,9 @@ class _BerandaScreenState extends State<BerandaScreen>
     await Future.delayed(const Duration(seconds: 1));
     
     // Refresh all data
-    _absenList = AbsenService.getAllAbsen();
-    _tugasList = TugasService.getAllTugas();
+    _loadAbsenData();
+    _loadTugasData();
+
     await _loadSubmissionStatus();
     await _loadPresensiStatus();
     

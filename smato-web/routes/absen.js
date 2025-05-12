@@ -8,6 +8,7 @@ const Model_Guru = require("../model/Model_Guru.js");
 const Model_Kelas = require("../model/Model_Kelas.js");
 const Model_Guru_Kelas = require('../model/Model_Guru_Kelas');
 const Model_Jadwal = require("../model/Model_Jadwal.js");
+const Model_Siswa = require("../model/Model_Siswa.js");
 
 router.get("/", async (req, res) => {
   // Gunakan 'let' untuk nama_mapel karena nilainya mungkin diubah nanti

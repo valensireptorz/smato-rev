@@ -21,7 +21,7 @@ router.get('/download/:filename', (req, res) => {
 // In routes/pengumpulan.js
 router.get("/semua", async (req, res) => {
   try {
-    const response = await fetch("http://192.168.1.15:3000/api/pengumpulan/semua");
+    const response = await fetch("http://192.168.154.120:3000/api/pengumpulan/semua");
     const data = await response.json();
 
     // Check if the data is present

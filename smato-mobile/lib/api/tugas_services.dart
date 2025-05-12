@@ -7,7 +7,7 @@ class TugasModel {
   final String namaTugas;
   final String deskripsi;
   final String deadline;
- 
+  final String kodeKelas; // Tambahkan field kodeKelas
 
   TugasModel({
     required this.idTugas,
@@ -15,34 +15,33 @@ class TugasModel {
     required this.namaTugas,
     required this.deskripsi,
     required this.deadline,
-  
+    required this.kodeKelas, // Tambahkan parameter ini
   });
 
   factory TugasModel.fromJson(Map<String, dynamic> json) {
     return TugasModel(
       idTugas: json['id_tugas'].toString(),
       idMapel: json['id_mapel'].toString(),
-   
       namaTugas: json['nama_tugas'],
       deskripsi: json['deskripsi'],
       deadline: json['deadline'],
+      kodeKelas: json['kode_kelas'] ?? '', // Tambahkan ini
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id_mapel': idMapel,
-      
       'nama_tugas': namaTugas,
       'deskripsi': deskripsi,
       'deadline': deadline,
+      'kode_kelas': kodeKelas, // Tambahkan ini
     };
   }
 }
 
-
 class TugasService {
-  static const String baseUrl = 'http://192.168.1.15:3000/api/tugas';
+  static const String baseUrl = 'http://192.168.154.120:3000/api/tugas';
 
   // Ambil semua data tugas
   static Future<List<Map<String, dynamic>>> getAllTugas() async {
@@ -97,9 +96,9 @@ class TugasService {
     return response.statusCode == 200;
   }
 
-  // Ambil tugas berdasarkan ID Kelas (opsional, jika ada endpoint-nya)
-  static Future<List<Map<String, dynamic>>> getTugasByKelas(String idKelas) async {
-    final response = await http.get(Uri.parse('$baseUrl/byKelas/$idKelas'));
+  // Ambil tugas berdasarkan Kode Kelas
+  static Future<List<Map<String, dynamic>>> getTugasByKelas(String kodeKelas) async {
+    final response = await http.get(Uri.parse('$baseUrl/kelas/$kodeKelas'));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
@@ -109,5 +108,17 @@ class TugasService {
       throw Exception('Gagal mengambil data tugas berdasarkan kelas');
     }
   }
-}
 
+  // Method baru: Ambil tugas berdasarkan ID Siswa
+  static Future<List<Map<String, dynamic>>> getTugasBySiswa(String idSiswa) async {
+    final response = await http.get(Uri.parse('$baseUrl/mobile/siswa/$idSiswa'));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final List<dynamic> tugasList = data['data'];
+      return tugasList.map((item) => Map<String, dynamic>.from(item)).toList();
+    } else {
+      throw Exception('Gagal mengambil data tugas untuk siswa');
+    }
+  }
+}

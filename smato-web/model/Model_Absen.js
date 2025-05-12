@@ -3,6 +3,31 @@ const Model_Mapel = require("../model/Model_Mapel.js");
 
 class Model_Absen {
     
+   static async getByKelas(kode_kelas) {
+    return new Promise((resolve, reject) => {
+        console.log("Mencari absen untuk kelas:", kode_kelas); // Log untuk debug
+        const query = `
+            SELECT a.*, m.nama_mapel, g.nama_guru, g.nip, k.kode_kelas
+            FROM absen a
+            LEFT JOIN mapel m ON a.id_mapel = m.id_mapel
+            LEFT JOIN guru g ON a.id_guru = g.id_guru
+            LEFT JOIN kelas k ON a.id_kelas = k.id_kelas
+            WHERE k.kode_kelas = ?
+            ORDER BY a.tanggal DESC
+        `;
+        
+        connection.query(query, [kode_kelas], (err, rows) => {
+            if (err) {
+                console.error("Error in Model_Absen.getByKelas():", err);
+                reject(err);
+            } else {
+                console.log("Jumlah data absen ditemukan:", rows.length); // Log untuk debug
+                console.log("Data absen:", JSON.stringify(rows, null, 2)); // Log untuk debug
+                resolve(rows);
+            }
+        });
+    });
+}
 
     static async getAll() {
         return new Promise((resolve, reject) => {

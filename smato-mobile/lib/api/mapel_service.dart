@@ -31,7 +31,7 @@ class MapelModel {
 }
 
 class MapelService {
-  static const String baseUrl = 'http://192.168.1.15:3000/api/mapel';
+  static const String baseUrl = 'http://192.168.154.120:3000/api/mapel';
 
   // Ambil semua data mapel
   static Future<List<MapelModel>> getAllMapel() async {

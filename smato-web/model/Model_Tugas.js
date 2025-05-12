@@ -3,6 +3,31 @@ const Model_Mapel = require("../model/Model_Mapel.js");
 const Model_Users = require("../model/Model_Users.js");
 
 class Model_Tugas {
+   static async getByKelas(kode_kelas) {
+    return new Promise((resolve, reject) => {
+        console.log("Mencari tugas untuk kelas:", kode_kelas); // Log untuk debug
+        const query = `
+            SELECT t.*, m.nama_mapel, g.nama_guru, k.kode_kelas
+            FROM tugas t
+            LEFT JOIN mapel m ON t.id_mapel = m.id_mapel
+            LEFT JOIN guru g ON t.id_guru = g.id_guru
+            LEFT JOIN kelas k ON t.id_kelas = k.id_kelas
+            WHERE k.kode_kelas = ?
+            ORDER BY t.deadline ASC
+        `;
+        
+        connection.query(query, [kode_kelas], (err, rows) => {
+            if (err) {
+                console.error("Error in Model_Tugas.getByKelas():", err);
+                reject(err);
+            } else {
+                console.log("Jumlah data tugas ditemukan:", rows.length); // Log untuk debug
+                console.log("Data tugas pertama:", rows.length > 0 ? JSON.stringify(rows[0], null, 2) : "Tidak ada data"); // Log untuk debug
+                resolve(rows);
+            }
+        });
+    });
+}
     // In Model_Tugas.js
 
 // Update getAll method to include kelas info

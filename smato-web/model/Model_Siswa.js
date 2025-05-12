@@ -11,14 +11,25 @@
       });
     }
 
-    static async getById(id) {
-      return new Promise((resolve, reject) => {
-        connection.query('SELECT * FROM siswa WHERE id_siswa = ?', [id], (err, rows) => {
-          if (err) reject(err);
-          else resolve(rows[0] || null);
-        });
-      });
-    }
+   static async getById(id) {
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT s.*, k.kode_kelas
+      FROM siswa s
+      LEFT JOIN kelas k ON s.id_kelas = k.id_kelas
+      WHERE s.id_siswa = ?
+    `;
+    connection.query(query, [id], (err, rows) => {
+      if (err) {
+        console.error("Error in Model_Siswa.getById():", err);
+        reject(err);
+      } else {
+        console.log("Data siswa dari getById:", JSON.stringify(rows[0], null, 2));
+        resolve(rows.length > 0 ? rows[0] : null);
+      }
+    });
+  });
+}
 
     static async getId(id) {
       return new Promise((resolve, reject) => {

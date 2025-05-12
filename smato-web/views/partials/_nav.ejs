@@ -183,17 +183,102 @@
                 </a>
               </li>
               <% } %>
-              
-              
-             
-              
-
           </li>
-          <li class="menu-item">
-            <a href="/logout" class="menu-link ">
-              <i class='menu-icon tf-icons bx bx-log-out'></i>
-              <div data-i18n="Layouts"> Logout</div>
-            </a>
+         <!-- Tombol Logout -->
+<li class="menu-item">
+  <a href="#" class="menu-link" onclick="confirmLogout(event)">
+    <i class="menu-icon tf-icons bx bx-log-out"></i>
+    <div>Logout</div>
+  </a>
+</li>
+
+<!-- Modal Konfirmasi -->
+<div id="logoutModal" class="modal">
+  <div class="modal-content">
+    <h4>Apakah Anda yakin ingin logout?</h4>
+    <button id="confirmLogout" class="btn-confirm">Ya</button>
+    <button id="cancelLogout" class="btn-cancel">Batal</button>
+  </div>
+</div>
+
+<!-- CSS Animasi dan Modal (Ukuran Lebih Kecil) -->
+<style>
+  /* Tombol Menu */
+  .menu-link {
+    display: flex;
+    align-items: center;
+    font-size: 14px; /* Ukuran font lebih kecil */
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .menu-link:hover {
+    transform: scale(1.05);
+    cursor: pointer;
+  }
+
+  /* Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    width: 250px;  /* Lebih kecil */
+  }
+
+  h4 {
+    font-size: 14px;
+    margin-bottom: 20px;  /* Jarak lebih rapat */
+  }
+
+  /* Tombol */
+  .btn-confirm, .btn-cancel {
+    padding: 8px 15px;
+    margin: 5px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px; /* Ukuran font lebih kecil */
+  }
+
+  .btn-confirm {
+    background-color: #ff4b5c;
+    color: white;
+  }
+
+  .btn-cancel {
+    background-color: #cccccc;
+    color: black;
+  }
+</style>
+
+<!-- JavaScript untuk Modal dan Logout -->
+<script>
+  function confirmLogout(event) {
+    event.preventDefault();
+    document.getElementById("logoutModal").style.display = "flex"; // Tampilkan modal
+  }
+
+  document.getElementById("confirmLogout").addEventListener("click", function() {
+    window.location.href = "/logout"; // Logout setelah konfirmasi
+  });
+
+  document.getElementById("cancelLogout").addEventListener("click", function() {
+    document.getElementById("logoutModal").style.display = "none"; // Tutup modal
+  });
+</script>
+
     
           
         </ul>

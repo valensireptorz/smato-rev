@@ -2,6 +2,57 @@ const express = require("express");
 const router = express.Router();
 const Model_Absen = require("../../model/Model_Absen.js"); // Import Model_Absen
 
+router.get("/mobile/siswa/:id_siswa", async (req, res) => {
+  const id_siswa = req.params.id_siswa;
+  console.log("🔍 Request absen untuk siswa ID:", id_siswa);
+  
+  try {
+    // 1. Dapatkan data siswa termasuk kode_kelas
+    const Model_Siswa = require("../../model/Model_Siswa.js");
+    const siswa = await Model_Siswa.getById(id_siswa);
+    console.log("👤 Data siswa:", JSON.stringify(siswa, null, 2));
+    
+    if (!siswa) {
+      console.log("❌ Siswa tidak ditemukan");
+      return res.status(404).json({
+        success: false,
+        message: "Data siswa tidak ditemukan"
+      });
+    }
+    
+    // 2. Gunakan kode_kelas untuk mendapatkan data absen
+    const kode_kelas = siswa.kode_kelas;
+    console.log("🏫 Kode kelas siswa:", kode_kelas);
+    
+    // 3. Pastikan kode_kelas ada
+    if (!kode_kelas) {
+      console.log("❌ Kode kelas tidak ditemukan");
+      return res.status(400).json({
+        success: false,
+        message: "Siswa tidak memiliki informasi kelas"
+      });
+    }
+    
+    // 4. PERUBAHAN DI SINI: Gunakan getByKelas() bukan getAll()
+    console.log("📝 Mencoba mengambil data absen untuk kelas:", kode_kelas);
+    const data = await Model_Absen.getByKelas(kode_kelas);
+    console.log("📊 Jumlah data absen yang ditemukan:", data.length);
+    
+    res.status(200).json({
+      success: true,
+      message: `Berhasil mengambil data absen untuk kelas ${kode_kelas}`,
+      data: data
+    });
+  } catch (error) {
+    console.error("❌ Error getAbsenSiswa:", error);
+    res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan saat mengambil data absen siswa",
+      error: error.message
+    });
+  }
+});
+
 // Route default GET
 router.get("/", async (req, res) => {
   try {
@@ -70,7 +121,7 @@ router.get("/get/:id", async (req, res) => {
 router.post("/store", async (req, res) => {
   const { id_mapel, id_guru, tanggal, jam_mulai, jam_selesai,id_kelas } = req.body;
 
-  if (!id_mapel || !id_guru || !tanggal || !jam_mulai || !jam_selesai, id_kelas) {
+  if (!id_mapel || !id_guru || !tanggal || !jam_mulai || !jam_selesai || !id_kelas) {
     return res.status(400).json({
       success: false,
       message: "Semua data absen wajib diisi",
@@ -96,10 +147,10 @@ router.post("/store", async (req, res) => {
 // Update data absen
 router.put("/update/:id", async (req, res) => {
   const id = req.params.id;
-  const { id_mapel, id_guru, tanggal, jam_mulai, jam_selesai } = req.body;
+  const { id_mapel, id_guru, tanggal, jam_mulai, jam_selesai, id_kelas } = req.body;
 
   try {
-    await Model_Absen.Update(id, { id_mapel, id_guru, tanggal, jam_mulai, jam_selesai });
+    await Model_Absen.Update(id, { id_mapel, id_guru, tanggal, jam_mulai, jam_selesai, id_kelas });
     res.status(200).json({
       success: true,
       message: "Data absen berhasil diperbarui",
@@ -161,7 +212,6 @@ router.get("/course/:courseName", async (req, res) => {
   }
 });
 
-
 // Ambil data absen berdasarkan kode kelas
 router.get("/kelas/:kode_kelas", async (req, res) => {
   const kode_kelas = req.params.kode_kelas;
@@ -181,6 +231,5 @@ router.get("/kelas/:kode_kelas", async (req, res) => {
     });
   }
 });
-
 
 module.exports = router;
