@@ -103,7 +103,7 @@
                
                
               </div>
-              <button type="button" class="btn btn-outline-primary btn-sm shadow-sm">
+              <button type="button" class="btn btn-outline-primary btn-sm shadow-sm" id="printBtn">
                 <i class="bx bx-printer me-1"></i>Cetak
               </button>
             </div>
@@ -142,7 +142,7 @@
                   </div>
                 </th>
                 <% if (level == "admin") { %>
-                <th class="text-center" style="width: 100px">Aksi</th>
+                <th class="text-center no-print" style="width: 100px">Aksi</th>
                 <% } %>
               </tr>
             </thead>
@@ -168,15 +168,26 @@
                   </span>
                 </td>
                 <td>
-                  <div class="input-group input-group-sm password-toggle" style="max-width: 150px;">
-                    <input type="password" class="form-control form-control-sm border-0 bg-light" value="<%= data[i].password %>" readonly />
-                    <button class="btn btn-outline-secondary border-0 bg-light toggle-password" type="button">
-                      <i class="bx bx-show"></i>
-                    </button>
+                  <div class="password-container">
+                    <div class="input-group input-group-sm password-toggle" style="max-width: 200px;">
+                      <input type="password" class="form-control form-control-sm border bg-light password-field" 
+                             value="<%= data[i].password %>" readonly data-password="<%= data[i].password %>" />
+                      <button class="btn btn-outline-secondary border toggle-password no-print" type="button" 
+                              data-bs-toggle="tooltip" data-bs-placement="top" title="Tampilkan/Sembunyikan">
+                        <i class="bx bx-show"></i>
+                      </button>
+                      <button class="btn btn-outline-primary border copy-password no-print" type="button" 
+                              data-bs-toggle="tooltip" data-bs-placement="top" title="Salin Password">
+                        <i class="bx bx-copy"></i>
+                      </button>
+                    </div>
+                    <div class="copy-feedback text-success mt-1 no-print" style="display: none; font-size: 0.7rem;">
+                      <i class="bx bx-check-circle"></i> Password disalin!
+                    </div>
                   </div>
                 </td>
                 <% if (level == "admin") { %>
-                <td>
+                <td class="no-print">
                   <div class="d-flex justify-content-center gap-1">
                     <a href="/siswa/edit/<%= data[i].id_siswa %>" class="btn btn-sm btn-icon btn-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
                       <i class="bx bx-edit-alt"></i>
@@ -218,7 +229,7 @@
         </div>
 
         <!-- Pagination -->
-        <div class="d-flex justify-content-between align-items-center mt-3">
+        <div class="d-flex justify-content-between align-items-center mt-3 no-print">
           <div>
             <span class="text-muted">Menampilkan <strong>1-<%= data.length %></strong> dari <strong><%= data.length %></strong> data</span>
           </div>
@@ -241,6 +252,19 @@
   </div>
 </div>
 
+<!-- Print-specific template that will only be visible when printing -->
+<div class="print-header d-none">
+  <div class="container mt-4 mb-4">
+    <div class="row text-center">
+      <div class="col-12">
+        <h2 class="mb-0">DATA SISWA</h2>
+        <p class="mb-3">Laporan Data Akun Siswa</p>
+        <p id="print-date" class="text-center mb-4">Dicetak pada: Selasa, 13 Mei 2025</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Custom scripts -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -248,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const toggleButtons = document.querySelectorAll('.toggle-password');
   toggleButtons.forEach(button => {
     button.addEventListener('click', function() {
-      const input = this.previousElementSibling;
+      const input = this.closest('.password-toggle').querySelector('.password-field');
       const icon = this.querySelector('i');
       
       if (input.type === 'password') {
@@ -258,6 +282,44 @@ document.addEventListener('DOMContentLoaded', function() {
         input.type = 'password';
         icon.classList.replace('bx-hide', 'bx-show');
       }
+    });
+  });
+  
+  // Copy password functionality
+  const copyButtons = document.querySelectorAll('.copy-password');
+  copyButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const passwordContainer = this.closest('.password-container');
+      const input = passwordContainer.querySelector('.password-field');
+      const feedback = passwordContainer.querySelector('.copy-feedback');
+      const password = input.getAttribute('data-password');
+      
+      // Create a temporary textarea element to copy the password
+      const textarea = document.createElement('textarea');
+      textarea.value = password;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'absolute';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      
+      // Select and copy the password
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      
+      // Show feedback
+      feedback.style.display = 'block';
+      
+      // Add animation class
+      button.classList.add('btn-success');
+      button.classList.remove('btn-outline-primary');
+      
+      // Reset after 1.5 seconds
+      setTimeout(() => {
+        feedback.style.display = 'none';
+        button.classList.remove('btn-success');
+        button.classList.add('btn-outline-primary');
+      }, 1500);
     });
   });
   
@@ -285,6 +347,38 @@ document.addEventListener('DOMContentLoaded', function() {
       this.classList.remove('shadow-sm', 'bg-light-hover');
     });
   });
+
+  // Print functionality
+  const printBtn = document.getElementById('printBtn');
+  if (printBtn) {
+    printBtn.addEventListener('click', function() {
+      preparePrint();
+    });
+  }
+
+  function preparePrint() {
+    // Show all passwords before printing
+    const passwordFields = document.querySelectorAll('.password-field');
+    passwordFields.forEach(field => {
+      field.type = 'text';
+    });
+
+    // Show the print header
+    document.querySelector('.print-header').classList.remove('d-none');
+    
+    // Trigger print dialog
+    setTimeout(() => {
+      window.print();
+      
+      // Reset after printing
+      setTimeout(() => {
+        passwordFields.forEach(field => {
+          field.type = 'password';
+        });
+        document.querySelector('.print-header').classList.add('d-none');
+      }, 500);
+    }, 300);
+  }
 });
 </script>
 
@@ -353,6 +447,146 @@ document.addEventListener('DOMContentLoaded', function() {
   /* Password toggle style */
   .password-toggle .form-control:focus {
     box-shadow: none;
+  }
+  
+  /* Copy button animation */
+  .copy-password.btn-success {
+    animation: pulse 1.5s;
+  }
+  
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(var(--bs-success-rgb), 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(var(--bs-success-rgb), 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(var(--bs-success-rgb), 0);
+    }
+  }
+  
+  /* Copy feedback animation */
+  .copy-feedback {
+    animation: fadeInOut 1.5s;
+  }
+  
+  @keyframes fadeInOut {
+    0% { opacity: 0; }
+    25% { opacity: 1; }
+    75% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* Print specific styles */
+  @media print {
+    body {
+      font-size: 12pt;
+      color: #000;
+      background-color: #fff;
+    }
+    
+    /* Hide everything by default */
+    .content-wrapper > *,
+    .container-xxl > *,
+    .card > *,
+    .card-body > *:not(.table-responsive) {
+      display: none !important;
+    }
+    
+    /* Only show what we want to print */
+    .print-header,
+    .table-responsive,
+    .table,
+    .table th,
+    .table td,
+    .table tr,
+    .table thead,
+    .table tbody {
+      display: block !important;
+    }
+
+    .table th, 
+    .table td {
+      display: table-cell !important;
+    }
+
+    .table tr {
+      display: table-row !important;
+    }
+
+    .table thead, 
+    .table tbody {
+      display: table-row-group !important;
+    }
+
+    .table {
+      display: table !important;
+      width: 100% !important;
+      border-collapse: collapse !important;
+    }
+    
+    /* Hide specific columns/elements within the table */
+    .no-print,
+    .table th:last-child,
+    .table td:last-child {
+      display: none !important;
+    }
+    
+    .content-wrapper {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    
+    .container-xxl {
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 0 !important;
+      display: block !important;
+    }
+    
+    .card {
+      box-shadow: none !important;
+      border: none !important;
+      margin: 0 !important;
+      display: block !important;
+    }
+    
+    .card-body {
+      padding: 0 !important;
+      display: block !important;
+    }
+    
+    .print-header {
+      display: block !important;
+      margin-bottom: 20px !important;
+    }
+    
+    table th, table td {
+      border: 1px solid #ddd !important;
+      padding: 8px !important;
+      text-align: left !important;
+    }
+    
+    table th {
+      background-color: #f2f2f2 !important;
+      font-weight: bold !important;
+    }
+    
+    .badge {
+      color: #000 !important;
+      background-color: #f2f2f2 !important;
+      border: 1px solid #ddd !important;
+    }
+    
+    .password-field {
+      border: none !important;
+      background: none !important;
+    }
+    
+    .avatar {
+      display: none !important;
+    }
   }
 </style>
 
