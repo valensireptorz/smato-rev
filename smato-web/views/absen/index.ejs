@@ -300,6 +300,88 @@
 </header>
 
 <div class="container">
+  <!-- Filter Controls Card -->
+  <div class="card mb-4">
+    <div class="card-body p-3">
+      <form action="/absen" method="GET" class="row align-items-end g-3">
+        <!-- Subject Filter -->
+        <div class="col-md-4">
+          <label class="form-label"><i class="bi bi-book me-2"></i>Mata Pelajaran</label>
+          <select name="nama_mapel" class="form-select shadow-sm">
+            <option value="">Semua Mata Pelajaran</option>
+            <% dataMapel.forEach((mapel) => { %>
+              <option value="<%= mapel.nama_mapel %>" <%= nama_mapel === mapel.nama_mapel ? 'selected' : '' %>>
+                <%= mapel.nama_mapel %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+        
+        <!-- Month Filter -->
+        <div class="col-md-3">
+          <label class="form-label"><i class="bi bi-calendar-month me-2"></i>Bulan</label>
+          <select name="month" class="form-select shadow-sm">
+            <% const months = [
+              { value: 1, name: 'Januari' },
+              { value: 2, name: 'Februari' },
+              { value: 3, name: 'Maret' },
+              { value: 4, name: 'April' },
+              { value: 5, name: 'Mei' },
+              { value: 6, name: 'Juni' },
+              { value: 7, name: 'Juli' },
+              { value: 8, name: 'Agustus' },
+              { value: 9, name: 'September' },
+              { value: 10, name: 'Oktober' },
+              { value: 11, name: 'November' },
+              { value: 12, name: 'Desember' }
+            ]; %>
+            <% months.forEach(function(m) { %>
+              <option value="<%= m.value %>" <%= (typeof month !== 'undefined' && month === m.value) ? 'selected' : '' %>>
+                <%= m.name %>
+              </option>
+            <% }); %>
+          </select>
+        </div>
+        
+        <!-- Year Filter -->
+        <div class="col-md-3">
+          <label class="form-label"><i class="bi bi-calendar-date me-2"></i>Tahun</label>
+          <select name="year" class="form-select shadow-sm">
+            <% 
+              const currentYear = new Date().getFullYear();
+              const years = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
+            %>
+            <% years.forEach(function(y) { %>
+              <option value="<%= y %>" <%= (typeof year !== 'undefined' && year === y) ? 'selected' : '' %>>
+                <%= y %>
+              </option>
+            <% }); %>
+          </select>
+        </div>
+        
+        <!-- Filter Button -->
+        <div class="col-md-2">
+          <button type="submit" class="btn w-100 shadow-sm" style="background-color: var(--primary); color: white;">
+            <i class="bi bi-filter me-2"></i>Filter
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Active Filter Indicators -->
+  <% if (typeof month !== 'undefined' && typeof year !== 'undefined') { %>
+    <div class="filter-indicator mb-4">
+      <i class="bi bi-funnel-fill me-2"></i>
+      <span>Menampilkan data bulan 
+        <strong><%= months.find(m => m.value === month)?.name %> <%= year %></strong>
+        <% if (nama_mapel) { %> 
+          pada mata pelajaran <strong><%= nama_mapel %></strong>
+        <% } %>
+      </span>
+    </div>
+  <% } %>
+
   <!-- Subject Selector Card -->
   <div class="subject-selector">
     <div class="row align-items-center">
@@ -317,7 +399,7 @@
           <ul class="dropdown-menu shadow-sm" aria-labelledby="courseDropdown">
             <% dataMapel.forEach((mapel) => { %>
               <li>
-                <a class="dropdown-item" href="/absen?nama_mapel=<%= mapel.nama_mapel %>">
+                <a class="dropdown-item" href="/absen?nama_mapel=<%= mapel.nama_mapel %><%= typeof month !== 'undefined' ? '&month=' + month : '' %><%= typeof year !== 'undefined' ? '&year=' + year : '' %>">
                   <%= mapel.nama_mapel %>
                 </a>
               </li>
@@ -341,6 +423,7 @@
       </div>
     </div>
   </div>
+  
 
   <!-- Stats Overview (if needed) -->
   <% if (dataAbsen && dataAbsen.length > 0) { %>
@@ -521,7 +604,7 @@
         <div class="empty-state">
           <i class="bi bi-calendar-x"></i>
           <h5>Tidak ada data absensi tersedia</h5>
-          <p class="text-muted">Silakan pilih mata pelajaran lain atau tambahkan absensi baru.</p>
+          <p class="text-muted">Silakan pilih mata pelajaran atau bulan lain, atau tambahkan absensi baru.</p>
           <% if (level === 'guru' && id_mapel) { %>
             <a href="/absen/create/<%= id_mapel %>" class="btn btn-primary mt-2">
               <i class="bi bi-plus-circle me-2"></i>Tambah Absensi Baru
@@ -541,6 +624,24 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <!-- Add Roboto Mono for ID display -->
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Custom CSS for the filter indicator -->
+<style>
+  .filter-indicator {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    border-left: 4px solid var(--primary);
+    padding: 12px 15px;
+    border-radius: 6px;
+    color: var(--bs-dark);
+    font-size: 14px;
+    animation: fadeIn 0.5s ease;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
 
 <!-- Animation script -->
 <script>

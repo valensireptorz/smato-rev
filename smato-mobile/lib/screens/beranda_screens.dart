@@ -29,15 +29,21 @@ class _BerandaScreenState extends State<BerandaScreen>
   late Future<List<Map<String, dynamic>>> _tugasList;
   late Future<Map<String, dynamic>> _siswaData;
   
+  // Data storage for filtering
+  late List<Map<String, dynamic>> _allAbsenList = [];
+  late List<Map<String, dynamic>> _allTugasList = [];
+  
   // Map untuk menyimpan status pengumpulan tugas
   Map<String, bool> _submissionStatus = {};
   
   // Map untuk menyimpan status presensi
   Map<String, bool> _presensiStatus = {};
 
-  bool _showAbsenList = true; // Set to true to always show by default
-  bool _showTugasList = true; // Set to true to always show by default
+  bool _showAbsenList = true;
+  bool _showTugasList = true;
   bool _isRefreshing = false;
+  bool _isMonthFilterActive = false;
+  DateTime _selectedMonth = DateTime.now();
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -48,11 +54,7 @@ class _BerandaScreenState extends State<BerandaScreen>
     _loadSiswaData();
     _loadAbsenData();
     _loadTugasData();
-    
-    // Load submission status
     _loadSubmissionStatus();
-    
-    // Load presensi status
     _loadPresensiStatus();
 
     _animationController = AnimationController(
@@ -65,57 +67,56 @@ class _BerandaScreenState extends State<BerandaScreen>
     );
     _animationController.forward();
   }
-  // Tambahkan method baru untuk memuat data absen berdasarkan ID siswa
-Future<void> _loadAbsenData() async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    String idSiswa = prefs.getString('id_siswa') ?? '1';
-    
-    setState(() {
-      _absenList = AbsenService.getAbsenBySiswa(idSiswa);
-    });
-  } catch (e) {
-    print('Error loading absen data: $e');
-  }
-}
-// Tambahkan method untuk memuat data tugas berdasarkan ID siswa
-Future<void> _loadTugasData() async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    String idSiswa = prefs.getString('id_siswa') ?? '1';
-    
-    setState(() {
-      _tugasList = TugasService.getTugasBySiswa(idSiswa);
-    });
-  } catch (e) {
-    print('Error loading tugas data: $e');
-  }
-}
+
   @override
   void dispose() {
     _animationController.dispose();
     super.dispose();
   }
 
-  // Load presensi status dari SharedPreferences
+  Future<void> _loadAbsenData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String idSiswa = prefs.getString('id_siswa') ?? '1';
+      
+      final absenData = await AbsenService.getAbsenBySiswa(idSiswa);
+      setState(() {
+        _allAbsenList = absenData;
+        _absenList = Future.value(absenData);
+      });
+    } catch (e) {
+      print('Error loading absen data: $e');
+    }
+  }
+
+  Future<void> _loadTugasData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String idSiswa = prefs.getString('id_siswa') ?? '1';
+      
+      final tugasData = await TugasService.getTugasBySiswa(idSiswa);
+      setState(() {
+        _allTugasList = tugasData;
+        _tugasList = Future.value(tugasData);
+      });
+    } catch (e) {
+      print('Error loading tugas data: $e');
+    }
+  }
+
   Future<void> _loadPresensiStatus() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       
-      // Pastikan _idSiswa tersedia
       if (_idSiswa == null) {
-        // Tunggu hingga data siswa selesai dimuat
         await _loadSiswaData();
         if (_idSiswa == null) {
-          // Jika masih null, gunakan nilai default
           _idSiswa = '1';
         }
       }
       
-      // Load absen list terlebih dahulu
       final absenList = await _absenList;
       
-      // Periksa presensi status untuk setiap absen
       for (var absen in absenList) {
         String idAbsen = absen['id_absen'].toString();
         String presensiKey = 'presensi_${_idSiswa}_$idAbsen';
@@ -130,25 +131,19 @@ Future<void> _loadTugasData() async {
     }
   }
 
-  // Load submission status dari SharedPreferences
   Future<void> _loadSubmissionStatus() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       
-      // Pastikan _idSiswa tersedia
       if (_idSiswa == null) {
-        // Tunggu hingga data siswa selesai dimuat
         await _loadSiswaData();
         if (_idSiswa == null) {
-          // Jika masih null, gunakan nilai default
           _idSiswa = '1';
         }
       }
       
-      // Load tugas list terlebih dahulu
       final tugasList = await _tugasList;
       
-      // Periksa submission status untuk setiap tugas
       for (var tugas in tugasList) {
         String idTugas = tugas['id_tugas'].toString();
         String submissionKey = 'submission_${_idSiswa}_$idTugas';
@@ -163,7 +158,6 @@ Future<void> _loadTugasData() async {
     }
   }
 
-  // Fungsi untuk memuat data siswa
   Future<void> _loadSiswaData() async {
     final prefs = await SharedPreferences.getInstance();
     String idSiswa = prefs.getString('id_siswa') ?? '1';
@@ -173,7 +167,39 @@ Future<void> _loadTugasData() async {
     });
   }
 
-  // Fungsi untuk refresh data
+  void _filterByMonth(DateTime month) {
+    setState(() {
+      _selectedMonth = month;
+      _isMonthFilterActive = true;
+      
+      if (_allAbsenList.isNotEmpty) {
+        _absenList = Future.value(_allAbsenList.where((absen) {
+          DateTime absenDate = DateTime.parse(absen['tanggal']);
+          return absenDate.year == month.year && absenDate.month == month.month;
+        }).toList());
+      }
+      
+      if (_allTugasList.isNotEmpty) {
+        _tugasList = Future.value(_allTugasList.where((tugas) {
+          DateTime deadline = DateTime.parse(tugas['deadline']);
+          return deadline.year == month.year && deadline.month == month.month;
+        }).toList());
+      }
+    });
+  }
+
+  void _clearMonthFilter() {
+    setState(() {
+      _isMonthFilterActive = false;
+      if (_allAbsenList.isNotEmpty) {
+        _absenList = Future.value(_allAbsenList);
+      }
+      if (_allTugasList.isNotEmpty) {
+        _tugasList = Future.value(_allTugasList);
+      }
+    });
+  }
+
   void _refreshData() async {
     setState(() {
       _isRefreshing = true;
@@ -181,16 +207,107 @@ Future<void> _loadTugasData() async {
     
     await Future.delayed(const Duration(seconds: 1));
     
-    // Refresh all data
     _loadAbsenData();
     _loadTugasData();
-
-    await _loadSubmissionStatus();
-    await _loadPresensiStatus();
+    _loadSubmissionStatus();
+    _loadPresensiStatus();
     
     setState(() {
       _isRefreshing = false;
     });
+  }
+
+  Widget _buildMonthFilter() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextButton.icon(
+              icon: Icon(Icons.calendar_today, size: 16, color: Colors.blue.shade700),
+              label: Text(
+                DateFormat('MMMM yyyy').format(_selectedMonth),
+                style: GoogleFonts.montserrat(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.blue.shade700),
+              ),
+              onPressed: () async {
+                final DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: _selectedMonth,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime(2030),
+                  initialDatePickerMode: DatePickerMode.year,
+                  builder: (context, child) {
+                    return Theme(
+                      data: Theme.of(context).copyWith(
+                        colorScheme: ColorScheme.light(
+                          primary: Colors.blue.shade700,
+                          onPrimary: Colors.white,
+                          onSurface: Colors.black),
+                      ),
+                      child: child!,
+                    );
+                  },
+                );
+                if (picked != null) {
+                  _filterByMonth(picked);
+                }
+              },
+            ),
+          ),
+          if (_isMonthFilterActive)
+            IconButton(
+              icon: Icon(Icons.close, size: 18, color: Colors.red.shade400),
+              onPressed: _clearMonthFilter,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterStatus() {
+    if (!_isMonthFilterActive) return const SizedBox.shrink();
+    
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.filter_alt, size: 14, color: Colors.blue.shade700),
+                const SizedBox(width: 4),
+                Text(
+                  'Filter: ${DateFormat('MMMM yyyy').format(_selectedMonth)}',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.blue.shade700),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -201,7 +318,6 @@ Future<void> _loadTugasData() async {
       backgroundColor: const Color(0xFFF9FAFC),
       body: Stack(
         children: [
-          // Background gradient overlay
           Positioned(
             top: -screenSize.height * 0.15,
             right: -screenSize.width * 0.25,
@@ -221,13 +337,11 @@ Future<void> _loadTugasData() async {
             ),
           ),
           
-          // Content
           SafeArea(
             child: FadeTransition(
               opacity: _fadeAnimation,
               child: CustomScrollView(
                 slivers: [
-                  // App Bar
                   SliverAppBar(
                     backgroundColor: Colors.transparent,
                     elevation: 0,
@@ -245,9 +359,9 @@ Future<void> _loadTugasData() async {
                               color: Colors.black.withOpacity(0.05),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
+                            )
+                            ],
+                          ),
                         child: const Icon(Icons.menu, color: Color(0xFF2762F8), size: 24),
                       ),
                     ),
@@ -262,9 +376,9 @@ Future<void> _loadTugasData() async {
                               color: Colors.black.withOpacity(0.05),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
+                            )
+                            ],
+                          ),
                         child: IconButton(
                           icon: _isRefreshing
                               ? SizedBox(
@@ -284,153 +398,148 @@ Future<void> _loadTugasData() async {
                     ],
                   ),
                   
-                  // Header Content
                   SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Student Information
-                          FutureBuilder<Map<String, dynamic>>(
-                            future: _siswaData,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return _buildProfileSkeleton();
-                              } else if (snapshot.hasError || !snapshot.hasData) {
-                                return _buildErrorProfile();
-                              }
-                              var siswa = snapshot.data!['data'];
-                              _idSiswa = siswa['id_siswa'].toString();
-                              
-                              return Container(
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [Color(0xFF2762F8), Color(0xFF5E9CFA)],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(0xFF2762F8).withOpacity(0.2),
-                                      blurRadius: 15,
-                                      offset: const Offset(0, 5),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  children: [
-                                    // Profile Avatar
-                                    Container(
-                                      width: 60,
-                                      height: 60,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.1),
-                                            blurRadius: 8,
-                                            spreadRadius: 1,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ],
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              FutureBuilder<Map<String, dynamic>>(
+                                future: _siswaData,
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState == ConnectionState.waiting) {
+                                    return _buildProfileSkeleton();
+                                  } else if (snapshot.hasError || !snapshot.hasData) {
+                                    return _buildErrorProfile();
+                                  }
+                                  var siswa = snapshot.data!['data'];
+                                  _idSiswa = siswa['id_siswa'].toString();
+                                  
+                                  return Container(
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [Color(0xFF2762F8), Color(0xFF5E9CFA)],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
                                       ),
-                                      child: Center(
-                                        child: Text(
-                                          _getInitials(siswa['nama_siswa'] ?? 'Siswa'),
-                                          style: GoogleFonts.montserrat(
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.w600,
-                                            color: const Color(0xFF2762F8),
-                                          ),
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFF2762F8).withOpacity(0.2),
+                                          blurRadius: 15,
+                                          offset: const Offset(0, 5),
                                         ),
-                                      ),
+                                      ],
                                     ),
-                                    const SizedBox(width: 15),
-                                    // Student Info
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Halo, ${siswa['nama_siswa'] ?? 'Siswa'} 👋',
-                                            style: GoogleFonts.montserrat(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.white,
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 60,
+                                          height: 60,
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            shape: BoxShape.circle,
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(0.1),
+                                                blurRadius: 8,
+                                                spreadRadius: 1,
+                                                offset: const Offset(0, 2),
+                                              )
+                                              ],
                                             ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 10,
-                                              vertical: 4,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white.withOpacity(0.2),
-                                              borderRadius: BorderRadius.circular(20),
-                                            ),
+                                          child: Center(
                                             child: Text(
-                                              'ID: ${siswa['id_siswa']}',
+                                              _getInitials(siswa['nama_siswa'] ?? 'Siswa'),
                                               style: GoogleFonts.montserrat(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w500,
-                                                color: Colors.white,
+                                                fontSize: 24,
+                                                fontWeight: FontWeight.w600,
+                                                color: const Color(0xFF2762F8),
                                               ),
                                             ),
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                        const SizedBox(width: 15),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Halo, ${siswa['nama_siswa'] ?? 'Siswa'} 👋',
+                                                style: GoogleFonts.montserrat(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 10,
+                                                  vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white.withOpacity(0.2),
+                                                  borderRadius: BorderRadius.circular(20),
+                                                ),
+                                                child: Text(
+                                                  'ID: ${siswa['id_siswa']}',
+                                                  style: GoogleFonts.montserrat(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w500,
+                                                    color: Colors.white),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                          
-                          const SizedBox(height: 25),
-                          
-                          // Menu Options
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildMenuCard(
-                                  Icons.access_time_rounded,
-                                  'Absensi',
-                                  'Lihat daftar absensi kelas',
-                                  Colors.blue.shade700,
-                                  () {
-                                    setState(() => _showAbsenList = !_showAbsenList);
-                                  },
-                                  _showAbsenList,
-                                ),
+                                  );
+                                },
                               ),
-                              const SizedBox(width: 15),
-                              Expanded(
-                                child: _buildMenuCard(
-                                  Icons.assignment_rounded,
-                                  'Tugas',
-                                  'Kelola tugas-tugas kelas',
-                                  Colors.orange.shade700,
-                                  () {
-                                    setState(() => _showTugasList = !_showTugasList);
-                                  },
-                                  _showTugasList,
-                                ),
+                              
+                              const SizedBox(height: 25),
+                              
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildMenuCard(
+                                      Icons.access_time_rounded,
+                                      'Absensi',
+                                      'Lihat daftar absensi kelas',
+                                      Colors.blue.shade700,
+                                      () {
+                                        setState(() => _showAbsenList = !_showAbsenList);
+                                      },
+                                      _showAbsenList,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 15),
+                                  Expanded(
+                                    child: _buildMenuCard(
+                                      Icons.assignment_rounded,
+                                      'Tugas',
+                                      'Kelola tugas-tugas kelas',
+                                      Colors.orange.shade700,
+                                      () {
+                                        setState(() => _showTugasList = !_showTugasList);
+                                      },
+                                      _showTugasList,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                          
-                          const SizedBox(height: 25),
-                        ],
-                      ),
+                        ),
+                        _buildMonthFilter(),
+                        _buildFilterStatus(),
+                      ],
                     ),
                   ),
                   
-                  // Attendance List
                   SliverToBoxAdapter(
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
@@ -441,7 +550,6 @@ Future<void> _loadTugasData() async {
                     ),
                   ),
                   
-                  // Assignment List
                   SliverToBoxAdapter(
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
@@ -460,7 +568,6 @@ Future<void> _loadTugasData() async {
     );
   }
 
-  // Profile skeleton loading animation
   Widget _buildProfileSkeleton() {
     return Container(
       height: 100,
@@ -512,7 +619,6 @@ Future<void> _loadTugasData() async {
     );
   }
 
-  // Error profile display
   Widget _buildErrorProfile() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -530,8 +636,7 @@ Future<void> _loadTugasData() async {
               "Gagal memuat data siswa. Silakan coba lagi nanti.",
               style: GoogleFonts.montserrat(
                 fontSize: 14,
-                color: Colors.red.shade700,
-              ),
+                color: Colors.red.shade700),
             ),
           ),
         ],
@@ -539,7 +644,6 @@ Future<void> _loadTugasData() async {
     );
   }
 
-  // Enhanced menu card
   Widget _buildMenuCard(
     IconData icon,
     String title,
@@ -626,28 +730,22 @@ Future<void> _loadTugasData() async {
           return _buildEmptyState("Tidak ada data absensi saat ini", Icons.assignment_late_outlined);
         }
         
-        // Kelompokkan absen berdasarkan status jam_selesai
         List<Map<String, dynamic>> activeAbsens = [];
         List<Map<String, dynamic>> expiredAbsens = [];
         
         for (var absen in snapshot.data!) {
           bool isExpired = false;
           
-          // Cek apakah jam_selesai sudah lewat
           if (absen['jam_selesai'] != null) {
             try {
               final DateTime now = DateTime.now();
-              
-              // Ambil tanggal dari data absen
               DateTime tanggalAbsen = DateTime.parse(absen['tanggal']);
               
-              // Parse jam_selesai (asumsi format "HH:MM:SS" atau "HH:MM")
               final List<String> jamParts = absen['jam_selesai'].split(':');
               final int jam = int.parse(jamParts[0]);
               final int menit = int.parse(jamParts[1]);
               final int detik = jamParts.length > 2 ? int.parse(jamParts[2]) : 0;
               
-              // Buat DateTime dengan tanggal dari absen dan jam dari jam_selesai
               DateTime jamSelesai = DateTime(
                 tanggalAbsen.year,
                 tanggalAbsen.month,
@@ -676,7 +774,6 @@ Future<void> _loadTugasData() async {
           children: [
             const SizedBox(height: 10),
             
-            // Section title
             Row(
               children: [
                 Container(
@@ -722,8 +819,7 @@ Future<void> _loadTugasData() async {
                       style: GoogleFonts.montserrat(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.green.shade700,
-                      ),
+                        color: Colors.green.shade700),
                     ),
                   ],
                 ),
@@ -750,8 +846,7 @@ Future<void> _loadTugasData() async {
                       style: GoogleFonts.montserrat(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.grey.shade700,
-                      ),
+                        color: Colors.grey.shade700),
                     ),
                   ],
                 ),
@@ -768,7 +863,6 @@ Future<void> _loadTugasData() async {
     final String idAbsen = absen['id_absen'].toString();
     final bool isPresent = _presensiStatus[idAbsen] ?? false;
     
-    // Definisikan warna dan status teks berdasarkan status presensi dan expired
     Color statusColor;
     String statusText;
     
@@ -800,7 +894,7 @@ Future<void> _loadTugasData() async {
               jamSelesai: absen['jam_selesai'],
             ),
           ),
-        ).then((_) => _refreshData()), // Refresh data setelah halaman ditutup
+        ).then((_) => _refreshData()),
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -821,14 +915,13 @@ Future<void> _loadTugasData() async {
                 blurRadius: 10,
                 spreadRadius: 0,
                 offset: const Offset(0, 3),
-              ),
+              )
             ],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Stack(
               children: [
-                // Pattern background
                 Positioned.fill(
                   child: Opacity(
                     opacity: 0.04,
@@ -839,12 +932,10 @@ Future<void> _loadTugasData() async {
                   ),
                 ),
                 
-                // Content
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      // Left color indicator
                       Container(
                         width: 4,
                         height: 60,
@@ -857,7 +948,6 @@ Future<void> _loadTugasData() async {
                       ),
                       const SizedBox(width: 16),
                       
-                      // Content
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -884,8 +974,7 @@ Future<void> _loadTugasData() async {
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 8, 
-                                    vertical: 4,
-                                  ),
+                                    vertical: 4),
                                   decoration: BoxDecoration(
                                     color: statusColor.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(12),
@@ -974,7 +1063,6 @@ Future<void> _loadTugasData() async {
                         ),
                       ),
                       
-                      // Arrow or Check icon
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -1018,7 +1106,6 @@ Future<void> _loadTugasData() async {
           return _buildEmptyState("Tidak ada tugas saat ini", Icons.note_alt_outlined);
         }
         
-        // Kelompokkan tugas berdasarkan status deadline
         List<Map<String, dynamic>> activeAssignments = [];
         List<Map<String, dynamic>> pastAssignments = [];
         
@@ -1036,7 +1123,6 @@ Future<void> _loadTugasData() async {
           children: [
             const SizedBox(height: 10),
             
-            // Section title
             Row(
               children: [
                 Container(
@@ -1082,8 +1168,7 @@ Future<void> _loadTugasData() async {
                       style: GoogleFonts.montserrat(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.blue.shade700,
-                      ),
+                        color: Colors.blue.shade700),
                     ),
                   ],
                 ),
@@ -1110,8 +1195,7 @@ Future<void> _loadTugasData() async {
                       style: GoogleFonts.montserrat(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.red.shade700,
-                      ),
+                        color: Colors.red.shade700),
                     ),
                   ],
                 ),
@@ -1153,12 +1237,11 @@ Future<void> _loadTugasData() async {
               tugas: tugas,
               idSiswa: int.parse(_idSiswa!),
               onClose: () {
-                // Refresh data saat kembali dari halaman tugas
                 _refreshData();
               },
             ),
           ),
-        ).then((_) => _refreshData()), // Refresh data setelah halaman ditutup
+        ).then((_) => _refreshData()),
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -1186,7 +1269,6 @@ Future<void> _loadTugasData() async {
             borderRadius: BorderRadius.circular(16),
             child: Stack(
               children: [
-                // Pattern background
                 Positioned.fill(
                   child: Opacity(
                     opacity: 0.04,
@@ -1197,12 +1279,10 @@ Future<void> _loadTugasData() async {
                   ),
                 ),
                 
-                // Content
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      // Left color indicator
                       Container(
                         width: 4,
                         height: 75,
@@ -1215,7 +1295,6 @@ Future<void> _loadTugasData() async {
                       ),
                       const SizedBox(width: 16),
                       
-                      // Content
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1242,8 +1321,7 @@ Future<void> _loadTugasData() async {
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 8, 
-                                    vertical: 4,
-                                  ),
+                                    vertical: 4),
                                   decoration: BoxDecoration(
                                     color: statusColor.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(12),
@@ -1333,7 +1411,6 @@ Future<void> _loadTugasData() async {
                         ),
                       ),
                       
-                      // Arrow
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -1367,7 +1444,6 @@ Future<void> _loadTugasData() async {
     );
   }
 
-  // Loading skeleton for lists
   Widget _buildLoadingSkeleton() {
     return Column(
       children: List.generate(3, (index) => Container(
@@ -1427,7 +1503,6 @@ Future<void> _loadTugasData() async {
     );
   }
 
-  // Empty state display
   Widget _buildEmptyState(String message, IconData icon) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -1449,8 +1524,7 @@ Future<void> _loadTugasData() async {
             message,
             style: GoogleFonts.montserrat(
               fontSize: 14,
-              color: Colors.grey.shade600,
-            ),
+              color: Colors.grey.shade600),
             textAlign: TextAlign.center,
           ),
         ],
@@ -1478,7 +1552,6 @@ Future<void> _loadTugasData() async {
     );
   }
 
-  // Get initials from name
   String _getInitials(String name) {
     List<String> nameParts = name.split(' ');
     if (nameParts.length > 1) {
@@ -1487,9 +1560,7 @@ Future<void> _loadTugasData() async {
     return name.isNotEmpty ? name[0] : 'S';
   }
 
-  // Format deadline with zone time (WIB)
   String _formatDeadline(String deadlineString) {
-    // Initialize timezone data
     tz.initializeTimeZones();
     final jakarta = tz.getLocation('Asia/Jakarta');
     
@@ -1499,9 +1570,7 @@ Future<void> _loadTugasData() async {
     return DateFormat('dd MMM yyyy – kk:mm').format(jakartaDateTime);
   }
 
-  // Format tanggal dengan zona waktu WIB
   String _formatDateWithTimezone(String dateString) {
-    // Initialize timezone data
     tz.initializeTimeZones();
     final jakarta = tz.getLocation('Asia/Jakarta');
     
@@ -1521,7 +1590,6 @@ class _SidebarOverlay extends StatelessWidget {
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Blur background
           Positioned.fill(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
@@ -1531,7 +1599,6 @@ class _SidebarOverlay extends StatelessWidget {
             ),
           ),
           
-          // Sidebar and tap area
           Row(
             children: [
               const SidebarWidget(),

@@ -215,11 +215,14 @@ router.get("/course/:courseName", async (req, res) => {
   }
 });
 
-// Ambil data tugas berdasarkan kode kelas
+// Ambil data tugas berdasarkan kelas, bulan, dan tahun
 router.get("/kelas/:kode_kelas", async (req, res) => {
   const kode_kelas = req.params.kode_kelas;
+  const month = req.query.month; // Mendapatkan bulan dari query parameter
+  const year = req.query.year; // Mendapatkan tahun dari query parameter
+  
   try {
-    const data = await Model_Tugas.getByKelas(kode_kelas);
+    const data = await Model_Tugas.getTugasByKelasAndDate(kode_kelas, month, year);  // Menggunakan getTugasByKelasAndDate
     res.status(200).json({
       success: true,
       message: "Berhasil mengambil data tugas berdasarkan kelas",
@@ -234,5 +237,6 @@ router.get("/kelas/:kode_kelas", async (req, res) => {
     });
   }
 });
+
 
 module.exports = router;

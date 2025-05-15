@@ -241,6 +241,39 @@
 </header>
 
 <div class="container">
+  <!-- Filter by Month and Year -->
+  <form method="GET" action="/tugas">
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <label for="bulan" class="form-label">Pilih Bulan</label>
+        <select name="bulan" id="bulan" class="form-select">
+          <option value="01" <%= bulan === '01' ? 'selected' : '' %>>Januari</option>
+          <option value="02" <%= bulan === '02' ? 'selected' : '' %>>Februari</option>
+          <option value="03" <%= bulan === '03' ? 'selected' : '' %>>Maret</option>
+          <option value="04" <%= bulan === '04' ? 'selected' : '' %>>April</option>
+          <option value="05" <%= bulan === '05' ? 'selected' : '' %>>Mei</option>
+          <option value="06" <%= bulan === '06' ? 'selected' : '' %>>Juni</option>
+          <option value="07" <%= bulan === '07' ? 'selected' : '' %>>Juli</option>
+          <option value="08" <%= bulan === '08' ? 'selected' : '' %>>Agustus</option>
+          <option value="09" <%= bulan === '09' ? 'selected' : '' %>>September</option>
+          <option value="10" <%= bulan === '10' ? 'selected' : '' %>>Oktober</option>
+          <option value="11" <%= bulan === '11' ? 'selected' : '' %>>November</option>
+          <option value="12" <%= bulan === '12' ? 'selected' : '' %>>Desember</option>
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label for="tahun" class="form-label">Pilih Tahun</label>
+        <input type="number" name="tahun" id="tahun" class="form-control" value="<%= tahun %>" min="2000" max="2100" required>
+      </div>
+
+      <div class="col-md-4">
+        <label>&nbsp;</label><br>
+        <button type="submit" class="btn btn-primary">Filter</button>
+      </div>
+    </div>
+  </form>
+
   <!-- Subject Selector Card -->
   <div class="subject-selector">
     <div class="row align-items-center">
@@ -258,7 +291,7 @@
           <ul class="dropdown-menu shadow-sm" aria-labelledby="courseDropdown">
             <% dataMapel.forEach((mapel) => { %>
               <li>
-                <a class="dropdown-item" href="/tugas?nama_mapel=<%= mapel.nama_mapel %>">
+                <a class="dropdown-item" href="/tugas?nama_mapel=<%= mapel.nama_mapel %>&bulan=<%= bulan %>&tahun=<%= tahun %>">
                   <%= mapel.nama_mapel %>
                 </a>
               </li>
@@ -306,7 +339,7 @@
                           const diffDays = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
                           let deadlineClass = "upcoming";
                           let deadlineText = `${diffDays} hari lagi`;
-                          
+
                           if (diffDays < 0) {
                             deadlineClass = "past";
                             deadlineText = "Lewat deadline";
@@ -321,11 +354,9 @@
                           <i class="bi bi-clock me-1"></i> <%= deadlineText %>
                         </span>
                       </div>
-                      
                       <div class="task-description">
                         <%= tugas.deskripsi %>
                       </div>
-                      
                       <div class="d-flex justify-content-between align-items-center mt-3">
                         <div>
                           <span class="badge badge-kelas">
@@ -345,7 +376,7 @@
                               <i class="bi bi-trash me-1"></i> Hapus
                             </a>
                           <% } else { %>
-                            <a href="#" class="btn btn-primary">
+                            <a href="pengumpulan/semua" class="btn btn-primary">
                               <i class="bi bi-eye me-1"></i> Lihat Detail
                             </a>
                           <% } %>

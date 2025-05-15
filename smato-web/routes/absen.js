@@ -10,11 +10,73 @@ const Model_Guru_Kelas = require('../model/Model_Guru_Kelas');
 const Model_Jadwal = require("../model/Model_Jadwal.js");
 const Model_Siswa = require("../model/Model_Siswa.js");
 
+// Add this route handler or update any existing route that uses getByKelas
+router.get("/kelas/:kode_kelas", async (req, res) => {
+  const kode_kelas = req.params.kode_kelas;
+  const userLevel = req.session.level;
+  
+  // Get month and year parameters, default to current month if not provided
+  const currentDate = new Date();
+  const month = req.query.month ? parseInt(req.query.month) : currentDate.getMonth() + 1;
+  const year = req.query.year ? parseInt(req.query.year) : currentDate.getFullYear();
+
+  try {
+    // Get data filtered by kelas and month
+    let dataAbsen = await Model_Absen.getByMonthAndKelas(month, year, kode_kelas);
+    
+    // Get class info
+    let kelasInfo = await Model_Kelas.getByKode(kode_kelas);
+    
+    // Get list of months for dropdown
+    const months = [
+      { value: 1, name: 'Januari' },
+      { value: 2, name: 'Februari' },
+      { value: 3, name: 'Maret' },
+      { value: 4, name: 'April' },
+      { value: 5, name: 'Mei' },
+      { value: 6, name: 'Juni' },
+      { value: 7, name: 'Juli' },
+      { value: 8, name: 'Agustus' },
+      { value: 9, name: 'September' },
+      { value: 10, name: 'Oktober' },
+      { value: 11, name: 'November' },
+      { value: 12, name: 'Desember' }
+    ];
+
+    // Get list of years (current year and 2 years back)
+    const currentYear = currentDate.getFullYear();
+    const years = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
+
+    res.render("absen/kelas", {
+      dataAbsen,
+      kelas: kelasInfo,
+      kode_kelas,
+      level: userLevel,
+      month,  // Add selected month to template
+      year,   // Add selected year to template
+      months, // Add months list for dropdown
+      years,  // Add years list for dropdown
+      messages: req.flash()
+    });
+
+  } catch (err) {
+    console.error("Error:", err);
+    req.flash('error', 'Gagal mengambil data absen: ' + err.message);
+    res.redirect('/absen');
+  }
+});
+
+// Updated router.get("/") handler with monthly filter
 router.get("/", async (req, res) => {
-  // Gunakan 'let' untuk nama_mapel karena nilainya mungkin diubah nanti
+  // Extract parameters from query
   let nama_mapel = req.query.nama_mapel;
   const userLevel = req.session.level;
   const userId = req.session.userId;
+  
+  // Get month and year parameters, default to current month if not provided
+  const currentDate = new Date();
+  const month = req.query.month ? parseInt(req.query.month) : currentDate.getMonth() + 1; // JavaScript months are 0-indexed
+  const year = req.query.year ? parseInt(req.query.year) : currentDate.getFullYear();
 
   try {
     let dataMapel = [];
@@ -42,8 +104,8 @@ router.get("/", async (req, res) => {
               nama_mapel = mapelGuru.nama_mapel;
             }
             
-            // Ambil absen berdasarkan mata pelajaran guru
-            dataAbsen = await Model_Absen.getByMapel(id_mapel);
+            // Ambil absen berdasarkan mata pelajaran dan bulan
+            dataAbsen = await Model_Absen.getByMonthAndMapel(month, year, id_mapel);
           }
         }
       }
@@ -51,18 +113,38 @@ router.get("/", async (req, res) => {
       // Jika bukan guru, tampilkan semua mapel
       dataMapel = await Model_Mapel.getAll();
       
-      // Filter berdasarkan mata pelajaran yang dipilih
+      // Filter berdasarkan mata pelajaran yang dipilih dan bulan
       if (nama_mapel) {
         const mapel = await Model_Mapel.getByNama(nama_mapel);
         if (mapel) {
           id_mapel = mapel.id_mapel;
-          dataAbsen = await Model_Absen.getByMapel(id_mapel);
+          dataAbsen = await Model_Absen.getByMonthAndMapel(month, year, id_mapel);
         }
       } else {
-        // Jika tidak ada mapel yang dipilih, tampilkan semua absen
-        dataAbsen = await Model_Absen.getAll();
+        // Jika tidak ada mapel yang dipilih, filter hanya berdasarkan bulan
+        dataAbsen = await Model_Absen.getByMonth(month, year);
       }
     }
+
+    // Get list of months for dropdown
+    const months = [
+      { value: 1, name: 'Januari' },
+      { value: 2, name: 'Februari' },
+      { value: 3, name: 'Maret' },
+      { value: 4, name: 'April' },
+      { value: 5, name: 'Mei' },
+      { value: 6, name: 'Juni' },
+      { value: 7, name: 'Juli' },
+      { value: 8, name: 'Agustus' },
+      { value: 9, name: 'September' },
+      { value: 10, name: 'Oktober' },
+      { value: 11, name: 'November' },
+      { value: 12, name: 'Desember' }
+    ];
+
+    // Get list of years (current year and 2 years back)
+    const currentYear = currentDate.getFullYear();
+    const years = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
 
     res.render("absen/index", {
       dataMapel,
@@ -70,12 +152,16 @@ router.get("/", async (req, res) => {
       nama_mapel,
       id_mapel,
       level: userLevel,
-      messages: req.flash() // Tambahkan ini
+      month,  // Add selected month to template
+      year,   // Add selected year to template
+      months, // Add months list for dropdown
+      years,  // Add years list for dropdown
+      messages: req.flash()
     });
 
   } catch (err) {
     console.error("Error:", err);
-    req.flash('error', 'Gagal mengambil data absen: ' + err.message); // Tambahkan ini
+    req.flash('error', 'Gagal mengambil data absen: ' + err.message);
     res.redirect('/');
   }
 });

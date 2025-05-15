@@ -2,6 +2,102 @@ const connection = require('../config/database');
 const Model_Mapel = require("../model/Model_Mapel.js");
 
 class Model_Absen {
+    // Add this new method to Model_Absen.js
+
+static async getByMonth(month, year) {
+    return new Promise((resolve, reject) => {
+        // Create date range for the selected month
+        const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+        const lastDay = new Date(year, month, 0).getDate(); // Get last day of month
+        const endDate = `${year}-${month.toString().padStart(2, '0')}-${lastDay}`;
+        
+        console.log(`Filtering absen from ${startDate} to ${endDate}`);
+        
+        const query = `
+            SELECT a.*, m.nama_mapel, g.nama_guru, g.nip, k.kode_kelas
+            FROM absen a
+            LEFT JOIN mapel m ON a.id_mapel = m.id_mapel
+            LEFT JOIN guru g ON a.id_guru = g.id_guru
+            LEFT JOIN kelas k ON a.id_kelas = k.id_kelas
+            WHERE a.tanggal BETWEEN ? AND ?
+            ORDER BY a.tanggal DESC
+        `;
+        
+        connection.query(query, [startDate, endDate], (err, rows) => {
+            if (err) {
+                console.error("Error in Model_Absen.getByMonth():", err);
+                reject(err);
+            } else {
+                console.log("Jumlah data absen bulan ini:", rows.length);
+                resolve(rows);
+            }
+        });
+    });
+}
+
+// Add method to filter by both month and mapel
+static async getByMonthAndMapel(month, year, id_mapel) {
+    return new Promise((resolve, reject) => {
+        // Create date range for the selected month
+        const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+        const lastDay = new Date(year, month, 0).getDate(); // Get last day of month
+        const endDate = `${year}-${month.toString().padStart(2, '0')}-${lastDay}`;
+        
+        console.log(`Filtering absen for mapel ${id_mapel} from ${startDate} to ${endDate}`);
+        
+        const query = `
+            SELECT a.*, m.nama_mapel, g.nama_guru, g.nip, k.kode_kelas
+            FROM absen a
+            LEFT JOIN mapel m ON a.id_mapel = m.id_mapel
+            LEFT JOIN guru g ON a.id_guru = g.id_guru
+            LEFT JOIN kelas k ON a.id_kelas = k.id_kelas
+            WHERE a.tanggal BETWEEN ? AND ? AND a.id_mapel = ?
+            ORDER BY a.tanggal DESC
+        `;
+        
+        connection.query(query, [startDate, endDate, id_mapel], (err, rows) => {
+            if (err) {
+                console.error("Error in Model_Absen.getByMonthAndMapel():", err);
+                reject(err);
+            } else {
+                console.log("Jumlah data absen bulan ini untuk mapel tersebut:", rows.length);
+                resolve(rows);
+            }
+        });
+    });
+}
+
+// Add method to filter by both month and kelas
+static async getByMonthAndKelas(month, year, kode_kelas) {
+    return new Promise((resolve, reject) => {
+        // Create date range for the selected month
+        const startDate = `${year}-${month.toString().padStart(2, '0')}-01`;
+        const lastDay = new Date(year, month, 0).getDate(); // Get last day of month
+        const endDate = `${year}-${month.toString().padStart(2, '0')}-${lastDay}`;
+        
+        console.log(`Filtering absen for kelas ${kode_kelas} from ${startDate} to ${endDate}`);
+        
+        const query = `
+            SELECT a.*, m.nama_mapel, g.nama_guru, g.nip, k.kode_kelas
+            FROM absen a
+            LEFT JOIN mapel m ON a.id_mapel = m.id_mapel
+            LEFT JOIN guru g ON a.id_guru = g.id_guru
+            LEFT JOIN kelas k ON a.id_kelas = k.id_kelas
+            WHERE a.tanggal BETWEEN ? AND ? AND k.kode_kelas = ?
+            ORDER BY a.tanggal DESC
+        `;
+        
+        connection.query(query, [startDate, endDate, kode_kelas], (err, rows) => {
+            if (err) {
+                console.error("Error in Model_Absen.getByMonthAndKelas():", err);
+                reject(err);
+            } else {
+                console.log("Jumlah data absen bulan ini untuk kelas tersebut:", rows.length);
+                resolve(rows);
+            }
+        });
+    });
+}
     
    static async getByKelas(kode_kelas) {
     return new Promise((resolve, reject) => {
@@ -64,24 +160,7 @@ class Model_Absen {
         });
     }
     
-    // // Pastikan juga fungsi getAll() ada untuk menampilkan semua data absen
-    // static async getAll() {
-    //     return new Promise((resolve, reject) => {
-    //         connection.query(`
-    //             SELECT a.*, m.nama_mapel, k.kode_kelas
-    //             FROM absen a
-    //             LEFT JOIN mapel m ON a.id_mapel = m.id_mapel
-    //             LEFT JOIN kelas k ON a.id_kelas = k.id_kelas
-    //             ORDER BY a.tanggal DESC
-    //         `, (err, rows) => {
-    //             if (err) {
-    //                 reject(err);
-    //             } else {
-    //                 resolve(rows);
-    //             }
-    //         });
-    //     });
-    // }
+  
 
     static async Store(data) {
         return new Promise((resolve, reject) => {

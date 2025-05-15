@@ -9,10 +9,11 @@ const Model_Guru = require("../model/Model_Guru.js");
 const Model_Kelas = require("../model/Model_Kelas.js");
 const Model_Guru_Kelas = require("../model/Model_Guru_Kelas.js");
 
-// Tampilkan daftar tugas
+// Tampilkan daftar tugas dengan filter bulan
 router.get("/", async (req, res) => {
-  // Gunakan 'let' untuk nama_mapel karena nilainya mungkin diubah nanti
   let nama_mapel = req.query.nama_mapel;
+  let bulan = req.query.bulan || moment().format("MM"); // Default bulan sekarang
+  let tahun = req.query.tahun || moment().format("YYYY"); // Default tahun sekarang
   const userLevel = req.session.level;
   const userId = req.session.userId;
 
@@ -42,8 +43,8 @@ router.get("/", async (req, res) => {
               nama_mapel = mapelGuru.nama_mapel;
             }
             
-            // Ambil tugas berdasarkan mata pelajaran guru
-            dataTugas = await Model_Tugas.getByMapel(id_mapel);
+            // Ambil tugas berdasarkan mata pelajaran guru dan filter bulan/tahun
+            dataTugas = await Model_Tugas.getByMapelAndDate(id_mapel, bulan, tahun);
           }
         }
       }
@@ -56,11 +57,11 @@ router.get("/", async (req, res) => {
         const mapel = await Model_Mapel.getByNama(nama_mapel);
         if (mapel) {
           id_mapel = mapel.id_mapel;
-          dataTugas = await Model_Tugas.getByMapel(id_mapel);
+          dataTugas = await Model_Tugas.getByMapelAndDate(id_mapel, bulan, tahun);
         }
       } else {
         // Jika tidak ada mapel yang dipilih, tampilkan semua tugas
-        dataTugas = await Model_Tugas.getAll();
+        dataTugas = await Model_Tugas.getAllAndDate(bulan, tahun);
       }
     }
 
@@ -69,6 +70,8 @@ router.get("/", async (req, res) => {
       dataTugas,
       nama_mapel,
       id_mapel,
+      bulan,
+      tahun,
       level: userLevel,
       messages: {
         success: req.flash('success'),
@@ -82,6 +85,7 @@ router.get("/", async (req, res) => {
     res.redirect("/");
   }
 });
+
 
 // Form tambah tugas
 router.get("/create/:id_mapel", async function (req, res) {
