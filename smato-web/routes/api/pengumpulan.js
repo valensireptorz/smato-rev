@@ -52,6 +52,53 @@ router.get("/semua", async (req, res) => {
   }
 });
 
+// ✅ BARU: Ambil detail pengumpulan berdasarkan id_tugas (siapa saja yang sudah submit)
+router.get("/detail/:id_tugas", async function (req, res) {
+  try {
+    const { id_tugas } = req.params;
+    console.log("🔍 Request detail pengumpulan untuk id_tugas:", id_tugas);
+
+    if (!id_tugas) {
+      return res.status(400).json({
+        success: false,
+        message: "id_tugas harus diisi",
+      });
+    }
+
+    // Ambil detail pengumpulan (daftar siswa yang sudah submit)
+    const detailPengumpulan = await Model_Pengumpulan.getByTugas(id_tugas);
+    
+    // Ambil info tugas
+    const tugasInfo = await Model_Pengumpulan.getTugasInfo(id_tugas);
+    console.log("📋 Info tugas:", tugasInfo);
+
+    if (detailPengumpulan.length === 0) {
+      console.log("⚠️ Belum ada siswa yang submit untuk id_tugas:", id_tugas);
+      return res.status(200).json({
+        success: true,
+        message: "Belum ada siswa yang mengumpulkan tugas ini",
+        data: [],
+        tugasInfo: tugasInfo
+      });
+    }
+
+    console.log("✅ Berhasil mengambil detail pengumpulan:", detailPengumpulan.length, "siswa");
+    return res.status(200).json({
+      success: true,
+      data: detailPengumpulan,
+      tugasInfo: tugasInfo,
+      message: `${detailPengumpulan.length} siswa telah mengumpulkan tugas ini`
+    });
+  } catch (error) {
+    console.error("❌ Error mengambil detail pengumpulan:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Terjadi kesalahan pada server",
+      error: error.message,
+    });
+  }
+});
+
 // ✅ Ambil data pengumpulan berdasarkan id_siswa dan id_tugas
 router.get("/riwayat", async (req, res) => {
   try {

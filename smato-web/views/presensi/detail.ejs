@@ -1,0 +1,410 @@
+<%- include('../partials/_head.ejs') %>
+
+<!-- Custom CSS untuk halaman detail presensi -->
+<style>
+  :root {
+    --primary: #4361ee;
+    --secondary: #3f37c9;
+    --success: #4cc9f0;
+    --info: #4895ef;
+    --warning: #f72585;
+    --danger: #e63946;
+    --light: #f8f9fa;
+    --dark: #212529;
+    --gray-100: #f8f9fa;
+    --gray-200: #e9ecef;
+    --gray-300: #dee2e6;
+    --gray-800: #343a40;
+  }
+  
+  body {
+    background-color: #f5f7fa;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .page-header {
+    background: linear-gradient(135deg, var(--info) 0%, var(--primary) 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+  }
+  
+  .info-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+  }
+  
+  .info-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: var(--gray-100);
+    border-radius: 8px;
+  }
+  
+  .info-item:last-child {
+    margin-bottom: 0;
+  }
+  
+  .info-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 1rem;
+    font-size: 1.2rem;
+  }
+  
+  .info-label {
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-right: 1rem;
+    min-width: 120px;
+  }
+  
+  .info-value {
+    color: var(--dark);
+    font-weight: 500;
+  }
+  
+  .stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    transition: transform 0.3s ease;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  
+  .stat-label {
+    color: var(--gray-800);
+    font-size: 0.9rem;
+  }
+  
+  .student-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+  
+  .student-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .student-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .student-details {
+    display: flex;
+    align-items: center;
+  }
+  
+  .student-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin-right: 1rem;
+  }
+  
+  .student-name {
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 0.25rem;
+  }
+  
+  .student-nis {
+    color: var(--gray-800);
+    font-size: 0.9rem;
+  }
+  
+  .presence-time {
+    text-align: right;
+  }
+  
+  .time-badge {
+    background: var(--success);
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  
+  .status-badge {
+    background: var(--info);
+    color: white;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    display: inline-block;
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--gray-800);
+  }
+  
+  .empty-state i {
+    font-size: 4rem;
+    color: var(--gray-300);
+    margin-bottom: 1.5rem;
+  }
+  
+  .back-button {
+    background: var(--secondary);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .back-button:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+  }
+</style>
+
+<%- include('../partials/_nav.ejs') %>
+
+<!-- Page Header -->
+<header class="page-header">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h2 class="mb-0">Detail Presensi</h2>
+        <p class="mb-0 opacity-75">Daftar siswa yang hadir dalam sesi pembelajaran</p>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <a href="/absen" class="back-button">
+          <i class="bi bi-arrow-left me-2"></i>Kembali ke Absensi
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <!-- Informasi Sesi -->
+  <% if (absenInfo && Object.keys(absenInfo).length > 0) { %>
+    <div class="info-card">
+      <h5 class="mb-3"><i class="bi bi-info-circle me-2"></i>Informasi Sesi</h5>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="info-item">
+            <div class="info-icon" style="background-color: var(--primary);">
+              <i class="bi bi-book"></i>
+            </div>
+            <div>
+              <div class="info-label">Mata Pelajaran</div>
+              <div class="info-value"><%= absenInfo.nama_mapel || '-' %></div>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon" style="background-color: var(--info);">
+              <i class="bi bi-people"></i>
+            </div>
+            <div>
+              <div class="info-label">Kelas</div>
+              <div class="info-value"><%= absenInfo.kode_kelas || '-' %></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="info-item">
+            <div class="info-icon" style="background-color: var(--success);">
+              <i class="bi bi-calendar-date"></i>
+            </div>
+            <div>
+              <div class="info-label">Tanggal</div>
+              <div class="info-value">
+                <% if (absenInfo.tanggal) { %>
+                  <% 
+                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                    const formattedDate = new Date(absenInfo.tanggal).toLocaleDateString('id-ID', options);
+                  %>
+                  <%= formattedDate %>
+                <% } else { %>
+                  -
+                <% } %>
+              </div>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon" style="background-color: var(--warning);">
+              <i class="bi bi-clock"></i>
+            </div>
+            <div>
+              <div class="info-label">Waktu</div>
+              <div class="info-value">
+                <%= absenInfo.jam_mulai || '-' %> - <%= absenInfo.jam_selesai || '-' %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Statistics Overview -->
+  <% if (detailPresensi && detailPresensi.length > 0) { %>
+    <div class="stats-overview">
+      <div class="stat-card">
+        <div class="stat-icon" style="background-color: var(--success);">
+          <i class="bi bi-person-check"></i>
+        </div>
+        <div class="stat-value"><%= detailPresensi.length %></div>
+        <div class="stat-label">Siswa Hadir</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background-color: var(--info);">
+          <i class="bi bi-clock-history"></i>
+        </div>
+        <div class="stat-value">
+          <% 
+            const waktuPresensi = detailPresensi.map(p => new Date(p.waktu_presensi));
+            const terakhir = Math.max(...waktuPresensi);
+            const pertama = Math.min(...waktuPresensi);
+            const durasi = Math.round((terakhir - pertama) / (1000 * 60));
+          %>
+          <%= durasi %>m
+        </div>
+        <div class="stat-label">Rentang Presensi</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background-color: var(--primary);">
+          <i class="bi bi-percent"></i>
+        </div>
+        <div class="stat-value">100%</div>
+        <div class="stat-label">Tingkat Kehadiran</div>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Daftar Siswa yang Hadir -->
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Daftar Siswa yang Hadir</h5>
+      <span class="badge bg-success fs-6">
+        <%= detailPresensi ? detailPresensi.length : 0 %> Siswa
+      </span>
+    </div>
+    <div class="card-body">
+      <% if (detailPresensi && detailPresensi.length > 0) { %>
+        <div class="row">
+          <% detailPresensi.forEach((siswa, index) => { %>
+            <div class="col-lg-6">
+              <div class="student-card">
+                <div class="student-info">
+                  <div class="student-details">
+                    <div class="student-avatar">
+                      <%= siswa.nama_siswa ? siswa.nama_siswa.charAt(0).toUpperCase() : 'S' %>
+                    </div>
+                    <div>
+                      <div class="student-name"><%= siswa.nama_siswa || 'Nama tidak tersedia' %></div>
+                      <div class="student-nis">NIS: <%= siswa.nis || '-' %></div>
+                    </div>
+                  </div>
+                  <div class="presence-time">
+                    <div class="time-badge">
+                      <i class="bi bi-clock me-1"></i>
+                      <% if (siswa.waktu_presensi) { %>
+                        <%= new Date(siswa.waktu_presensi).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) %>
+                      <% } else { %>
+                        -
+                      <% } %>
+                    </div>
+                    <div class="status-badge">
+                      <i class="bi bi-check-circle me-1"></i>Hadir
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      <% } else { %>
+        <div class="empty-state">
+          <i class="bi bi-person-x"></i>
+          <h5>Belum ada siswa yang melakukan presensi</h5>
+          <p class="text-muted">Presensi akan muncul di sini setelah siswa melakukan absensi.</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap Icons dan Font -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<%- include('../partials/_foot.ejs') %>

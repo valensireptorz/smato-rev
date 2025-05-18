@@ -8,10 +8,13 @@ class Model_Presensi {
                 SELECT 
                     presensi.*, 
                     siswa.nama_siswa, 
-                    mapel.nama_mapel 
+                    siswa.nis,
+                    mapel.nama_mapel,
+                    kelas.kode_kelas
                 FROM presensi
                 LEFT JOIN siswa ON presensi.id_siswa = siswa.id_siswa
                 LEFT JOIN mapel ON presensi.id_mapel = mapel.id_mapel
+                LEFT JOIN kelas ON siswa.id_kelas = kelas.id_kelas
                 ORDER BY presensi.tanggal_presensi DESC
             `;
             connect.query(query, (err, rows) => {
@@ -23,21 +26,102 @@ class Model_Presensi {
             });
         });
     }
-    
+
+    // ✅ Method baru: Ambil presensi berdasarkan mata pelajaran
+    static async getByMapel(id_mapel) {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT 
+                    presensi.*,
+                    siswa.nama_siswa,
+                    siswa.nis,
+                    mapel.nama_mapel,
+                    kelas.kode_kelas,
+                    CONCAT(presensi.tanggal_presensi, ' ', presensi.jam_presensi) as waktu_presensi
+                FROM presensi
+                LEFT JOIN siswa ON presensi.id_siswa = siswa.id_siswa
+                LEFT JOIN mapel ON presensi.id_mapel = mapel.id_mapel
+                LEFT JOIN kelas ON siswa.id_kelas = kelas.id_kelas
+                WHERE presensi.id_mapel = ?
+                ORDER BY presensi.tanggal_presensi DESC, presensi.jam_presensi DESC
+            `;
+            connect.query(query, [id_mapel], (err, rows) => {
+                if (err) {
+                    console.error("Error in Model_Presensi.getByMapel():", err);
+                    reject(err);
+                } else {
+                    console.log("Jumlah presensi ditemukan untuk mapel:", rows.length);
+                    resolve(rows);
+                }
+            });
+        });
+    }
+
+    // ✅ Method baru: Ambil detail presensi berdasarkan id_absen (HANYA untuk sesi absen tertentu)
+    static async getDetailByAbsen(id_absen) {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT 
+                    presensi.*,
+                    siswa.nama_siswa,
+                    siswa.nis,
+                    CONCAT(presensi.tanggal_presensi, ' ', presensi.jam_presensi) as waktu_presensi
+                FROM presensi
+                LEFT JOIN siswa ON presensi.id_siswa = siswa.id_siswa
+                WHERE presensi.id_absen = ?
+                ORDER BY presensi.jam_presensi ASC
+            `;
+            console.log("🔍 Query getDetailByAbsen untuk id_absen:", id_absen);
+            connect.query(query, [id_absen], (err, rows) => {
+                if (err) {
+                    console.error("❌ Error in Model_Presensi.getDetailByAbsen():", err);
+                    reject(err);
+                } else {
+                    console.log("✅ Jumlah siswa yang presensi untuk sesi ini:", rows.length);
+                    console.log("📋 Detail siswa yang presensi:", rows.map(r => r.nama_siswa));
+                    resolve(rows);
+                }
+            });
+        });
+    }
+
+    // ✅ Method baru: Ambil info absen berdasarkan id_absen
+    static async getAbsenInfo(id_absen) {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT 
+                    a.*,
+                    m.nama_mapel,
+                    k.kode_kelas
+                FROM absen a
+                LEFT JOIN mapel m ON a.id_mapel = m.id_mapel
+                LEFT JOIN kelas k ON a.id_kelas = k.id_kelas
+                WHERE a.id_absen = ?
+            `;
+            connect.query(query, [id_absen], (err, rows) => {
+                if (err) {
+                    console.error("Error in Model_Presensi.getAbsenInfo():", err);
+                    reject(err);
+                } else {
+                    resolve(rows[0] || {});
+                }
+            });
+        });
+    }
     
 
     static async getPresensi(id_siswa, tanggal_presensi, id_mapel) {
-    return new Promise((resolve, reject) => {
-        connect.query(
-            'SELECT * FROM presensi WHERE id_siswa = ? AND tanggal_presensi = ? AND id_mapel = ?', // ✅ Cek berdasarkan siswa, tanggal, mapel
-            [id_siswa, tanggal_presensi, id_mapel],
-            (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            }
-        );
-    });
-}
+        return new Promise((resolve, reject) => {
+            connect.query(
+                'SELECT * FROM presensi WHERE id_siswa = ? AND tanggal_presensi = ? AND id_mapel = ?', // ✅ Cek berdasarkan siswa, tanggal, mapel
+                [id_siswa, tanggal_presensi, id_mapel],
+                (err, rows) => {
+                    if (err) reject(err);
+                    else resolve(rows);
+                }
+            );
+        });
+    }
     
 
     static async getPresensiByPresensiAndSiswa(id_mapel, id_siswa) {

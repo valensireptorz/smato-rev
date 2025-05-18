@@ -49,9 +49,9 @@
                   <button type="button" class="btn btn-outline-primary" id="view-day" onclick="switchView('day')">
                     <i class="bx bx-calendar-week me-1"></i> Hari
                   </button>
-                  <button type="button" class="btn btn-outline-primary" id="view-week" onclick="switchView('week')">
+                  <!-- <button type="button" class="btn btn-outline-primary" id="view-week" onclick="switchView('week')">
                     <i class="bx bx-calendar me-1"></i> Minggu
-                  </button>
+                  </button> -->
                 </div>
                 <% if (level == "admin") { %>
                 <a href="/jadwal/create" class="btn btn-primary ms-2 d-flex align-items-center shadow-sm">
@@ -172,7 +172,7 @@
     </div>
 
     <!-- Weekly View (Hidden by default) -->
-    <div class="jadwal-container mb-5" id="week-view" style="display: none;">
+    <!-- <div class="jadwal-container mb-5" id="week-view" style="display: none;">
       <div class="card shadow-sm border-0">
         <div class="card-header bg-transparent border-bottom py-3">
           <h5 class="mb-0">Jadwal Mingguan</h5>
@@ -249,7 +249,7 @@
       </div>
     </div>
   </div>
-</div>
+</div> -->
 
 <%- include('../partials/_foot.ejs') %>
 

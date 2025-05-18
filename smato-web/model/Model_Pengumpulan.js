@@ -26,6 +26,58 @@ static async getAll() {
   });
 }
 
+// ✅ BARU: Ambil pengumpulan berdasarkan id_tugas (detail siapa saja yang sudah submit)
+static async getByTugas(id_tugas) {
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT 
+        pengumpulan.*,
+        siswa.nama_siswa,
+        siswa.nis,
+        CONCAT(pengumpulan.upload_time) as waktu_pengumpulan
+      FROM pengumpulan
+      LEFT JOIN siswa ON pengumpulan.id_siswa = siswa.id_siswa
+      WHERE pengumpulan.id_tugas = ?
+      ORDER BY pengumpulan.upload_time DESC
+    `;
+    connect.query(query, [id_tugas], (err, rows) => {
+      if (err) {
+        console.error("Error in Model_Pengumpulan.getByTugas():", err);
+        reject(err);
+      } else {
+        console.log("✅ Jumlah pengumpulan untuk tugas ini:", rows.length);
+        console.log("📋 Detail siswa yang submit:", rows.map(r => r.nama_siswa));
+        resolve(rows);
+      }
+    });
+  });
+}
+
+// ✅ BARU: Ambil info tugas berdasarkan id_tugas
+static async getTugasInfo(id_tugas) {
+  return new Promise((resolve, reject) => {
+    const query = `
+      SELECT 
+        t.*,
+        m.nama_mapel,
+        k.kode_kelas,
+        g.nama_guru
+      FROM tugas t
+      LEFT JOIN mapel m ON t.id_mapel = m.id_mapel
+      LEFT JOIN kelas k ON t.id_kelas = k.id_kelas
+      LEFT JOIN guru g ON t.id_guru = g.id_guru
+      WHERE t.id_tugas = ?
+    `;
+    connect.query(query, [id_tugas], (err, rows) => {
+      if (err) {
+        console.error("Error in Model_Pengumpulan.getTugasInfo():", err);
+        reject(err);
+      } else {
+        resolve(rows[0] || {});
+      }
+    });
+  });
+}
 
   // ✅ Ambil semua pengumpulan berdasarkan id_siswa
   static async getAllPengumpulan(id_siswa) {

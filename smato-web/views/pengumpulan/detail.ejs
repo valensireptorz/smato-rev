@@ -1,0 +1,510 @@
+<%- include('../partials/_head.ejs') %>
+
+<!-- Custom CSS untuk halaman detail pengumpulan -->
+<style>
+  :root {
+    --primary: #4361ee;
+    --secondary: #3f37c9;
+    --success: #4cc9f0;
+    --info: #4895ef;
+    --warning: #f72585;
+    --danger: #e63946;
+    --light: #f8f9fa;
+    --dark: #212529;
+    --gray-100: #f8f9fa;
+    --gray-200: #e9ecef;
+    --gray-300: #dee2e6;
+    --gray-800: #343a40;
+  }
+  
+  body {
+    background-color: #f5f7fa;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .page-header {
+    background: linear-gradient(135deg, var(--warning) 0%, var(--primary) 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+  }
+  
+  .info-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+  }
+  
+  .info-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: var(--gray-100);
+    border-radius: 8px;
+  }
+  
+  .info-item:last-child {
+    margin-bottom: 0;
+  }
+  
+  .info-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 1rem;
+    font-size: 1.2rem;
+  }
+  
+  .info-label {
+    font-weight: 600;
+    color: var(--gray-800);
+    margin-right: 1rem;
+    min-width: 120px;
+  }
+  
+  .info-value {
+    color: var(--dark);
+    font-weight: 500;
+  }
+  
+  .stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    transition: transform 0.3s ease;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+  }
+  
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  
+  .stat-label {
+    color: var(--gray-800);
+    font-size: 0.9rem;
+  }
+  
+  .submission-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+  }
+  
+  .submission-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .submission-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .student-details {
+    display: flex;
+    align-items: center;
+  }
+  
+  .student-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--warning), var(--primary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 1.2rem;
+    margin-right: 1rem;
+  }
+  
+  .student-name {
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 0.25rem;
+  }
+  
+  .student-nis {
+    color: var(--gray-800);
+    font-size: 0.9rem;
+  }
+  
+  .submission-time {
+    text-align: right;
+  }
+  
+  .time-badge {
+    background: var(--success);
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+  
+  .status-badge {
+    background: var(--info);
+    color: white;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    display: inline-block;
+  }
+  
+  .download-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    margin-top: 0.5rem;
+  }
+  
+  .download-btn:hover {
+    background: var(--secondary);
+    color: white;
+    transform: translateY(-1px);
+  }
+  
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--gray-800);
+  }
+  
+  .empty-state i {
+    font-size: 4rem;
+    color: var(--gray-300);
+    margin-bottom: 1.5rem;
+  }
+  
+  .back-button {
+    background: var(--secondary);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .back-button:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+  }
+  
+  .deadline-info {
+    padding: 1rem;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+  
+  .deadline-info.expired {
+    background: #f8d7da;
+    border-color: #f5c6cb;
+  }
+  
+  .deadline-info.warning {
+    background: #fff3cd;
+    border-color: #ffeaa7;
+  }
+  
+  .deadline-info.safe {
+    background: #d1ecf1;
+    border-color: #bee5eb;
+  }
+</style>
+
+<%- include('../partials/_nav.ejs') %>
+
+<!-- Page Header -->
+<header class="page-header">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h2 class="mb-0">Detail Pengumpulan Tugas</h2>
+        <p class="mb-0 opacity-75">Daftar siswa yang telah mengumpulkan tugas</p>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <a href="/tugas" class="back-button">
+          <i class="bi bi-arrow-left me-2"></i>Kembali ke Tugas
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <!-- Informasi Tugas -->
+  <% if (tugasInfo && Object.keys(tugasInfo).length > 0) { %>
+    <div class="info-card">
+      <h5 class="mb-3"><i class="bi bi-info-circle me-2"></i>Informasi Tugas</h5>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="info-item">
+            <div class="info-icon" style="background-color: var(--primary);">
+              <i class="bi bi-clipboard"></i>
+            </div>
+            <div>
+              <div class="info-label">Nama Tugas</div>
+              <div class="info-value"><%= tugasInfo.nama_tugas || '-' %></div>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon" style="background-color: var(--info);">
+              <i class="bi bi-book"></i>
+            </div>
+            <div>
+              <div class="info-label">Mata Pelajaran</div>
+              <div class="info-value"><%= tugasInfo.nama_mapel || '-' %></div>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon" style="background-color: var(--warning);">
+              <i class="bi bi-people"></i>
+            </div>
+            <div>
+              <div class="info-label">Kelas</div>
+              <div class="info-value"><%= tugasInfo.kode_kelas || '-' %></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="info-item">
+            <div class="info-icon" style="background-color: var(--success);">
+              <i class="bi bi-person-check"></i>
+            </div>
+            <div>
+              <div class="info-label">Guru</div>
+              <div class="info-value"><%= tugasInfo.nama_guru || '-' %></div>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="info-icon" style="background-color: var(--danger);">
+              <i class="bi bi-calendar-x"></i>
+            </div>
+            <div>
+              <div class="info-label">Deadline</div>
+              <div class="info-value">
+                <% if (tugasInfo.deadline) { %>
+                  <% 
+                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                    const formattedDate = new Date(tugasInfo.deadline).toLocaleDateString('id-ID', options);
+                  %>
+                  <%= formattedDate %>
+                <% } else { %>
+                  -
+                <% } %>
+              </div>
+            </div>
+          </div>
+          <% if (tugasInfo.deskripsi) { %>
+            <div class="info-item">
+              <div class="info-icon" style="background-color: var(--secondary);">
+                <i class="bi bi-file-text"></i>
+              </div>
+              <div>
+                <div class="info-label">Deskripsi</div>
+                <div class="info-value"><%= tugasInfo.deskripsi %></div>
+              </div>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Deadline -->
+    <% if (tugasInfo.deadline) { %>
+      <% 
+        const now = new Date();
+        const deadline = new Date(tugasInfo.deadline);
+        const diffDays = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+        let deadlineClass = "safe";
+        let deadlineText = `${diffDays} hari lagi`;
+        let deadlineIcon = "bi-info-circle-fill";
+
+        if (diffDays < 0) {
+          deadlineClass = "expired";
+          deadlineText = "Deadline telah terlewat";
+          deadlineIcon = "bi-exclamation-triangle-fill";
+        } else if (diffDays < 3) {
+          deadlineClass = "warning";
+          deadlineText = diffDays === 0 ? "Deadline hari ini!" : 
+                        diffDays === 1 ? "Deadline besok!" : 
+                        `Deadline ${diffDays} hari lagi`;
+          deadlineIcon = "bi-exclamation-circle-fill";
+        }
+      %>
+      <div class="deadline-info <%= deadlineClass %>">
+        <i class="<%= deadlineIcon %> me-2"></i>
+        <strong><%= deadlineText %></strong>
+      </div>
+    <% } %>
+  <% } %>
+
+  <!-- Statistics Overview -->
+  <% if (detailPengumpulan && detailPengumpulan.length > 0) { %>
+    <div class="stats-overview">
+      <div class="stat-card">
+        <div class="stat-icon" style="background-color: var(--success);">
+          <i class="bi bi-check-circle"></i>
+        </div>
+        <div class="stat-value"><%= detailPengumpulan.length %></div>
+        <div class="stat-label">Siswa Mengumpulkan</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background-color: var(--info);">
+          <i class="bi bi-clock-history"></i>
+        </div>
+        <div class="stat-value">
+          <% 
+            const waktuPengumpulan = detailPengumpulan.map(p => new Date(p.upload_time));
+            const terakhir = Math.max(...waktuPengumpulan);
+            const pertama = Math.min(...waktuPengumpulan);
+            const durasi = Math.round((terakhir - pertama) / (1000 * 60 * 60 * 24));
+          %>
+          <%= durasi %> hari
+        </div>
+        <div class="stat-label">Rentang Pengumpulan</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background-color: var(--warning);">
+          <i class="bi bi-file-earmark-arrow-up"></i>
+        </div>
+        <div class="stat-value"><%= detailPengumpulan.length %></div>
+        <div class="stat-label">Total File</div>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Daftar Siswa yang Mengumpulkan -->
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Daftar Pengumpulan</h5>
+      <span class="badge bg-success fs-6">
+        <%= detailPengumpulan ? detailPengumpulan.length : 0 %> Siswa
+      </span>
+    </div>
+    <div class="card-body">
+      <% if (detailPengumpulan && detailPengumpulan.length > 0) { %>
+        <div class="row">
+          <% detailPengumpulan.forEach((pengumpulan, index) => { %>
+            <div class="col-lg-6">
+              <div class="submission-card">
+                <div class="submission-info">
+                  <div class="student-details">
+                    <div class="student-avatar">
+                      <%= pengumpulan.nama_siswa ? pengumpulan.nama_siswa.charAt(0).toUpperCase() : 'S' %>
+                    </div>
+                    <div>
+                      <div class="student-name"><%= pengumpulan.nama_siswa || 'Nama tidak tersedia' %></div>
+                      <div class="student-nis">NIS: <%= pengumpulan.nis || '-' %></div>
+                      <% if (pengumpulan.file_tugas) { %>
+                        <a href="/pengumpulan/download/<%= pengumpulan.file_tugas %>" class="download-btn">
+                          <i class="bi bi-download me-1"></i>Download File
+                        </a>
+                      <% } %>
+                    </div>
+                  </div>
+                  <div class="submission-time">
+                    <div class="time-badge">
+                      <i class="bi bi-clock me-1"></i>
+                      <% if (pengumpulan.upload_time) { %>
+                        <%= new Date(pengumpulan.upload_time).toLocaleString('id-ID', { 
+                          day: '2-digit', 
+                          month: '2-digit', 
+                          year: 'numeric', 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        }) %>
+                      <% } else { %>
+                        -
+                      <% } %>
+                    </div>
+                    <div class="status-badge">
+                      <i class="bi bi-check-circle me-1"></i>Terkumpul
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      <% } else { %>
+        <div class="empty-state">
+          <i class="bi bi-folder-x"></i>
+          <h5>Belum ada siswa yang mengumpulkan</h5>
+          <p class="text-muted">Tugas belum dikumpulkan oleh siswa manapun.</p>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap Icons dan Font -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<%- include('../partials/_foot.ejs') %>
