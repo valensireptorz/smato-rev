@@ -4,15 +4,7 @@ class Model_Guru {
 
     static async getAll() {
         return new Promise((resolve, reject) => {
-            connection.query("SELECT * FROM guru", (err, rows) => {
-                if (err) reject(err);
-                else resolve(rows);
-            });
-        });
-    }
-    static async getAll() {
-        return new Promise((resolve, reject) =>{
-            connection.query('select * from guru order by id_guru desc', (err, rows) => {
+            connection.query('SELECT * FROM guru ORDER BY id_guru DESC', (err, rows) => {
                 if (err) {
                     reject(err);
                 } else {
@@ -24,7 +16,7 @@ class Model_Guru {
 
     static async Store(Data) {
         return new Promise((resolve, reject) => {
-            connection.query('insert into guru set ?', Data, function(err, result) {
+            connection.query('INSERT INTO guru SET ?', Data, function(err, result) {
                 if (err) {
                     reject(err);
                 } else {
@@ -35,8 +27,8 @@ class Model_Guru {
     }
 
     static async getId(id) {
-        return new Promise((resolve, reject) =>{
-            connection.query('select * from guru  where id_guru = ' + id, (err, rows) => {
+        return new Promise((resolve, reject) => {
+            connection.query('SELECT * FROM guru WHERE id_guru = ?', [id], (err, rows) => {
                 if (err) {
                     reject(err);
                 } else {
@@ -48,7 +40,7 @@ class Model_Guru {
 
     static async Update(id, Data) {
         return new Promise((resolve, reject) => {
-            connection.query('update guru set ? where id_guru= ' + id, Data, function(err, result) {
+            connection.query('UPDATE guru SET ? WHERE id_guru = ?', [Data, id], function(err, result) {
                 if (err) {
                     reject(err);
                 } else {
@@ -60,7 +52,7 @@ class Model_Guru {
 
     static async Delete(id) {
         return new Promise((resolve, reject) => {
-            connection.query('delete from guru where id_guru = ' + id, function(err, result) {
+            connection.query('DELETE FROM guru WHERE id_guru = ?', [id], function(err, result) {
                 if (err) {
                     reject(err);
                 } else {
@@ -95,6 +87,41 @@ class Model_Guru {
                     resolve(result[0].count > 0);
                 }
             })
+        });
+    }
+
+    // ✅ BARU: Method untuk mendapatkan guru berdasarkan nama (untuk debugging)
+    static async getByName(nama_guru) {
+        return new Promise((resolve, reject) => {
+            connection.query('SELECT * FROM guru WHERE nama_guru = ?', [nama_guru], (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
+
+    // ✅ BARU: Method untuk mendapatkan semua guru dengan informasi jadwal
+    static async getAllWithJadwal() {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT g.*, 
+                       COUNT(j.id_jadwal) as total_jadwal,
+                       GROUP_CONCAT(DISTINCT j.hari) as hari_mengajar
+                FROM guru g
+                LEFT JOIN jadwal j ON g.id_guru = j.id_guru
+                GROUP BY g.id_guru
+                ORDER BY g.nama_guru ASC
+            `;
+            connection.query(query, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
         });
     }
 }

@@ -38,7 +38,7 @@
                 <form action="/jadwal" method="GET" class="mb-md-0 mb-3">
                   <div class="input-group input-group-merge shadow-sm">
                     <span class="input-group-text bg-transparent border-0"><i class="bx bx-search"></i></span>
-                    <input type="text" class="form-control form-control-lg border-0" placeholder="Cari berdasarkan kelas..." name="kelas" value="<%= kelasSearch %>">
+                    <input type="text" class="form-control form-control-lg border-0" placeholder="Cari berdasarkan kelas..." name="kelas" value="<%= kelasSearch || '' %>">
                     <button class="btn btn-primary" type="submit">Cari</button>
                   </div>
                 </form>
@@ -46,14 +46,11 @@
               <!-- Actions -->
               <div class="col-md-4 d-flex justify-content-md-end align-items-center">
                 <div class="btn-group shadow-sm" role="group">
-                  <button type="button" class="btn btn-outline-primary" id="view-day" onclick="switchView('day')">
+                  <button type="button" class="btn btn-outline-primary active" id="view-day" onclick="switchView('day')">
                     <i class="bx bx-calendar-week me-1"></i> Hari
                   </button>
-                  <!-- <button type="button" class="btn btn-outline-primary" id="view-week" onclick="switchView('week')">
-                    <i class="bx bx-calendar me-1"></i> Minggu
-                  </button> -->
                 </div>
-                <% if (level == "admin") { %>
+                <% if (typeof level !== 'undefined' && level === "admin") { %>
                 <a href="/jadwal/create" class="btn btn-primary ms-2 d-flex align-items-center shadow-sm">
                   <i class="bx bx-plus me-1"></i> Tambah
                 </a>
@@ -71,195 +68,191 @@
         <div class="card shadow-sm mb-0">
           <div class="card-body p-3">
             <div class="d-flex flex-wrap gap-2" id="day-filters">
-              <button class="btn btn-sm btn-outline-primary active" data-day="all">Semua Hari</button>
-              <button class="btn btn-sm btn-outline-primary" data-day="Senin">Senin</button>
-              <button class="btn btn-sm btn-outline-primary" data-day="Selasa">Selasa</button>
-              <button class="btn btn-sm btn-outline-primary" data-day="Rabu">Rabu</button>
-              <button class="btn btn-sm btn-outline-primary" data-day="Kamis">Kamis</button>
-              <button class="btn btn-sm btn-outline-primary" data-day="Jumat">Jumat</button>
-              <button class="btn btn-sm btn-outline-primary" data-day="Sabtu">Sabtu</button>
+              <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Minggu' ? 'active' : '' %>" data-day="all">Semua Hari</button>
+              <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Senin' ? 'active' : '' %>" data-day="Senin">Senin</button>
+              <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Selasa' ? 'active' : '' %>" data-day="Selasa">Selasa</button>
+              <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Rabu' ? 'active' : '' %>" data-day="Rabu">Rabu</button>
+              <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Kamis' ? 'active' : '' %>" data-day="Kamis">Kamis</button>
+              <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Jumat' ? 'active' : '' %>" data-day="Jumat">Jumat</button>
+              <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Sabtu' ? 'active' : '' %>" data-day="Sabtu">Sabtu</button>
             </div>
+            <% if (typeof level !== 'undefined' && level === 'guru' && typeof currentGuru !== 'undefined' && currentGuru) { %>
+              <div class="mt-3 alert alert-info alert-dismissible d-flex align-items-center" role="alert">
+                <i class="bx bx-info-circle me-2"></i>
+                <div>
+                  <strong>Info:</strong> Jadwal dengan highlight adalah jadwal Anda (<%= currentGuru %>).
+                  <% if (typeof currentDay !== 'undefined' && currentDay !== 'Minggu') { %>
+                    Menampilkan jadwal hari <strong><%= currentDay %></strong>.
+                  <% } %>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            <% } %>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Jadwal Content -->
-    <div class="jadwal-container mb-5" id="day-view">
-      <div class="row">
-        <% if (groupedData && Object.keys(groupedData).length > 0) { %>
-          <% for (const hari in groupedData) { %>
-            <div class="col-xl-4 col-md-6 mb-4 jadwal-day-card" data-day="<%= hari %>">
-              <div class="card h-100 shadow-sm border-0 jadwal-card">
-                <div class="card-header bg-transparent py-3 position-relative">
-                  <div class="d-flex align-items-center">
-                    <div class="day-indicator me-3">
-                      <% let dayColor = "primary"; %>
-                      <% if (hari === "Senin") dayColor = "primary"; %>
-                      <% if (hari === "Selasa") dayColor = "info"; %>
-                      <% if (hari === "Rabu") dayColor = "success"; %>
-                      <% if (hari === "Kamis") dayColor = "warning"; %>
-                      <% if (hari === "Jumat") dayColor = "danger"; %>
-                      <% if (hari === "Sabtu") dayColor = "secondary"; %>
-                      <span class="badge bg-<%= dayColor %> bg-opacity-10 text-<%= dayColor %> fs-6 px-3 py-2 rounded-pill">
-                        <i class="bx bx-calendar-check me-1"></i> <%= hari %>
-                      </span>
-                    </div>
-                    <h5 class="card-title mb-0 fw-semibold"><%= groupedData[hari].length %> Pelajaran</h5>
-                  </div>
+  <!-- Jadwal Content -->
+<div class="jadwal-container mb-5" id="day-view">
+  <div class="row">
+    <% if (typeof groupedData !== 'undefined' && groupedData && Object.keys(groupedData).length > 0) { %>
+      <% 
+        // Tentukan hari apa saja yang akan ditampilkan
+        let daysToShow = Object.keys(groupedData);
+        
+        // Jika BUKAN admin dan tidak ada pencarian kelas, filter hanya hari saat ini
+        if (typeof level !== 'undefined' && level !== 'admin' && typeof currentDay !== 'undefined' && 
+            currentDay && currentDay !== 'Minggu' && !kelasSearch) {
+          daysToShow = groupedData[currentDay] ? [currentDay] : daysToShow;
+        }
+        // Jika admin, tetap tampilkan semua hari
+      %>
+      
+      <% daysToShow.forEach(hari => { %>
+        <div class="col-xl-4 col-md-6 mb-4 jadwal-day-card" data-day="<%= hari %>">
+          <div class="card h-100 shadow-sm border-0 jadwal-card">
+            <div class="card-header bg-transparent py-3 position-relative">
+              <div class="d-flex align-items-center">
+                <div class="day-indicator me-3">
+                  <% let dayColor = "primary"; %>
+                  <% if (hari === "Senin") dayColor = "primary"; %>
+                  <% if (hari === "Selasa") dayColor = "info"; %>
+                  <% if (hari === "Rabu") dayColor = "success"; %>
+                  <% if (hari === "Kamis") dayColor = "warning"; %>
+                  <% if (hari === "Jumat") dayColor = "danger"; %>
+                  <% if (hari === "Sabtu") dayColor = "secondary"; %>
+                  <span class="badge bg-<%= dayColor %> bg-opacity-10 text-<%= dayColor %> fs-6 px-3 py-2 rounded-pill">
+                    <i class="bx bx-calendar-check me-1"></i> <%= hari %>
+                  </span>
                 </div>
-                <div class="card-body p-0">
-                  <div class="timeline-container p-3">
-                    <% groupedData[hari].forEach((item, index) => { %>
-                      <div class="timeline-item mb-3 position-relative <%= index === groupedData[hari].length - 1 ? '' : 'pb-3' %>" data-aos="fade-up" data-aos-delay="<%= index * 50 %>">
-                        <div class="card shadow-sm border-0 hover-elevate">
-                          <div class="card-body p-3">
-                            <div class="d-flex justify-content-between">
-                              <div class="schedule-time pe-3">
-                                <span class="badge bg-label-primary p-2 rounded"><%= item.jam_mulai %></span>
-                                <div class="text-center my-1">|</div>
-                                <span class="badge bg-label-info p-2 rounded"><%= item.jam_selesai %></span>
-                              </div>
-                              <div class="schedule-content flex-grow-1">
-                                <h5 class="fw-semibold mb-1 text-primary"><%= item.nama_mapel %></h5>
-                                <div class="mb-2">
-                                  <small class="text-muted d-flex align-items-center">
-                                    <i class="bx bx-user me-1"></i> <%= item.nama_guru %>
-                                  </small>
-                                  <small class="text-muted d-flex align-items-center">
-                                    <i class="bx bx-building-house me-1"></i> <%= item.kode_kelas %>
-                                  </small>
-                                </div>
-                                <% if (level == "admin") { %>
-                                <div class="d-flex mt-2">
-                                  <a href="/jadwal/edit/<%= item.id_jadwal %>" class="btn btn-sm btn-outline-primary me-2">
-                                    <i class="bx bx-edit-alt me-1"></i> Edit
-                                  </a>
-                                  <a href="/jadwal/delete/<%= item.id_jadwal %>" class="btn btn-sm btn-outline-danger" 
-                                    onclick="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?')">
-                                    <i class="bx bx-trash me-1"></i> Delete
-                                  </a>
-                                </div>
+                <h5 class="card-title mb-0 fw-semibold"><%= groupedData[hari].length %> Pelajaran</h5>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div class="timeline-container p-3">
+                <% groupedData[hari].forEach((item, index) => { %>
+                  <% 
+                    // ✅ Cek apakah ini jadwal guru yang sedang login berdasarkan ID guru
+                    let isCurrentTeacher = false;
+                    
+                    if (typeof level !== 'undefined' && level === 'guru' && typeof currentGuruId !== 'undefined' && currentGuruId) {
+                      // Compare dengan id_guru dari jadwal
+                      isCurrentTeacher = (item.id_guru == currentGuruId);
+                    }
+                    
+                    let cardClass = isCurrentTeacher ? 'border-primary shadow-lg teacher-highlight' : '';
+                  %>
+                  <div class="timeline-item mb-3 position-relative <%= index === groupedData[hari].length - 1 ? '' : 'pb-3' %>" data-aos="fade-up" data-aos-delay="<%= index * 50 %>">
+                    <div class="card shadow-sm border-0 hover-elevate <%= cardClass %>">
+                      <div class="card-body p-3">
+                        <% if (isCurrentTeacher) { %>
+                          <!-- Badge untuk jadwal guru yang login -->
+                          <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge bg-primary">
+                              <i class="bx bx-star me-1"></i>Jadwal Anda
+                            </span>
+                            <i class="bx bx-check-circle text-primary" style="font-size: 1.5rem;"></i>
+                          </div>
+                        <% } %>
+                        <div class="d-flex justify-content-between">
+                          <div class="schedule-time pe-3">
+                            <span class="badge bg-label-primary p-2 rounded"><%= item.jam_mulai %></span>
+                            <div class="text-center my-1">|</div>
+                            <span class="badge bg-label-info p-2 rounded"><%= item.jam_selesai %></span>
+                          </div>
+                          <div class="schedule-content flex-grow-1">
+                            <h5 class="fw-semibold mb-1 text-primary"><%= item.nama_mapel %></h5>
+                            <div class="mb-2">
+                              <small class="text-muted d-flex align-items-center">
+                                <i class="bx bx-user me-1"></i> 
+                                <span class="<%= isCurrentTeacher ? 'fw-bold text-primary' : '' %>"><%= item.nama_guru %></span>
+                                <% if (isCurrentTeacher) { %>
+                                  <span class="badge bg-primary ms-2 badge-anda">Anda</span>
                                 <% } %>
-                              </div>
+                              </small>
+                              <small class="text-muted d-flex align-items-center">
+                                <i class="bx bx-building-house me-1"></i> <%= item.kode_kelas %>
+                              </small>
                             </div>
+                            <% if ((typeof level !== 'undefined' && level === "admin") || (typeof level !== 'undefined' && level === 'guru' && isCurrentTeacher)) { %>
+                            <div class="d-flex mt-2 flex-wrap gap-2">
+                              <% if (typeof level !== 'undefined' && level === "admin") { %>
+                                <a href="/jadwal/edit/<%= item.id_jadwal %>" class="btn btn-sm btn-outline-primary">
+                                  <i class="bx bx-edit-alt me-1"></i> Edit
+                                </a>
+                                <a href="/jadwal/delete/<%= item.id_jadwal %>" class="btn btn-sm btn-outline-danger" 
+                                  onclick="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?')">
+                                  <i class="bx bx-trash me-1"></i> Delete
+                                </a>
+                              <% } else if (typeof level !== 'undefined' && level === 'guru' && isCurrentTeacher) { %>
+                                <!-- Tombol untuk guru -->
+                              <% } %>
+                            </div>
+                            <% } %>
                           </div>
                         </div>
                       </div>
-                    <% }); %>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          <% } %>
-        <% } else { %>
-          <div class="col-12">
-            <div class="card shadow-sm border-0">
-              <div class="card-body p-5 text-center">
-                <img src="/assets/img/illustrations/no-data.svg" alt="No Data" style="max-width: 200px; opacity: 0.7;" class="mb-4">
-                <h4 class="text-muted mb-2">Belum Ada Jadwal</h4>
-                <p class="mb-4">Tidak ada jadwal tersedia untuk kriteria pencarian ini.</p>
-                <% if (level == "admin") { %>
-                <a href="/jadwal/create" class="btn btn-primary">
-                  <i class="bx bx-plus me-1"></i> Tambah Jadwal Baru
-                </a>
-                <% } %>
-              </div>
-            </div>
-          </div>
-        <% } %>
-      </div>
-    </div>
-
-    <!-- Weekly View (Hidden by default) -->
-    <!-- <div class="jadwal-container mb-5" id="week-view" style="display: none;">
-      <div class="card shadow-sm border-0">
-        <div class="card-header bg-transparent border-bottom py-3">
-          <h5 class="mb-0">Jadwal Mingguan</h5>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-bordered mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th style="width: 80px;">Jam</th>
-                  <% const days = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]; %>
-                  <% days.forEach(day => { %>
-                    <th><%= day %></th>
-                  <% }); %>
-                </tr>
-              </thead>
-              <tbody>
-                <% 
-                // Define time slots
-                const timeSlots = [
-                  { start: "07:00", end: "08:30" },
-                  { start: "08:30", end: "10:00" },
-                  { start: "10:15", end: "11:45" },
-                  { start: "12:30", end: "14:00" },
-                  { start: "14:00", end: "15:30" }
-                ];
-                %>
-                
-                <% timeSlots.forEach(slot => { %>
-                  <tr>
-                    <td class="align-middle text-center fw-semibold">
-                      <%= slot.start %><br>
-                      <small><%= slot.end %></small>
-                    </td>
-                    
-                    <% days.forEach(day => { %>
-                      <td>
-                        <% if (groupedData && groupedData[day]) { %>
-                          <% 
-                            const classForSlot = groupedData[day].find(item => {
-                              return (item.jam_mulai <= slot.start && item.jam_selesai >= slot.start) || 
-                                    (item.jam_mulai >= slot.start && item.jam_mulai < slot.end);
-                            });
-                          %>
-                          
-                          <% if (classForSlot) { %>
-                            <div class="p-2 bg-primary bg-opacity-10 rounded small">
-                              <div class="fw-semibold"><%= classForSlot.nama_mapel %></div>
-                              <div class="text-muted"><%= classForSlot.nama_guru %></div>
-                              <div class="badge bg-label-primary"><%= classForSlot.kode_kelas %></div>
-                              
-                              <% if (level == "admin") { %>
-                              <div class="mt-2">
-                                <a href="/jadwal/edit/<%= classForSlot.id_jadwal %>" class="text-primary me-2">
-                                  <i class="bx bx-edit-alt"></i>
-                                </a>
-                                <a href="/jadwal/delete/<%= classForSlot.id_jadwal %>" class="text-danger"
-                                   onclick="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?')">
-                                  <i class="bx bx-trash"></i>
-                                </a>
-                              </div>
-                              <% } %>
-                            </div>
-                          <% } %>
-                        <% } %>
-                      </td>
-                    <% }); %>
-                  </tr>
                 <% }); %>
-              </tbody>
-            </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    <% } else { %>
+      <div class="col-12">
+        <div class="card shadow-sm border-0">
+          <div class="card-body p-5 text-center">
+            <div class="empty-state">
+              <i class="bx bx-calendar-x" style="font-size: 4rem; color: #dee2e6; margin-bottom: 1rem;"></i>
+              <h4 class="text-muted mb-2">Belum Ada Jadwal</h4>
+              <p class="mb-4">Tidak ada jadwal tersedia untuk kriteria pencarian ini.</p>
+              <% if (typeof level !== 'undefined' && level === "admin") { %>
+              <a href="/jadwal/create" class="btn btn-primary">
+                <i class="bx bx-plus me-1"></i> Tambah Jadwal Baru
+              </a>
+              <% } %>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    <% } %>
   </div>
-</div> -->
+</div>
 
 <%- include('../partials/_foot.ejs') %>
 
 <!-- Extra scripts for animations and functionality -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Day filtering
+  // ✅ Perilaku tombol filter hari
   const dayButtons = document.querySelectorAll('#day-filters button');
   const dayCards = document.querySelectorAll('.jadwal-day-card');
   
+  // Menentukan tombol default yang aktif
+  const currentDay = '<%= typeof currentDay !== "undefined" ? currentDay : "" %>';
+  const userLevel = '<%= typeof level !== "undefined" ? level : "" %>';
+  
+  // Set tombol aktif berdasarkan level pengguna
+  if (userLevel === 'admin') {
+    // Admin: aktifkan tombol 'Semua Hari'
+    const allButton = document.querySelector('#day-filters button[data-day="all"]');
+    if (allButton) {
+      dayButtons.forEach(btn => btn.classList.remove('active'));
+      allButton.classList.add('active');
+    }
+  } else if (currentDay && currentDay !== 'Minggu') {
+    // Non-admin: aktifkan tombol hari saat ini
+    const activeButton = document.querySelector(`#day-filters button[data-day="${currentDay}"]`);
+    if (activeButton) {
+      dayButtons.forEach(btn => btn.classList.remove('active'));
+      activeButton.classList.add('active');
+    }
+  }
+  
+  // Tambahkan event listener untuk tombol filter
   dayButtons.forEach(button => {
     button.addEventListener('click', function() {
       const selectedDay = this.getAttribute('data-day');
@@ -269,33 +262,43 @@ document.addEventListener('DOMContentLoaded', function() {
       this.classList.add('active');
       
       // Filter cards
-      if (selectedDay === 'all') {
-        dayCards.forEach(card => {
+      filterByDay(selectedDay);
+    });
+  });
+  
+  // ✅ Fungsi untuk filter berdasarkan hari
+  function filterByDay(selectedDay) {
+    if (selectedDay === 'all') {
+      dayCards.forEach(card => {
+        card.style.display = 'block';
+        setTimeout(() => {
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0)';
+        }, 50);
+      });
+    } else {
+      dayCards.forEach(card => {
+        if (card.getAttribute('data-day') === selectedDay) {
           card.style.display = 'block';
           setTimeout(() => {
             card.style.opacity = '1';
             card.style.transform = 'translateY(0)';
           }, 50);
-        });
-      } else {
-        dayCards.forEach(card => {
-          if (card.getAttribute('data-day') === selectedDay) {
-            card.style.display = 'block';
-            setTimeout(() => {
-              card.style.opacity = '1';
-              card.style.transform = 'translateY(0)';
-            }, 50);
-          } else {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(20px)';
-            setTimeout(() => {
-              card.style.display = 'none';
-            }, 300);
-          }
-        });
-      }
-    });
-  });
+        } else {
+          card.style.opacity = '0';
+          card.style.transform = 'translateY(20px)';
+          setTimeout(() => {
+            card.style.display = 'none';
+          }, 300);
+        }
+      });
+    }
+  }
+  
+  // ✅ Inisialisasi tampilan awal jika bukan admin
+  if (userLevel !== 'admin' && currentDay && currentDay !== 'Minggu') {
+    filterByDay(currentDay);
+  }
   
   // Card hover effect
   const scheduleCards = document.querySelectorAll('.timeline-item .card');
@@ -314,46 +317,49 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Add animation on scroll
   const items = document.querySelectorAll('.timeline-item');
-  window.addEventListener('scroll', checkItems);
-  
-  function checkItems() {
-    items.forEach(item => {
-      const itemTop = item.getBoundingClientRect().top;
-      const triggerBottom = window.innerHeight * 0.8;
-      
-      if (itemTop < triggerBottom) {
-        item.style.opacity = '1';
-        item.style.transform = 'translateY(0)';
-      } else {
-        item.style.opacity = '0';
-        item.style.transform = 'translateY(20px)';
-      }
-    });
+  if (items.length > 0) {
+    window.addEventListener('scroll', checkItems);
+    
+    function checkItems() {
+      items.forEach(item => {
+        const itemTop = item.getBoundingClientRect().top;
+        const triggerBottom = window.innerHeight * 0.8;
+        
+        if (itemTop < triggerBottom) {
+          item.style.opacity = '1';
+          item.style.transform = 'translateY(0)';
+        } else {
+          item.style.opacity = '0';
+          item.style.transform = 'translateY(20px)';
+        }
+      });
+    }
+    
+    // Initial check
+    checkItems();
   }
-  
-  // Initial check
-  checkItems();
 });
 
 // View switching (Day/Week)
 function switchView(viewType) {
   const dayView = document.getElementById('day-view');
-  const weekView = document.getElementById('week-view');
   const dayButton = document.getElementById('view-day');
-  const weekButton = document.getElementById('view-week');
   
   if (viewType === 'day') {
-    dayView.style.display = 'block';
-    weekView.style.display = 'none';
-    dayButton.classList.add('active');
-    weekButton.classList.remove('active');
-  } else {
-    dayView.style.display = 'none';
-    weekView.style.display = 'block';
-    dayButton.classList.remove('active');
-    weekButton.classList.add('active');
+    if (dayView) dayView.style.display = 'block';
+    if (dayButton) dayButton.classList.add('active');
   }
 }
+
+// ✅ Additional animations for teacher highlights
+document.addEventListener('DOMContentLoaded', function() {
+  const teacherCards = document.querySelectorAll('.teacher-highlight');
+  teacherCards.forEach((card, index) => {
+    setTimeout(() => {
+      card.classList.add('animate-in');
+    }, index * 200);
+  });
+});
 </script>
 
 <style>
@@ -366,6 +372,39 @@ function switchView(viewType) {
 .jadwal-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ✅ BARU: Styling untuk highlight jadwal guru yang login */
+.teacher-highlight {
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f1ff 100%);
+  border: 2px solid #696cff !important;
+  box-shadow: 0 0.25rem 1rem rgba(105, 108, 255, 0.15) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.teacher-highlight::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #696cff 0%, #5f62e6 100%);
+  z-index: 1;
+}
+
+.teacher-highlight:hover {
+  box-shadow: 0 0.5rem 1.5rem rgba(105, 108, 255, 0.25) !important;
+  transform: translateY(-8px);
+}
+
+/* Animasi khusus untuk jadwal guru */
+.teacher-highlight .schedule-content h5 {
+  background: linear-gradient(135deg, #696cff, #5f62e6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .timeline-container {
@@ -438,10 +477,46 @@ function switchView(viewType) {
   color: #fff;
 }
 
+/* ✅ BARU: Styling untuk tombol aksi guru */
+.btn-success {
+  background-color: #28c76f;
+  border-color: #28c76f;
+}
+
+.btn-success:hover {
+  background-color: #20b968;
+  border-color: #20b968;
+  transform: translateY(-2px);
+  box-shadow: 0 0.25rem 0.5rem rgba(40, 199, 111, 0.3);
+}
+
+.btn-outline-warning {
+  color: #ff9f43;
+  border-color: #ff9f43;
+}
+
+.btn-outline-warning:hover {
+  background-color: #ff9f43;
+  border-color: #ff9f43;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 0.25rem 0.5rem rgba(255, 159, 67, 0.3);
+}
+
 /* Badge styles */
 .badge {
   font-weight: 500;
   letter-spacing: 0.3px;
+}
+
+/* ✅ BARU: Badge untuk guru */
+.badge.bg-primary {
+  background-color: #696cff !important;
+  box-shadow: 0 2px 4px rgba(105, 108, 255, 0.3);
+}
+
+.badge-anda {
+  animation: pulse 2s ease-in-out infinite;
 }
 
 /* Animations */
@@ -450,7 +525,92 @@ function switchView(viewType) {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.9; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes teacherGlow {
+  0% { box-shadow: 0 0.25rem 1rem rgba(105, 108, 255, 0.15); }
+  50% { box-shadow: 0 0.25rem 1.5rem rgba(105, 108, 255, 0.25); }
+  100% { box-shadow: 0 0.25rem 1rem rgba(105, 108, 255, 0.15); }
+}
+
 .fade-in {
   animation: fadeIn 0.5s ease forwards;
 }
+
+.teacher-highlight {
+  animation: teacherGlow 3s ease-in-out infinite;
+}
+
+.teacher-highlight.animate-in {
+  animation: fadeIn 0.6s ease forwards, teacherGlow 3s ease-in-out infinite 0.6s;
+}
+
+/* ✅ BARU: Alert khusus untuk info guru */
+.alert-info {
+  background-color: #f0f1ff;
+  border-color: #d3d4ff;
+  color: #5f62e6;
+  border-radius: 0.75rem;
+}
+
+.alert-info .alert-heading {
+  color: #5f62e6;
+}
+
+/* ✅ BARU: Glow effect untuk nama guru yang login */
+.teacher-highlight .fw-bold.text-primary {
+  text-shadow: 0 0 10px rgba(105, 108, 255, 0.3);
+}
+
+/* ✅ BARU: Icon styling */
+.bx-check-circle {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* ✅ BARU: Empty state styling */
+.empty-state {
+  padding: 2rem;
+}
+
+/* ✅ BARU: Responsive adjustments */
+@media (max-width: 768px) {
+  .teacher-highlight::before {
+    width: 3px;
+  }
+  
+  .alert-info {
+    text-align: center;
+  }
+  
+  .teacher-highlight .d-flex {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .timeline-item .d-flex {
+    flex-direction: column;
+  }
+  
+  .schedule-time {
+    margin-bottom: 1rem;
+    min-width: auto;
+    text-align: left;
+  }
+}
+
+/* ✅ BARU: Loading animation */
+.timeline-item {
+  opacity: 0;
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.timeline-item:nth-child(1) { animation-delay: 0.1s; }
+.timeline-item:nth-child(2) { animation-delay: 0.2s; }
+.timeline-item:nth-child(3) { animation-delay: 0.3s; }
+.timeline-item:nth-child(4) { animation-delay: 0.4s; }
+.timeline-item:nth-child(5) { animation-delay: 0.5s; }
 </style>

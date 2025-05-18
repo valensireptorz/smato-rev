@@ -8,18 +8,14 @@ const Model_Guru = require("../model/Model_Guru.js");
 const Model_Kelas = require("../model/Model_Kelas.js");
 const Model_Users = require("../model/Model_Users.js");
 
-
-
 router.get("/", async (req, res) => {
   try {
-    const kelasSearch = req.query.kelas || '';  // Get the kelas from the query string, or default to an empty string
+    const kelasSearch = req.query.kelas || '';
     let jadwal;
 
     if (kelasSearch) {
-      // Query jadwal based on kelas
       jadwal = await Model_Jadwal.getByKelas(kelasSearch);
     } else {
-      // If no kelas is provided, fetch all jadwal
       jadwal = await Model_Jadwal.getAll();
     }
 
@@ -32,18 +28,52 @@ router.get("/", async (req, res) => {
       return acc;
     }, {});
 
+    // ✅ Auto-detect hari saat ini
+    const today = new Date();
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const currentDay = days[today.getDay()];
+    
+    console.log("🗓️ Hari ini adalah:", currentDay);
+
+    // ✅ FITUR BARU: Dapatkan data guru yang sedang login dari database
+    let currentGuru = null;
+    let currentGuruId = null;
+    
+    if (req.session.level === 'guru' && req.session.userId) { // ✅ Gunakan userId sesuai login route
+      try {
+        // Ambil data user berdasarkan session
+        const userData = await Model_Users.getId(req.session.userId); // ✅ Gunakan userId
+        
+        if (userData && userData.length > 0 && userData[0].id_guru) {
+          const guruId = userData[0].id_guru;
+          
+          // Ambil data guru berdasarkan id_guru dari users table
+          const guruData = await Model_Guru.getId(guruId);
+          
+          if (guruData && guruData.length > 0) {
+            currentGuru = guruData[0].nama_guru;
+            currentGuruId = guruData[0].id_guru;
+            console.log("👩‍🏫 Guru yang login:", currentGuru, "(ID:", currentGuruId, ")");
+          }
+        }
+      } catch (error) {
+        console.error("❌ Error mendapatkan data guru:", error);
+      }
+    }
+
     res.render("jadwal/index", {
-      groupedData: groupedData,  // <- ini wajib dikirim
-      level: req.session.level,  // pastikan session ada
-      kelasSearch: kelasSearch   // Kirimkan kelasSearch ke view untuk menampilkan kembali di input field
+      groupedData: groupedData,
+      level: req.session.level,
+      kelasSearch: kelasSearch,
+      currentDay: currentDay,
+      currentGuru: currentGuru,        // ✅ Nama guru dari database
+      currentGuruId: currentGuruId     // ✅ ID guru untuk matching jadwal
     });
   } catch (err) {
     console.error(err);
     res.status(500).send("Terjadi kesalahan saat mengambil data jadwal.");
   }
 });
-
-
 
 router.get("/create",async function (req, res, next) {
   let level_users = req.session.level;
@@ -95,10 +125,10 @@ router.get("/edit/(:id)", async function (req, res, next) {
   try {
     let level_users = req.session.level;
     let id = req.params.id;
-    let rows = await Model_Jadwal.getId(id); // Mengambil data jadwal saja
-    let mapel = await Model_Mapel.getAll(); // Mengambil semua mata kuliah
-    let guru = await Model_Guru.getAll(); // Mengambil semua guru
-    let kelas = await Model_Kelas.getAll(); // Mengambil semua kelas
+    let rows = await Model_Jadwal.getId(id);
+    let mapel = await Model_Mapel.getAll();
+    let guru = await Model_Guru.getAll();
+    let kelas = await Model_Kelas.getAll();
     res.render("jadwal/edit", {
       id:             rows[0].id_jadwal,
       hari:  rows[0].hari,
@@ -113,13 +143,10 @@ router.get("/edit/(:id)", async function (req, res, next) {
       level: level_users,
     });
   } catch (error) {
-    console.log(error); // Mencetak error jika terjadi kesalahan
-    // Menangani kesalahan dengan memberikan respons yang sesuai kepada pengguna
+    console.log(error);
     res.status(500).send("Terjadi kesalahan pada server.");
   }
 });
-
-
 
 router.post("/update/(:id)", async function (req, res, next) {
   try {
@@ -151,7 +178,6 @@ router.post("/update/(:id)", async function (req, res, next) {
 })
 
 router.get("/delete/(:id)", async function (req, res) {
-  
   let id = req.params.id;
   await Model_Jadwal.Delete(id);
   req.flash("success", "Data terhapus!");
@@ -160,17 +186,15 @@ router.get("/delete/(:id)", async function (req, res) {
 
 router.get("/jadwal", async (req, res) => {
   try {
-      const groupedJadwal = await Model_Jadwal.getGroupedByDay(); // Mengambil data yang sudah dikelompokkan
+      const groupedJadwal = await Model_Jadwal.getGroupedByDay();
       res.render("jadwal/index", {
-          groupedData: groupedJadwal,  // Pastikan 'groupedData' dikirimkan
-          level: req.session.level     // Menambahkan level jika diperlukan
+          groupedData: groupedJadwal,
+          level: req.session.level
       });
   } catch (error) {
       console.error("Error:", error);
       res.status(500).send("Error fetching data");
   }
 });
-
-
 
 module.exports = router;
