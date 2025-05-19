@@ -74,35 +74,51 @@ class _BerandaScreenState extends State<BerandaScreen>
     super.dispose();
   }
 
-  Future<void> _loadAbsenData() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      String idSiswa = prefs.getString('id_siswa') ?? '1';
-      
-      final absenData = await AbsenService.getAbsenBySiswa(idSiswa);
-      setState(() {
-        _allAbsenList = absenData;
-        _absenList = Future.value(absenData);
-      });
-    } catch (e) {
-      print('Error loading absen data: $e');
-    }
+Future<void> _loadAbsenData() async {
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    String idSiswa = prefs.getString('id_siswa') ?? '1';
+    
+    final absenData = await AbsenService.getAbsenBySiswa(idSiswa);
+    
+    // Urutkan data absen berdasarkan tanggal terbaru (descending)
+    absenData.sort((a, b) {
+      DateTime dateA = DateTime.parse(a['tanggal']);
+      DateTime dateB = DateTime.parse(b['tanggal']);
+      return dateB.compareTo(dateA); // Descending order
+    });
+    
+    setState(() {
+      _allAbsenList = absenData;
+      _absenList = Future.value(absenData);
+    });
+  } catch (e) {
+    print('Error loading absen data: $e');
   }
+}
 
   Future<void> _loadTugasData() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      String idSiswa = prefs.getString('id_siswa') ?? '1';
-      
-      final tugasData = await TugasService.getTugasBySiswa(idSiswa);
-      setState(() {
-        _allTugasList = tugasData;
-        _tugasList = Future.value(tugasData);
-      });
-    } catch (e) {
-      print('Error loading tugas data: $e');
-    }
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    String idSiswa = prefs.getString('id_siswa') ?? '1';
+    
+    final tugasData = await TugasService.getTugasBySiswa(idSiswa);
+    
+    // Urutkan data tugas berdasarkan deadline terbaru (descending)
+    tugasData.sort((a, b) {
+      DateTime deadlineA = DateTime.parse(a['deadline']);
+      DateTime deadlineB = DateTime.parse(b['deadline']);
+      return deadlineB.compareTo(deadlineA); // Descending order
+    });
+    
+    setState(() {
+      _allTugasList = tugasData;
+      _tugasList = Future.value(tugasData);
+    });
+  } catch (e) {
+    print('Error loading tugas data: $e');
   }
+}
 
   Future<void> _loadPresensiStatus() async {
     try {
@@ -730,10 +746,11 @@ class _BerandaScreenState extends State<BerandaScreen>
           return _buildEmptyState("Tidak ada data absensi saat ini", Icons.assignment_late_outlined);
         }
         
-        List<Map<String, dynamic>> activeAbsens = [];
-        List<Map<String, dynamic>> expiredAbsens = [];
-        
-        for (var absen in snapshot.data!) {
+        // Pada _buildAbsenList()
+List<Map<String, dynamic>> activeAbsens = [];
+List<Map<String, dynamic>> expiredAbsens = [];
+
+for (var absen in snapshot.data!) {
           bool isExpired = false;
           
           if (absen['jam_selesai'] != null) {
@@ -762,12 +779,12 @@ class _BerandaScreenState extends State<BerandaScreen>
             }
           }
           
-          if (isExpired) {
-            expiredAbsens.add(absen);
-          } else {
-            activeAbsens.add(absen);
-          }
-        }
+           if (isExpired) {
+    expiredAbsens.add(absen);
+  } else {
+    activeAbsens.add(absen);
+  }
+}
         
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1106,17 +1123,18 @@ class _BerandaScreenState extends State<BerandaScreen>
           return _buildEmptyState("Tidak ada tugas saat ini", Icons.note_alt_outlined);
         }
         
-        List<Map<String, dynamic>> activeAssignments = [];
-        List<Map<String, dynamic>> pastAssignments = [];
-        
-        for (var tugas in snapshot.data!) {
-          DateTime deadline = DateTime.parse(tugas['deadline']);
-          if (DateTime.now().isAfter(deadline)) {
-            pastAssignments.add(tugas);
-          } else {
-            activeAssignments.add(tugas);
-          }
-        }
+        // Pada _buildTugasList()
+List<Map<String, dynamic>> activeAssignments = [];
+List<Map<String, dynamic>> pastAssignments = [];
+
+for (var tugas in snapshot.data!) {
+  DateTime deadline = DateTime.parse(tugas['deadline']);
+  if (DateTime.now().isAfter(deadline)) {
+    pastAssignments.add(tugas);
+  } else {
+    activeAssignments.add(tugas);
+  }
+}
         
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,

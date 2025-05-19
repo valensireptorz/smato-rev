@@ -22,7 +22,7 @@ router.get('/download/:filename', (req, res) => {
 // ✅ Tampilkan semua data pengumpulan
 router.get("/semua", async (req, res) => {
   try {
-    const response = await fetch("http://192.168.1.17:3000/api/pengumpulan/semua");
+    const response = await fetch("http://192.168.154.120:3000/api/pengumpulan/semua");
     
     if (!response.ok) {
       console.log(`API error: ${response.status} ${response.statusText}`);
@@ -68,7 +68,7 @@ router.get("/detail/:id_tugas", async (req, res) => {
     const { id_tugas } = req.params;
     console.log("🔍 Frontend request detail untuk id_tugas:", id_tugas);
     
-    const response = await fetch(`http://192.168.1.17:3000/api/pengumpulan/detail/${id_tugas}`);
+    const response = await fetch(`http://192.168.154.120:3000/api/pengumpulan/detail/${id_tugas}`);
     
     // Cek apakah response berhasil
     if (!response.ok) {
