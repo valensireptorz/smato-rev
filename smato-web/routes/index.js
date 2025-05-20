@@ -126,35 +126,81 @@ router.post('/store', function (req, res, next) {
     res.redirect('/users/create');
   }
 });
+// Route untuk menampilkan form edit guru
+router.get('/edit/:id', async function (req, res) {
+  try {
+    const id = req.params.id;
+    
+    // Ambil data user yang akan diedit
+    const userData = await Model_Users.getId(id);
+    
+    if (userData.length === 0) {
+      req.flash('error', 'Data guru tidak ditemukan');
+      return res.redirect('/guru_list');
+    }
+    
+    res.render('users/edit', {
+      title: 'Edit Data Guru',
+      user: userData[0],
+      level: req.session.level,
+      messages: req.flash()
+    });
+  } catch (error) {
+    console.error('Error:', error);
+    req.flash('error', 'Gagal membuka form edit guru');
+    res.redirect('/guru_list');
+  }
+});
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Route untuk menyimpan perubahan data guru
+router.post('/update/:id', function (req, res, next) {
+  upload(req, res, function (err) {
+    if (err) {
+      console.error("Upload error:", err);
+      req.flash('error', 'Gagal mengunggah file');
+      return res.redirect(`/edit/${req.params.id}`);
+    }
+    next();
+  });
+}, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { username, password, level_users, id_guru, id_mapel } = req.body;
+    
+    // Ambil data user saat ini untuk dicek
+    const currentUser = await Model_Users.getId(id);
+    
+    if (currentUser.length === 0) {
+      req.flash('error', 'Data guru tidak ditemukan');
+      return res.redirect('/guru_list');
+    }
+    
+    // Siapkan data update (hanya username yang selalu diupdate)
+    const userData = {
+      username
+    };
+    
+    // Update password hanya jika diisi
+    if (password && password.trim() !== '') {
+      userData.password = bcrypt.hashSync(password, 10);
+    }
+    
+    // Update foto hanya jika ada file baru
+    if (req.file) {
+      userData.foto_users = req.file.filename;
+    }
+    
+    // Update data user (hanya username, password, dan foto)
+    await Model_Users.Update(id, userData);
+    
+    req.flash('success', 'Data guru berhasil diperbarui');
+    res.redirect('/guru_list');
+  } catch (error) {
+    console.error('Error updating user:', error);
+    req.flash('error', 'Gagal memperbarui data guru');
+    res.redirect(`/edit/${req.params.id}`);
+  }
+});
 
 /* GET home page. */
 router.get('/', function(req, res, next) {

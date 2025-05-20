@@ -49,7 +49,7 @@ class AbsenModel {
 }
 
 class AbsenService {
-  static const String baseUrl = 'http://192.168.154.120:3000/api/absen';
+  static const String baseUrl = 'http://192.168.1.17:3000/api/absen';
 
   // Method baru: Ambil data absen berdasarkan ID Siswa
 static Future<List<Map<String, dynamic>>> getAbsenBySiswa(String idSiswa) async {

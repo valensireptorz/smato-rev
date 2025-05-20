@@ -62,51 +62,42 @@
       </div>
     </div>
 
-    <!-- Filter Pills -->
-    <div class="row mb-4">
-      <div class="col-12">
-        <div class="card shadow-sm mb-0">
-          <div class="card-body p-3">
-            <div class="d-flex flex-wrap gap-2" id="day-filters">
-              <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Minggu' ? 'active' : '' %>" data-day="all">Semua Hari</button>
-              <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Senin' ? 'active' : '' %>" data-day="Senin">Senin</button>
-              <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Selasa' ? 'active' : '' %>" data-day="Selasa">Selasa</button>
-              <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Rabu' ? 'active' : '' %>" data-day="Rabu">Rabu</button>
-              <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Kamis' ? 'active' : '' %>" data-day="Kamis">Kamis</button>
-              <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Jumat' ? 'active' : '' %>" data-day="Jumat">Jumat</button>
-              <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Sabtu' ? 'active' : '' %>" data-day="Sabtu">Sabtu</button>
-            </div>
-            <% if (typeof level !== 'undefined' && level === 'guru' && typeof currentGuru !== 'undefined' && currentGuru) { %>
-              <div class="mt-3 alert alert-info alert-dismissible d-flex align-items-center" role="alert">
-                <i class="bx bx-info-circle me-2"></i>
-                <div>
-                  <strong>Info:</strong> Jadwal dengan highlight adalah jadwal Anda (<%= currentGuru %>).
-                  <% if (typeof currentDay !== 'undefined' && currentDay !== 'Minggu') { %>
-                    Menampilkan jadwal hari <strong><%= currentDay %></strong>.
-                  <% } %>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-              </div>
-            <% } %>
-          </div>
+    <!-- Modifikasi pada section Filter Pills untuk menampilkan semua hari -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card shadow-sm mb-0">
+      <div class="card-body p-3">
+        <div class="d-flex flex-wrap gap-2" id="day-filters">
+          <button class="btn btn-sm btn-outline-primary" data-day="all">Semua Hari</button>
+          <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Senin' ? 'active' : '' %>" data-day="Senin">Senin</button>
+          <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Selasa' ? 'active' : '' %>" data-day="Selasa">Selasa</button>
+          <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Rabu' ? 'active' : '' %>" data-day="Rabu">Rabu</button>
+          <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Kamis' ? 'active' : '' %>" data-day="Kamis">Kamis</button>
+          <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Jumat' ? 'active' : '' %>" data-day="Jumat">Jumat</button>
+          <button class="btn btn-sm btn-outline-primary <%= typeof currentDay !== 'undefined' && currentDay === 'Sabtu' ? 'active' : '' %>" data-day="Sabtu">Sabtu</button>
         </div>
+        <% if (typeof level !== 'undefined' && level === 'guru' && typeof currentGuru !== 'undefined' && currentGuru) { %>
+          <div class="mt-3 alert alert-info alert-dismissible d-flex align-items-center" role="alert">
+            <i class="bx bx-info-circle me-2"></i>
+            <div>
+              <strong>Info:</strong> Jadwal dengan highlight adalah jadwal Anda (<%= currentGuru %>).
+              Anda dapat memilih hari lain dengan klik tombol filter di atas.
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        <% } %>
       </div>
     </div>
+  </div>
+</div>
 
-  <!-- Jadwal Content -->
+<!-- Modifikasi pada Jadwal Content - Hapus filter hari otomatis untuk guru -->
 <div class="jadwal-container mb-5" id="day-view">
   <div class="row">
     <% if (typeof groupedData !== 'undefined' && groupedData && Object.keys(groupedData).length > 0) { %>
       <% 
-        // Tentukan hari apa saja yang akan ditampilkan
+        // Tampilkan semua hari tersedia
         let daysToShow = Object.keys(groupedData);
-        
-        // Jika BUKAN admin dan tidak ada pencarian kelas, filter hanya hari saat ini
-        if (typeof level !== 'undefined' && level !== 'admin' && typeof currentDay !== 'undefined' && 
-            currentDay && currentDay !== 'Minggu' && !kelasSearch) {
-          daysToShow = groupedData[currentDay] ? [currentDay] : daysToShow;
-        }
-        // Jika admin, tetap tampilkan semua hari
       %>
       
       <% daysToShow.forEach(hari => { %>
@@ -186,7 +177,7 @@
                                   <i class="bx bx-trash me-1"></i> Delete
                                 </a>
                               <% } else if (typeof level !== 'undefined' && level === 'guru' && isCurrentTeacher) { %>
-                                <!-- Tombol untuk guru -->
+                                <!-- Tombol untuk guru jika diperlukan -->
                               <% } %>
                             </div>
                             <% } %>
@@ -222,9 +213,7 @@
   </div>
 </div>
 
-<%- include('../partials/_foot.ejs') %>
-
-<!-- Extra scripts for animations and functionality -->
+<!-- Modifikasi pada script JavaScript -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   // ✅ Perilaku tombol filter hari
@@ -235,21 +224,25 @@ document.addEventListener('DOMContentLoaded', function() {
   const currentDay = '<%= typeof currentDay !== "undefined" ? currentDay : "" %>';
   const userLevel = '<%= typeof level !== "undefined" ? level : "" %>';
   
-  // Set tombol aktif berdasarkan level pengguna
-  if (userLevel === 'admin') {
-    // Admin: aktifkan tombol 'Semua Hari'
-    const allButton = document.querySelector('#day-filters button[data-day="all"]');
-    if (allButton) {
-      dayButtons.forEach(btn => btn.classList.remove('active'));
-      allButton.classList.add('active');
-    }
-  } else if (currentDay && currentDay !== 'Minggu') {
-    // Non-admin: aktifkan tombol hari saat ini
+  // Set tombol aktif berdasarkan hari saat ini untuk semua pengguna
+  if (currentDay && currentDay !== 'Minggu') {
+    // Aktifkan tombol hari saat ini
     const activeButton = document.querySelector(`#day-filters button[data-day="${currentDay}"]`);
     if (activeButton) {
       dayButtons.forEach(btn => btn.classList.remove('active'));
       activeButton.classList.add('active');
     }
+    
+    // Tampilkan hari saat ini saja secara default
+    filterByDay(currentDay);
+  } else {
+    // Jika hari Minggu atau tidak ada hari, tampilkan semua
+    const allButton = document.querySelector('#day-filters button[data-day="all"]');
+    if (allButton) {
+      dayButtons.forEach(btn => btn.classList.remove('active'));
+      allButton.classList.add('active');
+    }
+    filterByDay('all');
   }
   
   // Tambahkan event listener untuk tombol filter
@@ -295,11 +288,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
   
-  // ✅ Inisialisasi tampilan awal jika bukan admin
-  if (userLevel !== 'admin' && currentDay && currentDay !== 'Minggu') {
-    filterByDay(currentDay);
-  }
-  
   // Card hover effect
   const scheduleCards = document.querySelectorAll('.timeline-item .card');
   scheduleCards.forEach(card => {
@@ -338,6 +326,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial check
     checkItems();
   }
+  
+  // ✅ Additional animations for teacher highlights
+  const teacherCards = document.querySelectorAll('.teacher-highlight');
+  teacherCards.forEach((card, index) => {
+    setTimeout(() => {
+      card.classList.add('animate-in');
+    }, index * 200);
+  });
 });
 
 // View switching (Day/Week)
@@ -350,16 +346,6 @@ function switchView(viewType) {
     if (dayButton) dayButton.classList.add('active');
   }
 }
-
-// ✅ Additional animations for teacher highlights
-document.addEventListener('DOMContentLoaded', function() {
-  const teacherCards = document.querySelectorAll('.teacher-highlight');
-  teacherCards.forEach((card, index) => {
-    setTimeout(() => {
-      card.classList.add('animate-in');
-    }, index * 200);
-  });
-});
 </script>
 
 <style>

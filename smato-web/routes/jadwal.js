@@ -8,6 +8,8 @@ const Model_Guru = require("../model/Model_Guru.js");
 const Model_Kelas = require("../model/Model_Kelas.js");
 const Model_Users = require("../model/Model_Users.js");
 
+// Modifikasi pada route handler di jadwal.js
+
 router.get("/", async (req, res) => {
   try {
     const kelasSearch = req.query.kelas || '';
@@ -35,14 +37,14 @@ router.get("/", async (req, res) => {
     
     console.log("🗓️ Hari ini adalah:", currentDay);
 
-    // ✅ FITUR BARU: Dapatkan data guru yang sedang login dari database
+    // ✅ Dapatkan data guru yang sedang login dari database
     let currentGuru = null;
     let currentGuruId = null;
     
-    if (req.session.level === 'guru' && req.session.userId) { // ✅ Gunakan userId sesuai login route
+    if (req.session.level === 'guru' && req.session.userId) {
       try {
         // Ambil data user berdasarkan session
-        const userData = await Model_Users.getId(req.session.userId); // ✅ Gunakan userId
+        const userData = await Model_Users.getId(req.session.userId);
         
         if (userData && userData.length > 0 && userData[0].id_guru) {
           const guruId = userData[0].id_guru;
@@ -61,13 +63,14 @@ router.get("/", async (req, res) => {
       }
     }
 
+    // Render halaman dengan semua data yang diperlukan
     res.render("jadwal/index", {
       groupedData: groupedData,
       level: req.session.level,
       kelasSearch: kelasSearch,
       currentDay: currentDay,
-      currentGuru: currentGuru,        // ✅ Nama guru dari database
-      currentGuruId: currentGuruId     // ✅ ID guru untuk matching jadwal
+      currentGuru: currentGuru,        
+      currentGuruId: currentGuruId     
     });
   } catch (err) {
     console.error(err);
