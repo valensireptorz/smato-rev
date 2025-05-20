@@ -3,6 +3,57 @@ const Model_Mapel = require("../model/Model_Mapel.js");
 const Model_Users = require("../model/Model_Users.js");
 
 class Model_Tugas {
+    // Add this method to Model_Tugas.js
+
+// Get tugas by mapel, date filter (bulan dan tahun), and kelas
+static async getByMapelDateAndKelas(id_mapel, bulan, tahun, kode_kelas) {
+    return new Promise((resolve, reject) => {
+        const query = `
+            SELECT t.*, m.nama_mapel, g.nama_guru, k.id_kelas, k.kode_kelas
+            FROM tugas t
+            LEFT JOIN mapel m ON t.id_mapel = m.id_mapel
+            LEFT JOIN guru g ON t.id_guru = g.id_guru
+            LEFT JOIN kelas k ON t.id_kelas = k.id_kelas
+            WHERE t.id_mapel = ? AND MONTH(t.deadline) = ? AND YEAR(t.deadline) = ? AND k.kode_kelas = ?
+            ORDER BY t.deadline ASC
+        `;
+        
+        connection.query(query, [id_mapel, bulan, tahun, kode_kelas], (err, rows) => {
+            if (err) {
+                console.error("Error in Model_Tugas.getByMapelDateAndKelas():", err);
+                reject(err);
+            } else {
+                console.log(`Found ${rows.length} tasks for mapel ${id_mapel}, class ${kode_kelas}, month ${bulan}/${tahun}`);
+                resolve(rows);
+            }
+        });
+    });
+}
+
+// Add a method to filter by date and kelas (without mapel filter)
+static async getByDateAndKelas(bulan, tahun, kode_kelas) {
+    return new Promise((resolve, reject) => {
+        const query = `
+            SELECT t.*, m.nama_mapel, g.nama_guru, k.id_kelas, k.kode_kelas
+            FROM tugas t
+            LEFT JOIN mapel m ON t.id_mapel = m.id_mapel
+            LEFT JOIN guru g ON t.id_guru = g.id_guru
+            LEFT JOIN kelas k ON t.id_kelas = k.id_kelas
+            WHERE MONTH(t.deadline) = ? AND YEAR(t.deadline) = ? AND k.kode_kelas = ?
+            ORDER BY t.deadline ASC
+        `;
+        
+        connection.query(query, [bulan, tahun, kode_kelas], (err, rows) => {
+            if (err) {
+                console.error("Error in Model_Tugas.getByDateAndKelas():", err);
+                reject(err);
+            } else {
+                console.log(`Found ${rows.length} tasks for class ${kode_kelas}, month ${bulan}/${tahun}`);
+                resolve(rows);
+            }
+        });
+    });
+}
     // Get tugas by mapel and date filter (bulan dan tahun)
     static async getByMapelAndDate(id_mapel, bulan, tahun) {
         return new Promise((resolve, reject) => {

@@ -12,6 +12,7 @@ const Model_Guru_Kelas = require("../model/Model_Guru_Kelas.js");
 // Tampilkan daftar tugas dengan filter bulan
 router.get("/", async (req, res) => {
   let nama_mapel = req.query.nama_mapel;
+  let kode_kelas = req.query.kode_kelas; // Get class code from query parameters
   let bulan = req.query.bulan || moment().format("MM"); // Default bulan sekarang
   let tahun = req.query.tahun || moment().format("YYYY"); // Default tahun sekarang
   const userLevel = req.session.level;
@@ -20,6 +21,7 @@ router.get("/", async (req, res) => {
   try {
     let dataMapel = [];
     let dataTugas = [];
+    let dataKelas = await Model_Kelas.getAll(); // Get all classes for dropdown
     let id_mapel = null;
 
     // Jika user adalah guru, filter berdasarkan mata pelajaran yang diampu
@@ -43,8 +45,14 @@ router.get("/", async (req, res) => {
               nama_mapel = mapelGuru.nama_mapel;
             }
             
-            // Ambil tugas berdasarkan mata pelajaran guru dan filter bulan/tahun
-            dataTugas = await Model_Tugas.getByMapelAndDate(id_mapel, bulan, tahun);
+            // Apply filtering based on class selection
+            if (kode_kelas) {
+              // Filter by subject, date, and class
+              dataTugas = await Model_Tugas.getByMapelDateAndKelas(id_mapel, bulan, tahun, kode_kelas);
+            } else {
+              // Filter only by subject and date (all classes)
+              dataTugas = await Model_Tugas.getByMapelAndDate(id_mapel, bulan, tahun);
+            }
           }
         }
       }
@@ -52,26 +60,66 @@ router.get("/", async (req, res) => {
       // Jika bukan guru, tampilkan semua mapel
       dataMapel = await Model_Mapel.getAll();
       
-      // Filter berdasarkan mata pelajaran yang dipilih
-      if (nama_mapel) {
+      // Apply filtering based on selections
+      if (nama_mapel && kode_kelas) {
+        // Filter by both subject, date, and class
+        const mapel = await Model_Mapel.getByNama(nama_mapel);
+        if (mapel) {
+          id_mapel = mapel.id_mapel;
+          dataTugas = await Model_Tugas.getByMapelDateAndKelas(id_mapel, bulan, tahun, kode_kelas);
+        }
+      } else if (nama_mapel) {
+        // Filter by subject and date
         const mapel = await Model_Mapel.getByNama(nama_mapel);
         if (mapel) {
           id_mapel = mapel.id_mapel;
           dataTugas = await Model_Tugas.getByMapelAndDate(id_mapel, bulan, tahun);
         }
+      } else if (kode_kelas) {
+        // Filter by date and class
+        dataTugas = await Model_Tugas.getByDateAndKelas(bulan, tahun, kode_kelas);
       } else {
-        // Jika tidak ada mapel yang dipilih, tampilkan semua tugas
+        // Filter by date only
         dataTugas = await Model_Tugas.getAllAndDate(bulan, tahun);
       }
     }
 
+    // Get list of months for dropdown
+    const months = [
+      { value: "01", name: 'Januari' },
+      { value: "02", name: 'Februari' },
+      { value: "03", name: 'Maret' },
+      { value: "04", name: 'April' },
+      { value: "05", name: 'Mei' },
+      { value: "06", name: 'Juni' },
+      { value: "07", name: 'Juli' },
+      { value: "08", name: 'Agustus' },
+      { value: "09", name: 'September' },
+      { value: "10", name: 'Oktober' },
+      { value: "11", name: 'November' },
+      { value: "12", name: 'Desember' }
+    ];
+
+    // Get list of years (current year and 3 years back/forward)
+    const currentYear = parseInt(moment().format("YYYY"));
+    const years = [
+      (currentYear - 2).toString(), 
+      (currentYear - 1).toString(), 
+      currentYear.toString(), 
+      (currentYear + 1).toString()
+    ];
+
     res.render("tugas/index", {
       dataMapel,
       dataTugas,
+      dataKelas,
       nama_mapel,
+      kode_kelas,
       id_mapel,
       bulan,
       tahun,
+      months,
+      years,
       level: userLevel,
       messages: {
         success: req.flash('success'),

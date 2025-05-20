@@ -301,86 +301,87 @@
 
 <div class="container">
   <!-- Filter Controls Card -->
-  <div class="card mb-4">
-    <div class="card-body p-3">
-      <form action="/absen" method="GET" class="row align-items-end g-3">
-        <!-- Subject Filter -->
-        <div class="col-md-4">
-          <label class="form-label"><i class="bi bi-book me-2"></i>Mata Pelajaran</label>
-          <select name="nama_mapel" class="form-select shadow-sm">
-            <option value="">Semua Mata Pelajaran</option>
-            <% dataMapel.forEach((mapel) => { %>
-              <option value="<%= mapel.nama_mapel %>" <%= nama_mapel === mapel.nama_mapel ? 'selected' : '' %>>
-                <%= mapel.nama_mapel %>
+  <!-- Filter Controls Card - Updated with Class Filter -->
+<div class="card mb-4">
+  <div class="card-body p-3">
+    <form action="/absen" method="GET" class="row align-items-end g-3">
+      <!-- Subject Filter -->
+      <div class="col-md-3">
+        <label class="form-label"><i class="bi bi-book me-2"></i>Mata Pelajaran</label>
+        <select name="nama_mapel" class="form-select shadow-sm">
+          <option value="">Semua Mata Pelajaran</option>
+          <% dataMapel.forEach((mapel) => { %>
+            <option value="<%= mapel.nama_mapel %>" <%= nama_mapel === mapel.nama_mapel ? 'selected' : '' %>>
+              <%= mapel.nama_mapel %>
+            </option>
+          <% }) %>
+        </select>
+      </div>
+
+      <!-- NEW Class Filter -->
+      <div class="col-md-2">
+        <label class="form-label"><i class="bi bi-people me-2"></i>Kelas</label>
+        <select name="kode_kelas" class="form-select shadow-sm">
+          <option value="">Semua Kelas</option>
+          <% if (typeof dataKelas !== 'undefined' && dataKelas.length > 0) { %>
+            <% dataKelas.forEach((kelas) => { %>
+              <option value="<%= kelas.kode_kelas %>" <%= (typeof kode_kelas !== 'undefined' && kode_kelas === kelas.kode_kelas) ? 'selected' : '' %>>
+                <%= kelas.kode_kelas %>
               </option>
             <% }) %>
-          </select>
-        </div>
-        
-        <!-- Month Filter -->
-        <div class="col-md-3">
-          <label class="form-label"><i class="bi bi-calendar-month me-2"></i>Bulan</label>
-          <select name="month" class="form-select shadow-sm">
-            <% const months = [
-              { value: 1, name: 'Januari' },
-              { value: 2, name: 'Februari' },
-              { value: 3, name: 'Maret' },
-              { value: 4, name: 'April' },
-              { value: 5, name: 'Mei' },
-              { value: 6, name: 'Juni' },
-              { value: 7, name: 'Juli' },
-              { value: 8, name: 'Agustus' },
-              { value: 9, name: 'September' },
-              { value: 10, name: 'Oktober' },
-              { value: 11, name: 'November' },
-              { value: 12, name: 'Desember' }
-            ]; %>
-            <% months.forEach(function(m) { %>
-              <option value="<%= m.value %>" <%= (typeof month !== 'undefined' && month === m.value) ? 'selected' : '' %>>
-                <%= m.name %>
-              </option>
-            <% }); %>
-          </select>
-        </div>
-        
-        <!-- Year Filter -->
-        <div class="col-md-3">
-          <label class="form-label"><i class="bi bi-calendar-date me-2"></i>Tahun</label>
-          <select name="year" class="form-select shadow-sm">
-            <% 
-              const currentYear = new Date().getFullYear();
-              const years = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
-            %>
-            <% years.forEach(function(y) { %>
-              <option value="<%= y %>" <%= (typeof year !== 'undefined' && year === y) ? 'selected' : '' %>>
-                <%= y %>
-              </option>
-            <% }); %>
-          </select>
-        </div>
-        
-        <!-- Filter Button -->
-        <div class="col-md-2">
-          <button type="submit" class="btn w-100 shadow-sm" style="background-color: var(--primary); color: white;">
-            <i class="bi bi-filter me-2"></i>Filter
-          </button>
-        </div>
-      </form>
-    </div>
+          <% } %>
+        </select>
+      </div>
+      
+      <!-- Month Filter -->
+      <div class="col-md-2">
+        <label class="form-label"><i class="bi bi-calendar-month me-2"></i>Bulan</label>
+        <select name="month" class="form-select shadow-sm">
+          <% months.forEach(function(m) { %>
+            <option value="<%= m.value %>" <%= (typeof month !== 'undefined' && month === m.value) ? 'selected' : '' %>>
+              <%= m.name %>
+            </option>
+          <% }); %>
+        </select>
+      </div>
+      
+      <!-- Year Filter -->
+      <div class="col-md-2">
+        <label class="form-label"><i class="bi bi-calendar-date me-2"></i>Tahun</label>
+        <select name="year" class="form-select shadow-sm">
+          <% years.forEach(function(y) { %>
+            <option value="<%= y %>" <%= (typeof year !== 'undefined' && year === y) ? 'selected' : '' %>>
+              <%= y %>
+            </option>
+          <% }); %>
+        </select>
+      </div>
+      
+      <!-- Filter Button -->
+      <div class="col-md-2">
+        <button type="submit" class="btn w-100 shadow-sm" style="background-color: var(--primary); color: white;">
+          <i class="bi bi-filter me-2"></i>Filter
+        </button>
+      </div>
+    </form>
   </div>
+</div>
 
-  <!-- Active Filter Indicators -->
-  <% if (typeof month !== 'undefined' && typeof year !== 'undefined') { %>
-    <div class="filter-indicator mb-4">
-      <i class="bi bi-funnel-fill me-2"></i>
-      <span>Menampilkan data bulan 
-        <strong><%= months.find(m => m.value === month)?.name %> <%= year %></strong>
-        <% if (nama_mapel) { %> 
-          pada mata pelajaran <strong><%= nama_mapel %></strong>
-        <% } %>
-      </span>
-    </div>
-  <% } %>
+<!-- Active Filter Indicators - Updated to show class filter -->
+<% if (typeof month !== 'undefined' && typeof year !== 'undefined') { %>
+  <div class="filter-indicator mb-4">
+    <i class="bi bi-funnel-fill me-2"></i>
+    <span>Menampilkan data bulan 
+      <strong><%= months.find(m => m.value === month)?.name %> <%= year %></strong>
+      <% if (nama_mapel) { %> 
+        pada mata pelajaran <strong><%= nama_mapel %></strong>
+      <% } %>
+      <% if (typeof kode_kelas !== 'undefined' && kode_kelas) { %> 
+        untuk kelas <strong><%= kode_kelas %></strong>
+      <% } %>
+    </span>
+  </div>
+<% } %>
 
   <!-- Subject Selector Card -->
   <div class="subject-selector">

@@ -1,6 +1,6 @@
 <%- include('../partials/_head.ejs') %>
 
-<!-- Custom CSS for enhanced UI -->
+<!-- Custom CSS for enhanced UI - Retained from original -->
 <style>
   :root {
     --primary: #4361ee;
@@ -195,6 +195,26 @@
     margin-right: 0.75rem;
   }
   
+  /* New style for filter card */
+  .filter-card {
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    background-color: white;
+    padding: 1.5rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  }
+  
+  .filter-indicator {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    border-left: 4px solid var(--primary);
+    padding: 12px 15px;
+    border-radius: 6px;
+    color: var(--bs-dark);
+    font-size: 14px;
+    margin-bottom: 1.5rem;
+    animation: fadeIn 0.5s ease;
+  }
+  
   /* Animations */
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
@@ -205,13 +225,17 @@
     animation: fadeIn 0.5s ease forwards;
   }
   
-  .page-header .container, .subject-selector, .task-card {
+  .page-header .container, .subject-selector, .task-card, .filter-card {
     opacity: 0;
     animation: fadeIn 0.5s ease forwards;
   }
   
   .subject-selector {
     animation-delay: 0.1s;
+  }
+  
+  .filter-card {
+    animation-delay: 0.05s;
   }
   
   .task-card {
@@ -241,11 +265,47 @@
 </header>
 
 <div class="container">
-  <!-- Filter by Month and Year -->
-  <form method="GET" action="/tugas">
-    <div class="row mb-3">
-      <div class="col-md-4">
-        <label for="bulan" class="form-label">Pilih Bulan</label>
+  <!-- Enhanced Filter Section with Class Filter -->
+  <div class="filter-card">
+    <h5 class="mb-3">Filter Tugas</h5>
+    <form method="GET" action="/tugas" class="row g-3">
+      <!-- Mata Pelajaran Filter -->
+      <div class="col-md-3">
+        <label for="nama_mapel" class="form-label">
+          <i class="bi bi-book me-2"></i>Mata Pelajaran
+        </label>
+        <select name="nama_mapel" id="nama_mapel" class="form-select">
+          <option value="">Semua Mata Pelajaran</option>
+          <% dataMapel.forEach((mapel) => { %>
+            <option value="<%= mapel.nama_mapel %>" <%= nama_mapel === mapel.nama_mapel ? 'selected' : '' %>>
+              <%= mapel.nama_mapel %>
+            </option>
+          <% }) %>
+        </select>
+      </div>
+      
+      <!-- NEW Class Filter -->
+      <div class="col-md-3">
+        <label for="kode_kelas" class="form-label">
+          <i class="bi bi-people me-2"></i>Kelas
+        </label>
+        <select name="kode_kelas" id="kode_kelas" class="form-select">
+          <option value="">Semua Kelas</option>
+          <% if (typeof dataKelas !== 'undefined' && dataKelas.length > 0) { %>
+            <% dataKelas.forEach((kelas) => { %>
+              <option value="<%= kelas.kode_kelas %>" <%= (typeof kode_kelas !== 'undefined' && kode_kelas === kelas.kode_kelas) ? 'selected' : '' %>>
+                <%= kelas.kode_kelas %>
+              </option>
+            <% }) %>
+          <% } %>
+        </select>
+      </div>
+
+      <!-- Bulan Filter -->
+      <div class="col-md-2">
+        <label for="bulan" class="form-label">
+          <i class="bi bi-calendar-month me-2"></i>Bulan
+        </label>
         <select name="bulan" id="bulan" class="form-select">
           <option value="01" <%= bulan === '01' ? 'selected' : '' %>>Januari</option>
           <option value="02" <%= bulan === '02' ? 'selected' : '' %>>Februari</option>
@@ -262,22 +322,66 @@
         </select>
       </div>
 
-      <div class="col-md-4">
-        <label for="tahun" class="form-label">Pilih Tahun</label>
-        <input type="number" name="tahun" id="tahun" class="form-control" value="<%= tahun %>" min="2000" max="2100" required>
+      <!-- Tahun Filter -->
+      <div class="col-md-2">
+        <label for="tahun" class="form-label">
+          <i class="bi bi-calendar-date me-2"></i>Tahun
+        </label>
+        <select name="tahun" id="tahun" class="form-select">
+          <% if (typeof years !== 'undefined' && years.length > 0) { %>
+            <% years.forEach(function(y) { %>
+              <option value="<%= y %>" <%= tahun === y ? 'selected' : '' %>><%= y %></option>
+            <% }); %>
+          <% } else { %>
+            <% 
+              const currentYear = new Date().getFullYear();
+              const yearsList = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1];
+            %>
+            <% yearsList.forEach(function(y) { %>
+              <option value="<%= y %>" <%= tahun === y.toString() ? 'selected' : '' %>><%= y %></option>
+            <% }); %>
+          <% } %>
+        </select>
       </div>
 
-      <div class="col-md-4">
-        <label>&nbsp;</label><br>
-        <button type="submit" class="btn btn-primary">Filter</button>
+      <!-- Filter Button -->
+      <div class="col-md-2">
+        <label class="form-label">&nbsp;</label>
+        <button type="submit" class="btn w-100 shadow-sm" style="background-color: var(--primary); color: white;">
+          <i class="bi bi-filter me-2"></i>Filter
+        </button>
       </div>
+    </form>
+  </div>
+
+  <!-- Active Filters Indicator -->
+  <% if (bulan && tahun) { %>
+    <div class="filter-indicator mb-4">
+      <i class="bi bi-funnel-fill me-2"></i>
+      <span>Menampilkan tugas bulan 
+        <% 
+          const monthNames = [
+            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+          ];
+          const monthIndex = parseInt(bulan) - 1;
+          const monthName = monthNames[monthIndex];
+        %>
+        <strong><%= monthName %> <%= tahun %></strong>
+        <% if (nama_mapel) { %> 
+          pada mata pelajaran <strong><%= nama_mapel %></strong>
+        <% } %>
+        <% if (typeof kode_kelas !== 'undefined' && kode_kelas) { %> 
+          untuk kelas <strong><%= kode_kelas %></strong>
+        <% } %>
+      </span>
     </div>
-  </form>
+  <% } %>
 
-  <!-- Subject Selector Card -->
+  <!-- Subject and Class Selector Card -->
   <div class="subject-selector">
     <div class="row align-items-center">
-      <div class="col-md-6">
+      <div class="col-md-4">
         <h5 class="mb-3 text-white">Pilih Mata Pelajaran</h5>
         <div class="dropdown">
           <button class="btn dropdown-toggle shadow-sm" type="button" id="courseDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -289,9 +393,14 @@
             <% } %>
           </button>
           <ul class="dropdown-menu shadow-sm" aria-labelledby="courseDropdown">
+            <li>
+              <a class="dropdown-item" href="/tugas?bulan=<%= bulan %>&tahun=<%= tahun %><%= typeof kode_kelas !== 'undefined' && kode_kelas ? '&kode_kelas=' + kode_kelas : '' %>">
+                Semua Mata Pelajaran
+              </a>
+            </li>
             <% dataMapel.forEach((mapel) => { %>
               <li>
-                <a class="dropdown-item" href="/tugas?nama_mapel=<%= mapel.nama_mapel %>&bulan=<%= bulan %>&tahun=<%= tahun %>">
+                <a class="dropdown-item" href="/tugas?nama_mapel=<%= mapel.nama_mapel %>&bulan=<%= bulan %>&tahun=<%= tahun %><%= typeof kode_kelas !== 'undefined' && kode_kelas ? '&kode_kelas=' + kode_kelas : '' %>">
                   <%= mapel.nama_mapel %>
                 </a>
               </li>
@@ -299,11 +408,50 @@
           </ul>
         </div>
       </div>
-      <div class="col-md-6 text-md-end mt-3 mt-md-0">
+      
+      <!-- NEW Class Dropdown -->
+      <div class="col-md-4">
+        <h5 class="mb-3 text-white">Pilih Kelas</h5>
+        <div class="dropdown">
+          <button class="btn dropdown-toggle shadow-sm" type="button" id="classDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: var(--info);">
+            <i class="bi bi-people me-2"></i>
+            <% if (typeof kode_kelas !== 'undefined' && kode_kelas) { %>
+              <%= kode_kelas %>
+            <% } else { %>
+              Pilih Kelas
+            <% } %>
+          </button>
+          <ul class="dropdown-menu shadow-sm" aria-labelledby="classDropdown">
+            <li>
+              <a class="dropdown-item" href="/tugas?<%= nama_mapel ? 'nama_mapel=' + nama_mapel : '' %>&bulan=<%= bulan %>&tahun=<%= tahun %>">
+                Semua Kelas
+              </a>
+            </li>
+            <% if (typeof dataKelas !== 'undefined' && dataKelas.length > 0) { %>
+              <% dataKelas.forEach((kelas) => { %>
+                <li>
+                  <a class="dropdown-item" href="/tugas?<%= nama_mapel ? 'nama_mapel=' + nama_mapel : '' %>&bulan=<%= bulan %>&tahun=<%= tahun %>&kode_kelas=<%= kelas.kode_kelas %>">
+                    <%= kelas.kode_kelas %>
+                  </a>
+                </li>
+              <% }) %>
+            <% } %>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="col-md-4 text-md-end mt-3 mt-md-0">
         <% if (nama_mapel) { %>
           <div class="subject-info">
             <i class="bi bi-journal-check me-2"></i>
             <%= nama_mapel %>
+          </div>
+        <% } %>
+        
+        <% if (typeof kode_kelas !== 'undefined' && kode_kelas) { %>
+          <div class="subject-info ms-2 d-inline-block" style="background-color: rgba(72, 149, 239, 0.1);">
+            <i class="bi bi-people-fill me-2"></i>
+            <%= kode_kelas %>
           </div>
         <% } %>
         
@@ -376,9 +524,9 @@
                               <i class="bi bi-trash me-1"></i> Hapus
                             </a>
                        
-                          <a href="/pengumpulan/detail/<%= tugas.id_tugas %>" class="btn btn-info btn-sm">
-                            <i class="bi bi-eye me-1"></i> Lihat Detail
-                          </a>
+                            <a href="/pengumpulan/detail/<%= tugas.id_tugas %>" class="btn btn-info btn-sm">
+                              <i class="bi bi-eye me-1"></i> Lihat Detail
+                            </a>
                           <% } %>
                         </div>
                       </div>
@@ -394,12 +542,11 @@
             <div class="empty-state">
               <i class="bi bi-clipboard-x"></i>
               <h5>Tidak ada tugas tersedia</h5>
-              <p class="text-muted">Silakan pilih mata pelajaran lain atau tambahkan tugas baru.</p>
+              <p class="text-muted">Silakan pilih mata pelajaran atau kelas lain, atau tambahkan tugas baru.</p>
               <% if (level === 'guru' && id_mapel) { %>
                 <a href="/tugas/create/<%= id_mapel %>" class="btn btn-primary mt-2">
                   <i class="bi bi-plus-circle me-2"></i>Tambah Tugas Baru
                 </a>
-                
               <% } %>
             </div>
           <% } %>

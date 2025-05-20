@@ -67,11 +67,15 @@ router.get("/kelas/:kode_kelas", async (req, res) => {
 });
 
 // Updated router.get("/") handler with monthly filter
+// Updated router.get("/") handler with monthly and class filter
 router.get("/", async (req, res) => {
   // Extract parameters from query
   let nama_mapel = req.query.nama_mapel;
   const userLevel = req.session.level;
   const userId = req.session.userId;
+  
+  // Get the selected class code
+  const kode_kelas = req.query.kode_kelas;
   
   // Get month and year parameters, default to current month if not provided
   const currentDate = new Date();
@@ -82,6 +86,7 @@ router.get("/", async (req, res) => {
     let dataMapel = [];
     let dataAbsen = [];
     let id_mapel = null;
+    let dataKelas = await Model_Kelas.getAll(); // Get all classes for dropdown
 
     // Jika user adalah guru, filter berdasarkan mata pelajaran yang diampu
     if (userLevel === 'guru') {
@@ -104,8 +109,14 @@ router.get("/", async (req, res) => {
               nama_mapel = mapelGuru.nama_mapel;
             }
             
-            // Ambil absen berdasarkan mata pelajaran dan bulan
-            dataAbsen = await Model_Absen.getByMonthAndMapel(month, year, id_mapel);
+            // Filter based on class if provided
+            if (kode_kelas) {
+              // Get attendance data filtered by subject, month, and class
+              dataAbsen = await Model_Absen.getByMonthMapelAndKelas(month, year, id_mapel, kode_kelas);
+            } else {
+              // If no class selected, show data for all classes but only for teacher's subject
+              dataAbsen = await Model_Absen.getByMonthAndMapel(month, year, id_mapel);
+            }
           }
         }
       }
@@ -113,15 +124,26 @@ router.get("/", async (req, res) => {
       // Jika bukan guru, tampilkan semua mapel
       dataMapel = await Model_Mapel.getAll();
       
-      // Filter berdasarkan mata pelajaran yang dipilih dan bulan
-      if (nama_mapel) {
+      // Filtering logic for non-teacher users
+      if (nama_mapel && kode_kelas) {
+        // Filter by both subject and class
+        const mapel = await Model_Mapel.getByNama(nama_mapel);
+        if (mapel) {
+          id_mapel = mapel.id_mapel;
+          dataAbsen = await Model_Absen.getByMonthMapelAndKelas(month, year, id_mapel, kode_kelas);
+        }
+      } else if (nama_mapel) {
+        // Filter only by subject
         const mapel = await Model_Mapel.getByNama(nama_mapel);
         if (mapel) {
           id_mapel = mapel.id_mapel;
           dataAbsen = await Model_Absen.getByMonthAndMapel(month, year, id_mapel);
         }
+      } else if (kode_kelas) {
+        // Filter only by class
+        dataAbsen = await Model_Absen.getByMonthAndKelas(month, year, kode_kelas);
       } else {
-        // Jika tidak ada mapel yang dipilih, filter hanya berdasarkan bulan
+        // No filters - show all attendance data for the month
         dataAbsen = await Model_Absen.getByMonth(month, year);
       }
     }
@@ -149,13 +171,15 @@ router.get("/", async (req, res) => {
     res.render("absen/index", {
       dataMapel,
       dataAbsen,
+      dataKelas,
       nama_mapel,
       id_mapel,
+      kode_kelas,  // Add selected class to template
       level: userLevel,
-      month,  // Add selected month to template
-      year,   // Add selected year to template
-      months, // Add months list for dropdown
-      years,  // Add years list for dropdown
+      month,        // Add selected month to template
+      year,         // Add selected year to template
+      months,       // Add months list for dropdown
+      years,        // Add years list for dropdown
       messages: req.flash()
     });
 
