@@ -5,6 +5,7 @@ const router = express.Router();
 const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
 const path = require('path');
 const Model_Pengumpulan = require("../model/Model_Pengumpulan.js");
+const Model_Siswa = require("../model/Model_Siswa.js"); // Tambahkan import Model_Siswa
 
 // Route untuk mengunduh file tugas
 router.get('/download/:filename', (req, res) => {
@@ -62,40 +63,69 @@ router.get("/semua", async (req, res) => {
   }
 });
 
-// ✅ BARU: Tampilkan detail pengumpulan berdasarkan id_tugas (siapa saja yang sudah submit)
+// ✅ BARU: Tampilkan detil pengumpulan berdasarkan id_tugas (termasuk yang belum submit)
 router.get("/detail/:id_tugas", async (req, res) => {
   try {
     const { id_tugas } = req.params;
     console.log("🔍 Frontend request detail untuk id_tugas:", id_tugas);
     
-    const response = await fetch(`http://192.168.1.17:3000/api/pengumpulan/detail/${id_tugas}`);
+    // 1. Dapatkan informasi tugas
+    const tugasInfo = await Model_Pengumpulan.getTugasInfo(id_tugas);
     
-    // Cek apakah response berhasil
-    if (!response.ok) {
-      console.log(`❌ API error: ${response.status} ${response.statusText}`);
-      req.flash("messageError", `API error (${response.status}): ${response.statusText}`);
+    if (!tugasInfo || !tugasInfo.id_kelas) {
+      req.flash("messageError", "Informasi tugas tidak ditemukan");
       return res.redirect("/tugas");
     }
-
-    const data = await response.json();
-    console.log("📦 Data dari API:", JSON.stringify(data, null, 2));
-
-    if (!data.success) {
-      console.log("⚠️ API response success=false:", data.message);
-      // Jika tidak ada data tapi success, tetap tampilkan halaman
-      req.flash("messageError", data.message || "Data detail pengumpulan tidak ditemukan");
-    }
-
+    
+    // 2. Dapatkan semua siswa di kelas ini menggunakan query langsung
+    const query = `
+      SELECT 
+        siswa.id_siswa,
+        siswa.nama_siswa,
+        siswa.nis,
+        kelas.kode_kelas
+      FROM siswa
+      JOIN kelas ON siswa.id_kelas = kelas.id_kelas
+      WHERE kelas.id_kelas = ?
+      ORDER BY siswa.nama_siswa ASC
+    `;
+    
+    // Gunakan koneksi database dari Model_Pengumpulan
+    const semuaSiswa = await new Promise((resolve, reject) => {
+      require('../config/database').query(query, [tugasInfo.id_kelas], (err, rows) => {
+        if (err) {
+          console.error("Error getting students:", err);
+          reject(err);
+        } else {
+          console.log("✅ Jumlah siswa di kelas ini:", rows.length);
+          resolve(rows);
+        }
+      });
+    });
+    
+    // 3. Dapatkan siswa yang sudah mengumpulkan
+    const pengumpulanData = await Model_Pengumpulan.getByTugas(id_tugas);
+    
+    // 4. Identifikasi siswa yang tidak mengumpulkan
+    const idSiswaSudahMengumpulkan = pengumpulanData.map(p => p.id_siswa);
+    
+    // Filter siswa yang belum mengumpulkan
+    const belumMengumpulkan = semuaSiswa.filter(siswa => 
+      !idSiswaSudahMengumpulkan.includes(siswa.id_siswa)
+    );
+    
     res.render("pengumpulan/detail", {
-      detailPengumpulan: data.data || [],
-      tugasInfo: data.tugasInfo || {},
+      detailPengumpulan: pengumpulanData || [],
+      siswaBelumMengumpulkan: belumMengumpulkan || [],
+      totalSiswa: semuaSiswa.length,
+      tugasInfo: tugasInfo || {},
       success: req.flash("success"),
       messageError: req.flash("messageError"),
       level: req.session.level,
     });
   } catch (error) {
     console.error("❌ Frontend error:", error);
-    req.flash("messageError", "Terjadi kesalahan koneksi ke server");
+    req.flash("messageError", "Terjadi kesalahan koneksi ke server: " + error.message);
     res.redirect("/tugas");
   }
 });

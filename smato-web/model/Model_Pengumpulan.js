@@ -167,24 +167,46 @@ static async getTugasInfo(id_tugas) {
   }
 
   // ✅ Hapus data pengumpulan berdasarkan id_pengumpulan
-static async delete(id_pengumpulan) {
-  return new Promise((resolve, reject) => {
-    const query = `
-      DELETE FROM pengumpulan 
-      WHERE id_pengumpulan = ?
-    `;
-    connect.query(query, [id_pengumpulan], (err, result) => {
-      if (err) {
-        console.error("Gagal menghapus data pengumpulan:", err);
-        reject(err);
-      } else {
-        resolve(result);
-      }
+  static async delete(id_pengumpulan) {
+    return new Promise((resolve, reject) => {
+      const query = `
+        DELETE FROM pengumpulan 
+        WHERE id_pengumpulan = ?
+      `;
+      connect.query(query, [id_pengumpulan], (err, result) => {
+        if (err) {
+          console.error("Gagal menghapus data pengumpulan:", err);
+          reject(err);
+        } else {
+          resolve(result);
+        }
+      });
     });
-  });
-}
+  }
 
+  // ✅ BARU: Mendapatkan semua siswa dari kelas tertentu
+  static async getSiswaByKelas(id_kelas) {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT 
+          siswa.id_siswa,
+          siswa.nama_siswa,
+          siswa.nis
+        FROM siswa
+        WHERE siswa.id_kelas = ?
+        ORDER BY siswa.nama_siswa ASC
+      `;
+      connect.query(query, [id_kelas], (err, rows) => {
+        if (err) {
+          console.error("Error in Model_Pengumpulan.getSiswaByKelas():", err);
+          reject(err);
+        } else {
+          console.log("✅ Jumlah siswa di kelas ini:", rows.length);
+          resolve(rows);
+        }
+      });
+    });
+  }
 }
-
 
 module.exports = Model_Pengumpulan;

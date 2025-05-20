@@ -67,49 +67,46 @@ router.get("/mapel/:id_mapel", async function (req, res) {
   }
 });
 
-// ✅ BARU: Ambil detail presensi berdasarkan id_absen (siapa saja yang sudah presensi)
-router.get("/detail/:id_absen", async function (req, res) {
+// Add or update this in your API controller (e.g., controllers/api/presensiController.js)
+
+// Get detail presensi by id_absen
+router.get('/detail/:id_absen', async (req, res) => {
   try {
     const { id_absen } = req.params;
-    console.log("🔍 Request detail presensi untuk id_absen:", id_absen);
-
-    if (!id_absen) {
-      return res.status(400).json({
-        success: false,
-        message: "id_absen harus diisi",
-      });
-    }
-
-    // Ambil detail presensi (daftar siswa yang hadir HANYA untuk sesi ini)
-    const detailPresensi = await Model_Presensi.getDetailByAbsen(id_absen);
+    console.log("🔍 API request detail untuk id_absen:", id_absen);
     
-    // Ambil info absen
+    // Get absen session info first (we need class info)
     const absenInfo = await Model_Presensi.getAbsenInfo(id_absen);
-    console.log("📋 Info absen:", absenInfo);
-
-    if (detailPresensi.length === 0) {
-      console.log("⚠️ Belum ada siswa yang presensi untuk sesi id_absen:", id_absen);
-      return res.status(200).json({
-        success: true,
-        message: "Belum ada siswa yang melakukan presensi untuk sesi ini",
-        data: [],
-        absenInfo: absenInfo
+    
+    if (!absenInfo || !absenInfo.id_kelas) {
+      return res.status(404).json({
+        success: false,
+        message: "Data absen tidak ditemukan atau tidak memiliki informasi kelas",
       });
     }
-
-    console.log("✅ Berhasil mengambil detail presensi:", detailPresensi.length, "siswa");
-    return res.status(200).json({
+    
+    // Get students who have attended
+    const detailPresensi = await Model_Presensi.getDetailByAbsen(id_absen);
+    console.log(`✅ Mendapatkan ${detailPresensi.length} data presensi`);
+    
+    // Get students who have not attended
+    const absentStudents = await Model_Presensi.getAbsentStudents(id_absen);
+    console.log(`✅ Mendapatkan ${absentStudents.length} data siswa yang belum presensi`);
+    
+    // Return comprehensive data
+    res.json({
       success: true,
+      message: "Data detail presensi berhasil ditemukan",
       data: detailPresensi,
-      absenInfo: absenInfo,
-      message: `${detailPresensi.length} siswa telah melakukan presensi untuk sesi ini`
+      absentStudents: absentStudents,
+      absenInfo: absenInfo
     });
   } catch (error) {
-    console.error("❌ Error mengambil detail presensi:", error);
-    return res.status(500).json({
+    console.error("❌ Error handling API request:", error);
+    res.status(500).json({
       success: false,
-      message: "Terjadi kesalahan pada server",
-      error: error.message,
+      message: "Gagal mengambil detail presensi",
+      error: error.message
     });
   }
 });

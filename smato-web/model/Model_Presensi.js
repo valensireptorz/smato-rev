@@ -1,6 +1,63 @@
 const connect = require('../config/database');
-
+const Model_Siswa = require('./Model_Siswa');
 class Model_Presensi {
+    // Add this new method to Model_Presensi.js
+
+
+static async getAbsentStudents(id_absen) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // First get the absen info to determine the class
+            const absenInfo = await this.getAbsenInfo(id_absen);
+            
+            if (!absenInfo || !absenInfo.kode_kelas) {
+                console.error("❌ Invalid absen info or missing kode_kelas");
+                return resolve([]);
+            }
+            
+            console.log(`🔍 Mencari siswa yang tidak hadir untuk kelas: ${absenInfo.kode_kelas}`);
+            
+            // Get all students in this class using the existing Model_Siswa method
+            const allStudents = await Model_Siswa.getByKelas(absenInfo.kode_kelas);
+            
+            if (!allStudents || allStudents.length === 0) {
+                console.log(`⚠️ Tidak ada siswa yang ditemukan di kelas ${absenInfo.kode_kelas}`);
+                return resolve([]);
+            }
+            
+            console.log(`📋 Total siswa di kelas ${absenInfo.kode_kelas}: ${allStudents.length}`);
+            
+            // Get students who have already attended
+            const presentQuery = `
+                SELECT id_siswa
+                FROM presensi
+                WHERE id_absen = ?
+            `;
+            
+            connect.query(presentQuery, [id_absen], (err, presentStudents) => {
+                if (err) {
+                    console.error("❌ Error getting present students:", err);
+                    return reject(err);
+                }
+                
+                // Create a set of present student IDs for quick lookup
+                const presentStudentIds = new Set(presentStudents.map(s => s.id_siswa));
+                console.log(`✅ Jumlah siswa yang sudah presensi: ${presentStudentIds.size}`);
+                
+                // Filter out students who are present to get absent students
+                const absentStudents = allStudents.filter(student => !presentStudentIds.has(student.id_siswa));
+                
+                console.log(`⚠️ Jumlah siswa yang belum presensi: ${absentStudents.length}`);
+                console.log(`📋 Detail siswa yang belum presensi:`, absentStudents.map(s => s.nama_siswa));
+                
+                resolve(absentStudents);
+            });
+        } catch (error) {
+            console.error("❌ Error in getAbsentStudents:", error);
+            reject(error);
+        }
+    });
+}
 
     static async getAllPresensiAdmin() {
         return new Promise((resolve, reject) => {

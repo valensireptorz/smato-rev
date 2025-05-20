@@ -165,6 +165,11 @@
     margin-right: 1rem;
   }
   
+  .absent-avatar {
+    background: linear-gradient(135deg, var(--gray-300), var(--gray-800));
+    opacity: 0.8;
+  }
+  
   .student-name {
     font-weight: 600;
     color: var(--dark);
@@ -199,6 +204,10 @@
     display: inline-block;
   }
   
+  .status-badge.absent {
+    background: var(--danger);
+  }
+  
   .empty-state {
     text-align: center;
     padding: 4rem 2rem;
@@ -230,6 +239,32 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
   }
+  
+  .nav-tabs {
+    border-bottom: none;
+    margin-bottom: 1rem;
+  }
+  
+  .nav-tabs .nav-link {
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    color: var(--gray-800);
+    background-color: var(--gray-100);
+    margin-right: 0.5rem;
+    transition: all 0.3s ease;
+  }
+  
+  .nav-tabs .nav-link.active {
+    background-color: var(--primary);
+    color: white;
+    box-shadow: 0 2px 8px rgba(67, 97, 238, 0.3);
+  }
+  
+  .tab-pane {
+    padding: 1rem 0;
+  }
 </style>
 
 <%- include('../partials/_nav.ejs') %>
@@ -240,7 +275,7 @@
     <div class="row align-items-center">
       <div class="col-md-8">
         <h2 class="mb-0">Detail Presensi</h2>
-        <p class="mb-0 opacity-75">Daftar siswa yang hadir dalam sesi pembelajaran</p>
+        <p class="mb-0 opacity-75">Daftar siswa yang hadir dan tidak hadir dalam sesi pembelajaran</p>
       </div>
       <div class="col-md-4 text-md-end">
         <a href="/absen" class="back-button">
@@ -314,89 +349,146 @@
   <% } %>
 
   <!-- Statistics Overview -->
-  <% if (detailPresensi && detailPresensi.length > 0) { %>
-    <div class="stats-overview">
-      <div class="stat-card">
-        <div class="stat-icon" style="background-color: var(--success);">
-          <i class="bi bi-person-check"></i>
-        </div>
-        <div class="stat-value"><%= detailPresensi.length %></div>
-        <div class="stat-label">Siswa Hadir</div>
+  <div class="stats-overview">
+    <div class="stat-card">
+      <div class="stat-icon" style="background-color: var(--primary);">
+        <i class="bi bi-people"></i>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background-color: var(--info);">
-          <i class="bi bi-clock-history"></i>
-        </div>
-        <div class="stat-value">
-          <% 
-            const waktuPresensi = detailPresensi.map(p => new Date(p.waktu_presensi));
-            const terakhir = Math.max(...waktuPresensi);
-            const pertama = Math.min(...waktuPresensi);
-            const durasi = Math.round((terakhir - pertama) / (1000 * 60));
-          %>
-          <%= durasi %>m
-        </div>
-        <div class="stat-label">Rentang Presensi</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background-color: var(--primary);">
-          <i class="bi bi-percent"></i>
-        </div>
-        <div class="stat-value">100%</div>
-        <div class="stat-label">Tingkat Kehadiran</div>
-      </div>
+      <div class="stat-value"><%= statistics.total %></div>
+      <div class="stat-label">Total Siswa</div>
     </div>
-  <% } %>
+    <div class="stat-card">
+      <div class="stat-icon" style="background-color: var(--success);">
+        <i class="bi bi-person-check"></i>
+      </div>
+      <div class="stat-value"><%= statistics.present %></div>
+      <div class="stat-label">Hadir</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background-color: var(--danger);">
+        <i class="bi bi-person-x"></i>
+      </div>
+      <div class="stat-value"><%= statistics.absent %></div>
+      <div class="stat-label">Tidak Hadir</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background-color: var(--info);">
+        <i class="bi bi-percent"></i>
+      </div>
+      <div class="stat-value"><%= statistics.rate %>%</div>
+      <div class="stat-label">Tingkat Kehadiran</div>
+    </div>
+  </div>
 
-  <!-- Daftar Siswa yang Hadir -->
-  <div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <h5 class="mb-0">Daftar Siswa yang Hadir</h5>
-      <span class="badge bg-success fs-6">
-        <%= detailPresensi ? detailPresensi.length : 0 %> Siswa
-      </span>
-    </div>
-    <div class="card-body">
-      <% if (detailPresensi && detailPresensi.length > 0) { %>
-        <div class="row">
-          <% detailPresensi.forEach((siswa, index) => { %>
-            <div class="col-lg-6">
-              <div class="student-card">
-                <div class="student-info">
-                  <div class="student-details">
-                    <div class="student-avatar">
-                      <%= siswa.nama_siswa ? siswa.nama_siswa.charAt(0).toUpperCase() : 'S' %>
-                    </div>
-                    <div>
-                      <div class="student-name"><%= siswa.nama_siswa || 'Nama tidak tersedia' %></div>
-                      <div class="student-nis">NIS: <%= siswa.nis || '-' %></div>
-                    </div>
-                  </div>
-                  <div class="presence-time">
-                    <div class="time-badge">
-                      <i class="bi bi-clock me-1"></i>
-                      <% if (siswa.waktu_presensi) { %>
-                        <%= new Date(siswa.waktu_presensi).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) %>
-                      <% } else { %>
-                        -
-                      <% } %>
-                    </div>
-                    <div class="status-badge">
-                      <i class="bi bi-check-circle me-1"></i>Hadir
+  <!-- Tabs untuk navigasi hadir/tidak hadir -->
+  <ul class="nav nav-tabs" id="presenceTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="present-tab" data-bs-toggle="tab" data-bs-target="#present" type="button" role="tab" aria-controls="present" aria-selected="true">
+        <i class="bi bi-person-check me-2"></i>Siswa Hadir (<%= statistics.present %>)
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="absent-tab" data-bs-toggle="tab" data-bs-target="#absent" type="button" role="tab" aria-controls="absent" aria-selected="false">
+        <i class="bi bi-person-x me-2"></i>Siswa Tidak Hadir (<%= statistics.absent %>)
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="presenceTabContent">
+    <!-- Tab Siswa Hadir -->
+    <div class="tab-pane fade show active" id="present" role="tabpanel" aria-labelledby="present-tab">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Daftar Siswa yang Hadir</h5>
+          <span class="badge bg-success fs-6"><%= statistics.present %> Siswa</span>
+        </div>
+        <div class="card-body">
+          <% if (detailPresensi && detailPresensi.length > 0) { %>
+            <div class="row">
+              <% detailPresensi.forEach((siswa, index) => { %>
+                <div class="col-lg-6">
+                  <div class="student-card">
+                    <div class="student-info">
+                      <div class="student-details">
+                        <div class="student-avatar">
+                          <%= siswa.nama_siswa ? siswa.nama_siswa.charAt(0).toUpperCase() : 'S' %>
+                        </div>
+                        <div>
+                          <div class="student-name"><%= siswa.nama_siswa || 'Nama tidak tersedia' %></div>
+                          <div class="student-nis">NIS: <%= siswa.nis || '-' %></div>
+                        </div>
+                      </div>
+                      <div class="presence-time">
+                        <div class="time-badge">
+                          <i class="bi bi-clock me-1"></i>
+                          <% if (siswa.waktu_presensi) { %>
+                            <%= new Date(siswa.waktu_presensi).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) %>
+                          <% } else { %>
+                            -
+                          <% } %>
+                        </div>
+                        <div class="status-badge">
+                          <i class="bi bi-check-circle me-1"></i>Hadir
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              <% }); %>
             </div>
-          <% }); %>
+          <% } else { %>
+            <div class="empty-state">
+              <i class="bi bi-person-check"></i>
+              <h5>Belum ada siswa yang melakukan presensi</h5>
+              <p class="text-muted">Presensi akan muncul di sini setelah siswa melakukan absensi.</p>
+            </div>
+          <% } %>
         </div>
-      <% } else { %>
-        <div class="empty-state">
-          <i class="bi bi-person-x"></i>
-          <h5>Belum ada siswa yang melakukan presensi</h5>
-          <p class="text-muted">Presensi akan muncul di sini setelah siswa melakukan absensi.</p>
+      </div>
+    </div>
+
+    <!-- Tab Siswa Tidak Hadir -->
+    <div class="tab-pane fade" id="absent" role="tabpanel" aria-labelledby="absent-tab">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Daftar Siswa yang Tidak Hadir</h5>
+          <span class="badge bg-danger fs-6"><%= statistics.absent %> Siswa</span>
         </div>
-      <% } %>
+        <div class="card-body">
+          <% if (absentStudents && absentStudents.length > 0) { %>
+            <div class="row">
+              <% absentStudents.forEach((siswa, index) => { %>
+                <div class="col-lg-6">
+                  <div class="student-card">
+                    <div class="student-info">
+                      <div class="student-details">
+                        <div class="student-avatar absent-avatar">
+                          <%= siswa.nama_siswa ? siswa.nama_siswa.charAt(0).toUpperCase() : 'S' %>
+                        </div>
+                        <div>
+                          <div class="student-name"><%= siswa.nama_siswa || 'Nama tidak tersedia' %></div>
+                          <div class="student-nis">NIS: <%= siswa.nis || '-' %></div>
+                        </div>
+                      </div>
+                      <div class="presence-time">
+                        <div class="status-badge absent">
+                          <i class="bi bi-x-circle me-1"></i>Tidak Hadir
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <div class="empty-state">
+              <i class="bi bi-emoji-smile"></i>
+              <h5>Semua siswa hadir!</h5>
+              <p class="text-muted">Tidak ada siswa yang absen di sesi ini.</p>
+            </div>
+          <% } %>
+        </div>
+      </div>
     </div>
   </div>
 </div>
