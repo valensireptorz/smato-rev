@@ -23,7 +23,7 @@ router.get('/download/:filename', (req, res) => {
 // ✅ Tampilkan semua data pengumpulan
 router.get("/semua", async (req, res) => {
   try {
-    const response = await fetch("http://192.168.1.17:3000/api/pengumpulan/semua");
+    const response = await fetch("http://192.168.100.23:3000/api/pengumpulan/semua");
     
     if (!response.ok) {
       console.log(`API error: ${response.status} ${response.statusText}`);

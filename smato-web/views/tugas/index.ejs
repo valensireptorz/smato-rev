@@ -413,30 +413,6 @@
       <div class="col-md-4">
         <h5 class="mb-3 text-white">Pilih Kelas</h5>
         <div class="dropdown">
-          <button class="btn dropdown-toggle shadow-sm" type="button" id="classDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background-color: var(--info);">
-            <i class="bi bi-people me-2"></i>
-            <% if (typeof kode_kelas !== 'undefined' && kode_kelas) { %>
-              <%= kode_kelas %>
-            <% } else { %>
-              Pilih Kelas
-            <% } %>
-          </button>
-          <ul class="dropdown-menu shadow-sm" aria-labelledby="classDropdown">
-            <li>
-              <a class="dropdown-item" href="/tugas?<%= nama_mapel ? 'nama_mapel=' + nama_mapel : '' %>&bulan=<%= bulan %>&tahun=<%= tahun %>">
-                Semua Kelas
-              </a>
-            </li>
-            <% if (typeof dataKelas !== 'undefined' && dataKelas.length > 0) { %>
-              <% dataKelas.forEach((kelas) => { %>
-                <li>
-                  <a class="dropdown-item" href="/tugas?<%= nama_mapel ? 'nama_mapel=' + nama_mapel : '' %>&bulan=<%= bulan %>&tahun=<%= tahun %>&kode_kelas=<%= kelas.kode_kelas %>">
-                    <%= kelas.kode_kelas %>
-                  </a>
-                </li>
-              <% }) %>
-            <% } %>
-          </ul>
         </div>
       </div>
       
@@ -448,12 +424,7 @@
           </div>
         <% } %>
         
-        <% if (typeof kode_kelas !== 'undefined' && kode_kelas) { %>
-          <div class="subject-info ms-2 d-inline-block" style="background-color: rgba(72, 149, 239, 0.1);">
-            <i class="bi bi-people-fill me-2"></i>
-            <%= kode_kelas %>
-          </div>
-        <% } %>
+      
         
         <% if (level === 'guru' && id_mapel) { %>
           <a href="/tugas/create/<%= id_mapel %>" class="btn btn-add-task ms-2 mt-2 mt-md-0">
