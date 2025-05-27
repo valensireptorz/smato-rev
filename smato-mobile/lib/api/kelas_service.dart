@@ -25,7 +25,7 @@ class KelasModel {
 }
 
 class KelasService {
-  static const String baseUrl = 'https://esmato.kabupatensumenep.com/api/kelas';
+  static const String baseUrl = 'http://192.168.100.23:3000/api/kelas';
 
   // Ambil semua data kelas
   static Future<List<KelasModel>> getAllKelas() async {

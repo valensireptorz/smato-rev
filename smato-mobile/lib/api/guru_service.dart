@@ -29,7 +29,7 @@ class GuruModel {
 }
 
 class GuruService {
-  static const String baseUrl = 'https://esmato.kabupatensumenep.com/api/guru';
+  static const String baseUrl = 'http://192.168.100.23:3000/api/guru';
 
   // Ambil semua data guru
   static Future<List<GuruModel>> getAllGuru() async {

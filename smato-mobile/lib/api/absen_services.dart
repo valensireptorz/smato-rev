@@ -49,7 +49,7 @@ class AbsenModel {
 }
 
 class AbsenService {
-  static const String baseUrl = 'https://esmato.kabupatensumenep.com/api/absen';
+  static const String baseUrl = 'http://192.168.100.23:3000/api/absen';
 
   // Method baru: Ambil data absen berdasarkan ID Siswa
 static Future<List<Map<String, dynamic>>> getAbsenBySiswa(String idSiswa) async {

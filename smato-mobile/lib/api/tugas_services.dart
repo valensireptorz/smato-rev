@@ -41,7 +41,7 @@ class TugasModel {
 }
 
 class TugasService {
-  static const String baseUrl = 'https://esmato.kabupatensumenep.com/api/tugas';
+  static const String baseUrl = 'http://192.168.100.23:3000/api/tugas';
 
   // Ambil semua data tugas
   static Future<List<Map<String, dynamic>>> getAllTugas() async {
