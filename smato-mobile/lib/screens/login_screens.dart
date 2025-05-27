@@ -418,7 +418,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Copyright © 2025 • Farrel',
+                            'Copyright © 2025 • Farrel Badraldin',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey.shade600,

@@ -5,7 +5,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
 
 class PengumpulanService {
-  static const String baseUrl = 'http://192.168.100.23:3000/api/pengumpulan';
+  static const String baseUrl = 'https://esmato.kabupatensumenep.com/api/pengumpulan';
 
   // Kirim data pengumpulan (tanpa file)
   Future<Map<String, dynamic>> kirimPengumpulan(
