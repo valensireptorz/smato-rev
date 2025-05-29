@@ -7,7 +7,7 @@ import '../widgets/custom_text_field.dart';
 import '../widgets/frame_back.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:ui';
-
+import '../screens/change_password_screen.dart'; // Sesuaikan path import
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
 
@@ -170,6 +170,15 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       ),
     );
   }
+// Tambahkan method ini di dalam _LoginScreenState
+void _navigateToChangePassword() {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => const ChangePasswordScreen(),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -339,23 +348,24 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             // Forgot password
                             Align(
                               alignment: Alignment.centerRight,
-                              child: TextButton(
-                                onPressed: () {},
-                                style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 5,
+                              child: // Ubah bagian TextButton di build method
+                                TextButton(
+                                  onPressed: _navigateToChangePassword,
+                                  style: TextButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 5,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Buat Password Baru?',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: const Color(0xFF2C7BE5),
+                                    ),
                                   ),
                                 ),
-                                child: Text(
-                                  'Lupa Password?',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF2C7BE5),
-                                  ),
-                                ),
-                              ),
                             ),
                             const SizedBox(height: 30),
                             

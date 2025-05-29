@@ -3,6 +3,61 @@ const router = express.Router();
 const Model_Siswa = require("../../model/Model_Siswa.js");
 const Model_Kelas = require("../../model/Model_Kelas.js");
 
+router.post("/change-password", async (req, res) => {
+  try {
+    const { nis, oldPassword, newPassword } = req.body;
+
+    // Log input untuk debugging
+    console.log('Change Password Request:', { nis, oldPassword: '****', newPassword: '****' });
+
+    // Validasi input
+    if (!nis || !oldPassword || !newPassword) {
+      return res.status(400).json({ 
+        success: false,
+        message: "NIS, password lama, dan password baru wajib diisi" 
+      });
+    }
+
+    // Validasi panjang password
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password baru minimal 6 karakter"
+      });
+    }
+
+    // Panggil method changePassword
+    const result = await Model_Siswa.changePassword(nis, oldPassword, newPassword);
+
+    return res.status(200).json(result);
+
+  } catch (error) {
+    // Log error detail untuk debugging
+    console.error("Detailed Error change password:", error);
+    
+    // Handle berbagai jenis error
+    if (error.message === 'Siswa tidak ditemukan') {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Siswa tidak ditemukan' 
+      });
+    }
+
+    if (error.message === 'Password lama salah') {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Password lama salah' 
+      });
+    }
+
+    return res.status(500).json({ 
+      success: false,
+      message: "Terjadi kesalahan saat mengubah password",
+      error: error.message 
+    });
+  }
+});
+
 // ✅ API GET SEMUA DATA SISWA
 router.get("/getall", async function (req, res) {
   try {

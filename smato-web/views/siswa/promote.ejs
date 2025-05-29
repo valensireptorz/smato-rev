@@ -1,0 +1,71 @@
+<%- include('../partials/_head.ejs') %>
+<%- include('../partials/_nav.ejs') %>
+
+<div class="container-xxl flex-grow-1 container-p-y">
+  <h2 class="fw-bold mb-4">Promosi Siswa</h2>
+
+  <% if (error) { %>
+    <div class="alert alert-danger"><%= error %></div>
+  <% } %>
+  <% if (success) { %>
+    <div class="alert alert-success"><%= success %></div>
+  <% } %>
+
+  <!-- Filter Kelas -->
+  <form action="/siswa/promote" method="GET" id="kelasFilterForm">
+    <div class="mb-4">
+      <label for="filterKelas" class="form-label">Pilih Kelas untuk Dinaikkan</label>
+      <select class="form-select" id="filterKelas" name="filterKelas" onchange="this.form.submit()" required>
+        <option value="">-- Pilih Kelas --</option>
+        <% classes.forEach(classItem => { %>
+          <option value="<%= classItem.id_kelas %>" <%= filterKelas == classItem.id_kelas ? 'selected' : '' %>><%= classItem.kode_kelas %></option>
+        <% }) %>
+      </select>
+    </div>
+  </form>
+
+  <form action="/siswa/promote" method="POST">
+    <div class="mb-4">
+      <label for="kelas" class="form-label">Pilih Kelas Baru</label>
+      <select class="form-select" id="kelas" name="newClass" required>
+        <% classes.forEach(classItem => { %>
+          <option value="<%= classItem.id_kelas %>"><%= classItem.kode_kelas %></option>
+        <% }) %>
+      </select>
+    </div>
+
+    <div class="mb-4">
+      <label for="students" class="form-label">Pilih Siswa untuk Dinaikkan Kelas</label>
+      <div>
+        <!-- Checkbox untuk memilih semua siswa -->
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="selectAll" onclick="selectAllStudents(this)">
+          <label class="form-check-label" for="selectAll">Pilih Semua Siswa</label>
+        </div>
+
+        <% students.filter(student => student.id_kelas == filterKelas).forEach(student => { %>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="selectedStudents" value="<%= student.id_siswa %>" id="student<%= student.id_siswa %>">
+            <label class="form-check-label" for="student<%= student.id_siswa %>">
+              <%= student.nama_siswa %> - <%= student.kode_kelas %> <!-- Menampilkan kelas sebelumnya -->
+            </label>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Promosikan</button>
+  </form>
+</div>
+
+<%- include('../partials/_foot.ejs') %>
+
+<!-- Tambahkan script untuk mengatur checkbox "Select All" -->
+<script>
+  function selectAllStudents(source) {
+    const checkboxes = document.querySelectorAll('input[name="selectedStudents"]');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = source.checked;
+    });
+  }
+</script>

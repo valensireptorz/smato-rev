@@ -66,7 +66,7 @@ router.get("/kelas/:kode_kelas", async (req, res) => {
   }
 });
 
-// Updated router.get("/") handler with monthly filter
+
 // Updated router.get("/") handler with monthly and class filter
 router.get("/", async (req, res) => {
   // Extract parameters from query

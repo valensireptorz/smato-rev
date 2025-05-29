@@ -76,6 +76,9 @@
               <a href="/siswa/create" class="btn btn-primary btn-sm shadow-sm px-3">
                 <i class="bx bx-plus me-1"></i>Tambah Siswa
               </a>
+               <a href="/siswa/promote" class="btn btn-primary btn-sm shadow-sm px-3">
+                <i class="bx bx-plus me-1"></i>Naik Kelas Siswa
+              </a>
             <% } %>
           </div>
         </div>
@@ -192,9 +195,9 @@
                     <a href="/siswa/edit/<%= data[i].id_siswa %>" class="btn btn-sm btn-icon btn-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
                       <i class="bx bx-edit-alt"></i>
                     </a>
-                    <a href="/presensi/semua" class="btn btn-sm btn-icon btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Presensi">
+                    <!-- <a href="/presensi/semua" class="btn btn-sm btn-icon btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Presensi">
                       <i class="bx bx-calendar-check"></i>
-                    </a>
+                    </a> -->
                     <button type="button" class="btn btn-sm btn-icon btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal<%= data[i].id_siswa %>">
                       <i class="bx bx-trash"></i>
                     </button>

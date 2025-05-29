@@ -10,6 +10,7 @@ import '../theme/app_colors.dart';
 import '../widgets/presensi_button.dart';
 import '../api/presensi_service.dart';
 import 'beranda_screens.dart';
+import 'package:geolocator/geolocator.dart';
 
 class PresensiScreen extends StatefulWidget {
   final int idSiswa, idMapel, idAbsen, idGuru;
@@ -35,36 +36,45 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
   bool _isLoading = false;
   bool _isRefreshing = false;
   bool _hasPresensiToday = false;
-  String? _presensiTimestamp; // Untuk menyimpan waktu presensi
+  String? _presensiTimestamp;
+  
+  // Enhanced location variables
+  final double _allowedLatitude = -7.0130104;
+  final double _allowedLongitude = 113.8735425;
+  final double _radiusInMeters = 200.0; // Updated to 200 meters
+  
+  // Location status variables
+  bool _isLocationEnabled = false;
+  bool _isLocationPermissionGranted = false;
+  Position? _currentPosition;
+  double? _distanceFromAllowedLocation;
+  bool _isCheckingLocation = false;
+  
   late AnimationController _buttonAnimationController;
   late Animation _buttonAnimation;
-  
-  // Animasi tambahan untuk UI yang lebih interaktif
   late AnimationController _cardAnimationController;
   late Animation<double> _cardAnimation;
+  late AnimationController _locationAnimationController;
+  late Animation<double> _locationAnimation;
 
-  // Key untuk SharedPreferences
+  // SharedPreferences keys
   late String _presensiKey;
   late String _timestampKey;
-
-  bool _isPresensiClosed = false; // Flag untuk menandakan presensi sudah ditutup
+  
+  bool _isPresensiClosed = false;
 
   @override
   void initState() {
     super.initState();
-    tzdata.initializeTimeZones(); // Initialize timezone data
+    tzdata.initializeTimeZones();
     
-    // Set key untuk SharedPreferences berdasarkan idSiswa dan idAbsen
     _presensiKey = 'presensi_${widget.idSiswa}_${widget.idAbsen}';
     _timestampKey = 'timestamp_${widget.idSiswa}_${widget.idAbsen}';
     
-    // Load data lokal terlebih dahulu
     _loadLocalPresensiStatus();
-    
-    // Kemudian load dari API
     _loadRiwayatPresensi();
     
-    // Animasi untuk tombol presensi
+    // Initialize animations
     _buttonAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -74,7 +84,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
       curve: Curves.easeInOut,
     ));
     
-    // Animasi untuk kartu
     _cardAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -85,17 +94,802 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
     );
     _cardAnimationController.forward();
 
-    _checkPresensiStatus(); // Memanggil fungsi untuk mengecek apakah presensi sudah lewat
+    _locationAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _locationAnimation = CurvedAnimation(
+      parent: _locationAnimationController,
+      curve: Curves.elasticOut,
+    );
+
+    _checkPresensiStatus();
+    _initializeLocationServices();
   }
   
   @override
   void dispose() {
     _buttonAnimationController.dispose();
     _cardAnimationController.dispose();
+    _locationAnimationController.dispose();
     super.dispose();
   }
 
-  // Load status presensi dari SharedPreferences
+  // Initialize location services
+  Future<void> _initializeLocationServices() async {
+    await _checkLocationServices();
+    await _getCurrentLocation();
+  }
+
+  // Check if location services are enabled and permissions are granted
+  Future<void> _checkLocationServices() async {
+    try {
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      setState(() {
+        _isLocationEnabled = serviceEnabled;
+      });
+
+      if (!serviceEnabled) {
+        return;
+      }
+
+      // Check location permissions
+      LocationPermission permission = await Geolocator.checkPermission();
+      
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      setState(() {
+        _isLocationPermissionGranted = permission != LocationPermission.denied && 
+                                     permission != LocationPermission.deniedForever;
+      });
+
+    } catch (e) {
+      print("Error checking location services: $e");
+    }
+  }
+
+  // Get current location
+  Future<void> _getCurrentLocation() async {
+    if (!_isLocationEnabled || !_isLocationPermissionGranted) {
+      return;
+    }
+
+    setState(() {
+      _isCheckingLocation = true;
+    });
+
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10),
+      );
+
+      double distance = Geolocator.distanceBetween(
+        position.latitude,
+        position.longitude,
+        _allowedLatitude,
+        _allowedLongitude,
+      );
+
+      setState(() {
+        _currentPosition = position;
+        _distanceFromAllowedLocation = distance;
+      });
+
+      _locationAnimationController.forward();
+
+    } catch (e) {
+      print("Error getting current location: $e");
+      _showSnackBar('Gagal mendapatkan lokasi: ${e.toString()}', isError: true);
+    } finally {
+      setState(() {
+        _isCheckingLocation = false;
+      });
+    }
+  }
+
+  // Request to turn on location services
+  Future<void> _requestLocationServices() async {
+    try {
+      bool serviceEnabled = await Geolocator.openLocationSettings();
+      if (serviceEnabled) {
+        await _checkLocationServices();
+        await _getCurrentLocation();
+      }
+    } catch (e) {
+      _showSnackBar('Tidak dapat membuka pengaturan lokasi', isError: true);
+    }
+  }
+
+  // Request location permissions
+  Future<void> _requestLocationPermission() async {
+    try {
+      LocationPermission permission = await Geolocator.requestPermission();
+      setState(() {
+        _isLocationPermissionGranted = permission != LocationPermission.denied && 
+                                     permission != LocationPermission.deniedForever;
+      });
+      
+      if (_isLocationPermissionGranted && _isLocationEnabled) {
+        await _getCurrentLocation();
+      }
+    } catch (e) {
+      _showSnackBar('Gagal meminta izin lokasi', isError: true);
+    }
+  }
+
+  // Enhanced location check for attendance
+  Future<void> _cekLokasiPresensi() async {
+    setState(() {
+      _isCheckingLocation = true;
+    });
+
+    try {
+      // Check location services first
+      await _checkLocationServices();
+
+      if (!_isLocationEnabled) {
+        _showLocationServiceDialog();
+        return;
+      }
+
+      if (!_isLocationPermissionGranted) {
+        _showLocationPermissionDialog();
+        return;
+      }
+
+      // Get fresh location data
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 15),
+      );
+
+      double distance = Geolocator.distanceBetween(
+        position.latitude,
+        position.longitude,
+        _allowedLatitude,
+        _allowedLongitude,
+      );
+
+      setState(() {
+        _currentPosition = position;
+        _distanceFromAllowedLocation = distance;
+      });
+
+      if (distance <= _radiusInMeters) {
+        // Location is valid, proceed with attendance
+        await _kirimPresensi();
+      } else {
+        // Location is outside allowed area
+        _showLocationErrorDialog(distance);
+      }
+
+    } catch (e) {
+      print("Error checking location for attendance: $e");
+      _showSnackBar('Gagal mendapatkan lokasi: ${e.toString()}', isError: true);
+    } finally {
+      setState(() {
+        _isCheckingLocation = false;
+      });
+    }
+  }
+
+  // Show dialog when location services are disabled
+  void _showLocationServiceDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF1A3980), Color(0xFF2A5298)],
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.location_off,
+                    color: Colors.orange,
+                    size: 30,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Layanan Lokasi Nonaktif',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Untuk melakukan presensi, Anda perlu mengaktifkan layanan lokasi pada perangkat ini.',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    color: Colors.white70,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: const BorderSide(color: Colors.white30),
+                          ),
+                        ),
+                        child: Text(
+                          'Batal',
+                          style: GoogleFonts.montserrat(
+                            color: Colors.white70,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          Navigator.of(context).pop();
+                          await _requestLocationServices();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Aktifkan Lokasi',
+                          style: GoogleFonts.montserrat(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Show dialog when location permission is denied
+  void _showLocationPermissionDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF1A3980), Color(0xFF2A5298)],
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.location_disabled,
+                    color: Colors.red,
+                    size: 30,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Izin Lokasi Diperlukan',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Aplikasi memerlukan akses lokasi untuk memverifikasi kehadiran Anda di area yang diizinkan.',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    color: Colors.white70,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: const BorderSide(color: Colors.white30),
+                          ),
+                        ),
+                        child: Text(
+                          'Batal',
+                          style: GoogleFonts.montserrat(
+                            color: Colors.white70,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          Navigator.of(context).pop();
+                          await _requestLocationPermission();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Berikan Izin',
+                          style: GoogleFonts.montserrat(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Show dialog when user is outside allowed location
+  void _showLocationErrorDialog(double distance) {
+    final distanceInKm = (distance / 1000).toStringAsFixed(2);
+    final distanceInM = distance.toStringAsFixed(0);
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF1A3980), Color(0xFF2A5298)],
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.location_on,
+                    color: Colors.red,
+                    size: 30,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Lokasi Tidak Valid',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Anda berada di luar area yang diizinkan untuk presensi.',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    color: Colors.white70,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Jarak Anda:',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          Text(
+                            distance < 1000 ? '$distanceInM m' : '$distanceInKm km',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Radius Diizinkan:',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              color: Colors.white70,
+                            ),
+                          ),
+                          Text(
+                            '${_radiusInMeters.toInt()} m',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 14,
+                              color: Colors.green,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Silakan mendekati area kampus untuk melakukan presensi.',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 12,
+                    color: Colors.white60,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: const BorderSide(color: Colors.white30),
+                          ),
+                        ),
+                        child: Text(
+                          'Tutup',
+                          style: GoogleFonts.montserrat(
+                            color: Colors.white70,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          Navigator.of(context).pop();
+                          await _getCurrentLocation();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF48C9B0),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Refresh Lokasi',
+                          style: GoogleFonts.montserrat(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Build location status card
+  Widget _buildLocationStatusCard() {
+    return FadeTransition(
+      opacity: _cardAnimation,
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        color: _getLocationStatusColor(),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Status Lokasi',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (_isCheckingLocation)
+                        const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _buildLocationStatusContent(),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Get location status color
+  Color _getLocationStatusColor() {
+    if (!_isLocationEnabled || !_isLocationPermissionGranted) {
+      return Colors.red;
+    }
+    if (_distanceFromAllowedLocation == null) {
+      return Colors.orange;
+    }
+    return _distanceFromAllowedLocation! <= _radiusInMeters ? Colors.green : Colors.red;
+  }
+
+  // Build location status content
+  Widget _buildLocationStatusContent() {
+    if (!_isLocationEnabled) {
+      return _buildLocationActionButton(
+        'Layanan lokasi nonaktif',
+        'Aktifkan Lokasi',
+        Icons.location_off,
+        Colors.red,
+        _requestLocationServices,
+      );
+    }
+
+    if (!_isLocationPermissionGranted) {
+      return _buildLocationActionButton(
+        'Izin lokasi diperlukan',
+        'Berikan Izin',
+        Icons.location_disabled,
+        Colors.red,
+        _requestLocationPermission,
+      );
+    }
+
+    if (_distanceFromAllowedLocation == null) {
+      return _buildLocationActionButton(
+        'Mendapatkan lokasi...',
+        'Refresh Lokasi',
+        Icons.my_location,
+        Colors.orange,
+        _getCurrentLocation,
+      );
+    }
+
+    final distance = _distanceFromAllowedLocation!;
+    final isValid = distance <= _radiusInMeters;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Jarak dari area:',
+              style: GoogleFonts.montserrat(
+                fontSize: 14,
+                color: Colors.white70,
+              ),
+            ),
+            Text(
+              distance < 1000 
+                  ? '${distance.toStringAsFixed(0)} m'
+                  : '${(distance / 1000).toStringAsFixed(2)} km',
+              style: GoogleFonts.montserrat(
+                fontSize: 14,
+                color: isValid ? Colors.green : Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          height: 4,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(2),
+          ),
+          child: FractionallySizedBox(
+            alignment: Alignment.centerLeft,
+            widthFactor: (distance / (_radiusInMeters * 2)).clamp(0.0, 1.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isValid ? Colors.green : Colors.red,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Icon(
+              isValid ? Icons.check_circle : Icons.cancel,
+              color: isValid ? Colors.green : Colors.red,
+              size: 16,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              isValid ? 'Lokasi valid untuk presensi' : 'Di luar area yang diizinkan',
+              style: GoogleFonts.montserrat(
+                fontSize: 12,
+                color: isValid ? Colors.green : Colors.red,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // Build location action button
+  Widget _buildLocationActionButton(
+    String description,
+    String buttonText,
+    IconData icon,
+    Color color,
+    VoidCallback onPressed,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: color, size: 16),
+            const SizedBox(width: 6),
+            Text(
+              description,
+              style: GoogleFonts.montserrat(
+                fontSize: 12,
+                color: color,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: onPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: color,
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              buttonText,
+              style: GoogleFonts.montserrat(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Rest of the existing methods remain the same...
   Future<void> _loadLocalPresensiStatus() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -108,7 +902,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
     }
   }
 
-  // Simpan status presensi ke SharedPreferences
   Future<void> _saveLocalPresensiStatus() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -127,13 +920,11 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
     }
   }
 
-  // Fungsi untuk mengecek apakah waktu presensi sudah lewat
   void _checkPresensiStatus() {
     try {
       final now = DateTime.now();
       final currentTime = DateTime(now.year, now.month, now.day, now.hour, now.minute);
       
-      // Parse jam_selesai (format HH:MM)
       final parts = widget.jamSelesai.split(':');
       final hour = int.parse(parts[0]);
       final minute = int.parse(parts[1]);
@@ -142,7 +933,7 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
       
       if (currentTime.isAfter(presensiEndTime)) {
         setState(() {
-          _isPresensiClosed = true; // Menandakan bahwa presensi sudah ditutup
+          _isPresensiClosed = true;
         });
       }
     } catch (e) {
@@ -156,7 +947,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
       riwayatPresensi = PresensiService().getRiwayatPresensi(widget.idSiswa.toString());
       final result = await riwayatPresensi;
       
-      // Check if student has attendance today
       final List riwayat = result['riwayatPresensi'] ?? [];
       final today = DateTime.now();
       final formattedToday = DateFormat('yyyy-MM-dd').format(today);
@@ -167,20 +957,17 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
         return formattedTanggal == formattedToday && item['id_absen'].toString() == widget.idAbsen.toString();
       });
       
-      // Jika API menunjukkan bahwa siswa sudah presensi, simpan ke lokal
       if (hasAttendanceFromAPI && !_hasPresensiToday) {
         await _saveLocalPresensiStatus();
       }
       
       setState(() {
-        // Prioritaskan status lokal, tapi jika API menunjukkan telah presensi, update status lokal
         if (hasAttendanceFromAPI) {
           _hasPresensiToday = true;
         }
       });
     } catch (e) {
       print("Error loading attendance history: $e");
-      // Jika tidak berhasil mendapatkan data dari API, tetap gunakan data lokal
     } finally {
       setState(() => _isLoading = false);
     }
@@ -209,9 +996,7 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
       );
 
       if (response['success']) {
-        // Simpan status presensi ke penyimpanan lokal
         await _saveLocalPresensiStatus();
-        
         await _loadRiwayatPresensi();
         _showSnackBar('Berhasil melakukan presensi');
       } else {
@@ -226,7 +1011,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
     }
   }
 
-  // Custom SnackBar dengan warna berbeda berdasarkan tipe
   void _showSnackBar(String message, {bool isError = false, bool isWarning = false, bool isSuccess = false}) {
     Color backgroundColor;
     
@@ -270,6 +1054,7 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
     setState(() => _isRefreshing = true);
     try {
       await _loadRiwayatPresensi();
+      await _getCurrentLocation();
     } catch (e) {
       print("Error refreshing data: $e");
     } finally {
@@ -277,7 +1062,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
     }
   }
 
-  // Tampilan kartu presensi yang lebih modern
   Widget _buildPresensiCard() {
     final Color cardColor = _isPresensiClosed 
         ? Colors.blueGrey.withOpacity(0.15) 
@@ -368,7 +1152,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
                       ],
                     ),
                     
-                    // Tambahkan waktu presensi jika sudah melakukan presensi
                     if (_hasPresensiToday && _presensiTimestamp != null) ...[
                       const SizedBox(height: 8),
                       Row(
@@ -389,7 +1172,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
                     
                     const SizedBox(height: 30),
                     
-                    // Jika sudah presensi, tampilkan informasi bahwa presensi sudah dilakukan
                     if (_hasPresensiToday)
                       _buildAttendanceConfirmation()
                     else
@@ -409,7 +1191,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
     );
   }
   
-  // Widget untuk menampilkan konfirmasi presensi
   Widget _buildAttendanceConfirmation() {
     return Container(
       width: double.infinity,
@@ -452,7 +1233,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
     );
   }
   
-  // Status badge yang menunjukkan status presensi
   Widget _buildStatusBadge() {
     Color badgeColor;
     String statusText;
@@ -497,11 +1277,14 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
     );
   }
   
-  // Tombol presensi yang diperbarui dengan animasi
   Widget _buildPresenceButton() {
     Color buttonColor;
     String buttonText;
     IconData iconData;
+    bool isLocationValid = _distanceFromAllowedLocation != null && 
+                          _distanceFromAllowedLocation! <= _radiusInMeters &&
+                          _isLocationEnabled && 
+                          _isLocationPermissionGranted;
     
     if (_isPresensiClosed) {
       buttonColor = Colors.blueGrey;
@@ -511,6 +1294,14 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
       buttonColor = Colors.green;
       buttonText = 'Sudah Presensi';
       iconData = Icons.check_circle_outline;
+    } else if (!_isLocationEnabled || !_isLocationPermissionGranted) {
+      buttonColor = Colors.red;
+      buttonText = 'Lokasi Diperlukan';
+      iconData = Icons.location_off;
+    } else if (!isLocationValid) {
+      buttonColor = Colors.orange;
+      buttonText = 'Periksa Lokasi';
+      iconData = Icons.my_location;
     } else {
       buttonColor = const Color(0xFF48C9B0);
       buttonText = 'Presensi Sekarang';
@@ -542,7 +1333,11 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: _isPresensiClosed || _hasPresensiToday || _isLoading ? null : _kirimPresensi,
+          onTap: _isPresensiClosed || _hasPresensiToday || _isLoading 
+              ? null 
+              : isLocationValid 
+                  ? _cekLokasiPresensi 
+                  : _getCurrentLocation,
           child: Ink(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
@@ -550,8 +1345,8 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (_isLoading)
-                  SizedBox(
+                if (_isLoading || _isCheckingLocation)
+                  const SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
@@ -578,7 +1373,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
     );
   }
 
-  // Kartu riwayat presensi yang diperbarui
   Widget _buildHistoryCard() {
     return FadeTransition(
       opacity: _cardAnimation,
@@ -617,7 +1411,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
                     } else if (snapshot.hasError) {
                       return _buildErrorState(snapshot.error.toString());
                     } else if (!snapshot.hasData || snapshot.data!['riwayatPresensi'] == null) {
-                      // Jika data kosong dari API tapi sudah presensi secara lokal
                       if (_hasPresensiToday) {
                         return _buildLocalAttendanceState();
                       }
@@ -627,7 +1420,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
                     final List riwayat = snapshot.data!['riwayatPresensi'];
                     final isKosong = riwayat.isEmpty;
 
-                    // Jika data kosong dari API tapi sudah presensi secara lokal
                     if (isKosong && _hasPresensiToday) {
                       return _buildLocalAttendanceState();
                     }
@@ -693,7 +1485,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
     );
   }
 
-  // Tampilan untuk presensi yang tersimpan secara lokal
   Widget _buildLocalAttendanceState() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -794,7 +1585,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
     );
   }
 
-  // Item riwayat presensi yang lebih terstruktur
   Widget _buildHistoryItem(Map<String, dynamic> item) {
     final tanggal = formatDateToWIB(item['tanggal_presensi']);
     
@@ -860,7 +1650,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
     );
   }
   
-  // Loading skeleton untuk riwayat
   Widget _buildLoadingSkeleton() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -936,7 +1725,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
     );
   }
   
-  // State error untuk riwayat
   Widget _buildErrorState(String error) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -965,7 +1753,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
     );
   }
   
-  // State kosong untuk riwayat
   Widget _buildEmptyState() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -1054,7 +1841,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
       ),
       body: Stack(
         children: [
-          // Background gradient dengan efek mendalam
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -1070,7 +1856,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
             ),
           ),
           
-          // Efek bubble di latar belakang untuk kedalaman
           Positioned(
             top: -100,
             right: -100,
@@ -1109,7 +1894,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
             ),
           ),
           
-          // Pola latar belakang
           Positioned.fill(
             child: Opacity(
               opacity: 0.03,
@@ -1124,7 +1908,6 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
             ),
           ),
           
-          // Konten utama
           SafeArea(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
@@ -1184,6 +1967,7 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
                       ),
                     ),
                     const SizedBox(height: 20),
+                    _buildLocationStatusCard(),
                     _buildPresensiCard(),
                     _buildHistoryCard(),
                   ],
