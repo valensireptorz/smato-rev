@@ -276,6 +276,96 @@
     color: var(--gray-800);
     opacity: 0.8;
   }
+
+  /* Mengoptimalkan tampilan di layar kecil */
+@media (max-width: 768px) {
+  .page-header {
+    padding: 1.5rem 0;
+  }
+
+  .card {
+    margin-bottom: 1rem;
+  }
+
+  .subject-selector {
+    padding: 1rem;
+  }
+
+  .table-responsive {
+    margin-bottom: 1.5rem;
+  }
+
+  .attendance-table th, .attendance-table td {
+    padding: 0.8rem;
+  }
+
+  .stats-card {
+    padding: 1rem;
+  }
+
+  .filter-indicator {
+    padding: 10px 12px;
+  }
+
+  .stats-card .stats-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .stats-card .stats-value {
+    font-size: 1.5rem;
+  }
+
+  .stats-card .stats-label {
+    font-size: 0.85rem;
+  }
+
+  .action-buttons .btn {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .filter-indicator {
+    font-size: 12px;
+  }
+
+  .subject-selector {
+    padding: 1rem 0.5rem;
+  }
+
+  .subject-selector .dropdown-toggle {
+    padding: 0.5rem;
+  }
+
+  .card-header {
+    padding: 0.8rem;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+  }
+
+  .attendance-table th, .attendance-table td {
+    padding: 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .attendance-table td {
+    font-size: 0.8rem;
+  }
+
+  .attendance-id {
+    font-size: 0.8rem;
+  }
+
+  .stats-card {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+}
+
 </style>
 
 <%- include('../partials/_nav.ejs') %>

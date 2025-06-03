@@ -13,7 +13,7 @@ router.get("/detail/:id_absen", async (req, res) => {
     console.log("🔍 Frontend request detail untuk id_absen:", id_absen);
     
     // Make the API request to get comprehensive attendance data
-    const response = await fetch(`http://192.168.100.23:3000/api/presensi/detail/${id_absen}`);
+    const response = await fetch(`https://esmato.kabupatensumenep.com/api/presensi/detail/${id_absen}`);
     
     // Check if response was successful
     if (!response.ok) {
@@ -66,7 +66,7 @@ router.get("/detail/:id_absen", async (req, res) => {
 // ✅ Tampilkan semua data presensi (khusus admin)
 router.get("/semua", async (req, res) => {
   try {
-    const response = await fetch("http://192.168.100.23:3000/api/presensi/semua");
+    const response = await fetch("https://esmato.kabupatensumenep.com/api/presensi/semua");
     
     if (!response.ok) {
       console.log(`API error: ${response.status} ${response.statusText}`);
@@ -110,7 +110,7 @@ router.get("/semua", async (req, res) => {
 router.get("/mapel/:id_mapel", async (req, res) => {
   try {
     const { id_mapel } = req.params;
-    const response = await fetch(`http://192.168.100.23:3000/api/presensi/mapel/${id_mapel}`);
+    const response = await fetch(`https://esmato.kabupatensumenep.com/api/presensi/mapel/${id_mapel}`);
     
     // Cek apakah response berhasil
     if (!response.ok) {
@@ -167,7 +167,7 @@ router.get("/detail/:id_absen", async (req, res) => {
     const { id_absen } = req.params;
     console.log("🔍 Frontend request detail untuk id_absen:", id_absen);
     
-    const response = await fetch(`http://192.168.100.23:3000/api/presensi/detail/${id_absen}`);
+    const response = await fetch(`https://esmato.kabupatensumenep.com/api/presensi/detail/${id_absen}`);
     
     // Cek apakah response berhasil
     if (!response.ok) {

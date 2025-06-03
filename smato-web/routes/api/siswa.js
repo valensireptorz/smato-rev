@@ -110,29 +110,21 @@ router.get("/get/:id", async function (req, res) {
 // file: routes/siswa.js
 
 router.post("/login", async (req, res) => {
+  const { nis, password } = req.body;
+
   try {
-    const { nis, password } = req.body;
-
-    if (!nis || !password) {
-      return res.status(400).json({ message: "NIS dan password wajib diisi" });
-    }
-
     const result = await Model_Siswa.login(nis, password);
-
-    if (result.length === 0) {
-      return res.status(401).json({ message: "Login gagal, NIS atau password salah" });
-    }
-
-    return res.status(200).json({
+    res.status(200).json({
       message: "Login berhasil",
-      data: result[0], // ini akan menyertakan kode_kelas
+      data: result, // Mengembalikan data siswa tanpa password
     });
-
   } catch (error) {
-    console.error("Error login siswa:", error);
-    return res.status(500).json({ message: "Terjadi kesalahan server" });
+    res.status(401).json({
+      message: error.message, // Menampilkan pesan error
+    });
   }
 });
+
 
 
 

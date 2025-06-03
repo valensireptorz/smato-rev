@@ -168,29 +168,49 @@ static async getAll() {
     });
   }
 
-  // ✅ Update method login untuk mendukung bcrypt
-  static async login(nis, password) {
-    return new Promise((resolve, reject) => {
-      const sql = `
-        SELECT 
-          siswa.id_siswa,
-          siswa.nama_siswa,
-          siswa.nis,
-          siswa.password,
-          siswa.alamat,
-          kelas.kode_kelas
-        FROM siswa
-        JOIN kelas ON siswa.id_kelas = kelas.id_kelas
-        WHERE siswa.nis = ?
-      `;
-  
-      // Hanya cari berdasarkan NIS, password akan diverifikasi dengan bcrypt di router
-      connection.query(sql, [nis], (err, results) => {
-        if (err) return reject(err);
-        resolve(results);
-      });
+ // ✅ Update method login untuk mendukung bcrypt
+static async login(nis, password) {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT 
+        siswa.id_siswa,
+        siswa.nama_siswa,
+        siswa.nis,
+        siswa.password,
+        siswa.alamat,
+        kelas.kode_kelas
+      FROM siswa
+      JOIN kelas ON siswa.id_kelas = kelas.id_kelas
+      WHERE siswa.nis = ?
+    `;
+
+    // Hanya cari berdasarkan NIS
+    connection.query(sql, [nis], async (err, results) => {
+      if (err) return reject(err);
+
+      // Cek apakah siswa ditemukan
+      if (results.length === 0) {
+        return reject(new Error('NIS atau password salah'));
+      }
+
+      // Ambil password dari hasil query
+      const siswa = results[0];
+
+      // Bandingkan password yang diinput dengan password hash yang ada di database
+      const isPasswordValid = await bcrypt.compare(password, siswa.password);
+
+      if (isPasswordValid) {
+        // Jika password valid, kembalikan data siswa tanpa password
+        const { password: _, ...siswaWithoutPassword } = siswa;
+        resolve(siswaWithoutPassword);
+      } else {
+        // Jika password tidak valid, beri error
+        reject(new Error('NIS atau password salah'));
+      }
     });
-  }
+  });
+}
+
 
   // ✅ Tambahkan method baru untuk mendapatkan siswa berdasarkan NIS saja
   static async getByNIS(nis) {

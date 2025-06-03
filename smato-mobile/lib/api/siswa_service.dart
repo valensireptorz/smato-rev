@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class SiswaService {
-  static const String baseUrl = 'http://192.168.100.23:3000/api/siswa';
+  static const String baseUrl = 'https://esmato.kabupatensumenep.com/api/siswa';
 
   Future<Map<String, dynamic>> changePassword({
   required String nis,
