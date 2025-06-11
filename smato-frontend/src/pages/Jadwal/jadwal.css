@@ -1,0 +1,180 @@
+/* Jadwal day card */
+.jadwal-day-card {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Jadwal card */
+.jadwal-card {
+  display: block !important; /* Ensure jadwal cards are visible */
+  transition: all 0.3s ease;
+  border-radius: 0.75rem;
+}
+
+/* Styling untuk highlight jadwal guru */
+.teacher-highlight {
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f1ff 100%) !important;
+  border: 2px solid #696cff !important;
+  box-shadow: 0 0.25rem 1rem rgba(105, 108, 255, 0.15) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Penambahan garis samping untuk highlight */
+.teacher-highlight::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #696cff 0%, #5f62e6 100%);
+  z-index: 1;
+}
+
+/* Efek hover pada jadwal guru yang login */
+.teacher-highlight:hover {
+  box-shadow: 0 0.5rem 1.5rem rgba(105, 108, 255, 0.25) !important;
+  transform: translateY(-8px);
+  transition: all 0.3s ease; /* Make hover smooth */
+}
+
+/* Styling teks pada jadwal guru yang login */
+.teacher-highlight .schedule-content h5 {
+  background: linear-gradient(135deg, #696cff, #5f62e6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Card yang memiliki transisi */
+.card {
+  transition: all 0.3s ease;
+  border-radius: 0.75rem;
+}
+
+/* Menambahkan shadow untuk card */
+.card.shadow-sm {
+  box-shadow: 0 0.125rem 0.375rem rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Tombol untuk hari aktif */
+.btn-outline-primary.active {
+  background-color: #696cff;
+  border-color: #696cff;
+  color: #fff;
+}
+
+/* Badge khusus untuk guru */
+.badge.bg-primary {
+  background-color: #696cff !important;
+  box-shadow: 0 2px 4px rgba(105, 108, 255, 0.3);
+}
+
+/* Efek hover pada tombol */
+.btn-primary:hover {
+  background-color: #5f62e6;
+  border-color: #5f62e6;
+  transform: translateY(-2px);
+  box-shadow: 0 0.25rem 0.5rem rgba(105, 108, 255, 0.3);
+}
+
+/* Styling untuk button */
+.btn {
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+/* Badge untuk status 'Anda' */
+.badge-anda {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Animasi pulse */
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.9; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Menambahkan animasi untuk elemen timeline */
+.timeline-container {
+  position: relative;
+}
+
+.timeline-item {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.5s ease;
+}
+
+.timeline-item:nth-child(1) { animation-delay: 0.1s; }
+.timeline-item:nth-child(2) { animation-delay: 0.2s; }
+.timeline-item:nth-child(3) { animation-delay: 0.3s; }
+.timeline-item:nth-child(4) { animation-delay: 0.4s; }
+.timeline-item:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.timeline-item {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+/* Card hover effect */
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Styling untuk tombol aksi guru */
+.btn-success {
+  background-color: #28c76f;
+  border-color: #28c76f;
+}
+
+.btn-success:hover {
+  background-color: #20b968;
+  border-color: #20b968;
+  transform: translateY(-2px);
+  box-shadow: 0 0.25rem 0.5rem rgba(40, 199, 111, 0.3);
+}
+
+
+
+.sidebar-footer .btn:hover {
+  background-color: #e53935;
+  border-color: #e53935;
+  transform: translateY(-2px);
+  box-shadow: 0 0.25rem 0.5rem rgba(244, 67, 54, 0.3);
+}
+
+@media (max-width: 768px) {
+  .teacher-highlight::before {
+    width: 3px;
+  }
+
+  .alert-info {
+    text-align: center;
+  }
+
+  .teacher-highlight .d-flex {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .timeline-item .d-flex {
+    flex-direction: column;
+  }
+
+  .schedule-time {
+    margin-bottom: 1rem;
+    min-width: auto;
+    text-align: left;
+  }
+}

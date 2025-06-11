@@ -39,8 +39,8 @@ class _PresensiScreenState extends State<PresensiScreen> with TickerProviderStat
   String? _presensiTimestamp;
   
   // Enhanced location variables
-  final double _allowedLatitude = -7.0130104;
-  final double _allowedLongitude = 113.8735425;
+  final double _allowedLatitude = -7.020236;
+  final double _allowedLongitude = 113.849375;
   final double _radiusInMeters = 200.0; // Updated to 200 meters
   
   // Location status variables

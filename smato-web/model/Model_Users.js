@@ -117,17 +117,18 @@ static async deleteByGuruId(id_guru) {
     }
     
 
-    static async getId(id) {
-        return new Promise((resolve, reject) =>{
-            connection.query('select * from users where id_users= ' + id, (err, rows) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(rows);
-                }
-            });
+   static async getId(id) {
+    return new Promise((resolve, reject) => {
+        connection.query('SELECT * FROM users WHERE id_users = ?', [id], (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
         });
-    }
+    });
+}
+
 
     static async Update(id, Data) {
         return new Promise((resolve, reject) => {

@@ -30,7 +30,11 @@ var apiguruRouter = require('./routes/api/guru');
 var apikelasRouter = require('./routes/api/kelas');
 var apipengumpulanRouter = require('./routes/api/pengumpulan');
 var guru_kelasRouter = require('./routes/guru_kelas');
-var apiguruFERouter = require('./routes/api/guruFE');
+var apimegausersFERouter = require('./routes/api/megausersFE');
+var apiloginFERouter = require('./routes/api/loginFE');
+var apijadwalFERouter = require('./routes/api/jadwalFE');
+var apitugasFERouter = require('./routes/api/tugasFE');
+var apiabsenFERouter = require('./routes/api/absenFE');
 
 var app = express();
 
@@ -43,23 +47,25 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(cors()); // Mengaktifkan CORS
-// Menyajikan file statis untuk public dan React (build)
+app.use(cors({
+  origin: 'http://localhost:3001',  // Sesuaikan dengan URL frontend React
+  credentials: true                // Pastikan kredensial (cookies/session) dapat dikirimkan
+}));
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'client/build'))); // Menyajikan file React build
 
 // Setup session dan flash messages
 app.use(session({
-  cookie: {
-    maxAge: 60000000000,
-    secure: false,
-    httpOnly: true,
-    sameSite: 'strict',
-  },
-  store: new MemoryStore(),
-  saveUninitialized: true,
+  secret: 'rahasia123', // sesuaikan
   resave: false,
-  secret: 'secret'
+  saveUninitialized: false, // ⬅️ penting agar session tidak kosong
+  cookie: {
+    httpOnly: true,
+    secure: false,          // set true jika HTTPS
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000 // ⬅️ 1 hari (penting untuk menyimpan cookie)
+  }
 }));
 
 app.use(flash()); // Untuk menggunakan flash message
@@ -87,7 +93,11 @@ app.use('/api/guru', apiguruRouter);
 app.use('/api/kelas', apikelasRouter);
 app.use('/api/pengumpulan', apipengumpulanRouter);
 app.use('/guru_kelas', guru_kelasRouter);
-app.use('/api/guruFE', apiguruFERouter);
+app.use('/api/megausersFE', apimegausersFERouter);
+app.use('/api/loginFE', apiloginFERouter);
+app.use('/api/jadwalFE', apijadwalFERouter);
+app.use('/api/tugasFE', apitugasFERouter);
+app.use('/api/absenFE', apiabsenFERouter);
 
 // Menyajikan file index.html dari React untuk semua route yang tidak ditemukan (untuk React routing)
 app.get('*', (req, res) => {
